@@ -1,0 +1,35 @@
+#!/usr/bin/env zsh
+
+set -e
+
+file_to_search="$1"
+echo "These functions are defined in: $file_to_search\n"
+output=$(grep -E "^# HELP" $file_to_search | sed -E 's/^# HELP //' | sort)
+if [[ -n "$helpwhitelist" ]]; then
+  output=$(egrep "$helpwhitelist" <<< "$output")
+fi
+if [[ -n "$helpexcludelist" ]]; then
+  output=$(egrep -v "$helpexcludelist" <<< "$output")
+fi
+padlength=15
+
+while read -r line
+do
+  function_name=$(awk -F ': ' '{print $1}' <<<"$line")
+  function_name_length=${#function_name}
+  if [[ $function_name_length -gt $padlength ]]; then
+    padlength=$(($function_name_length + 5))
+  fi
+done <<< "$output"
+
+pad=$(printf '%0.1s' "."{1..${padlength}})
+
+while read -r line
+do
+  function_name=$(awk -F ': ' '{print $1}' <<<"$line")
+  function_help=$(awk -F ': ' '{for (i=2; i<=NF; i++) print $i}' <<<"$line")
+  printf '  %s' "$function_name"
+  printf '%*.*s' 0 $((padlength - ${#function_name} )) "$pad"
+  printf '%s\n' "$function_help"
+done <<< "$output"
+echo

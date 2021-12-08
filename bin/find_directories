@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+startdir=$1
+curdir=$2
+shift; shift
+find -L "$startdir" -maxdepth 3 -not -path '*/\.*' -type d -name "*${curdir}*"

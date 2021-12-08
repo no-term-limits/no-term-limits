@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: rcid but do not exit if a command fails
+
+EXIT_ON_ERROR=false run_command_in_dirs "$@"

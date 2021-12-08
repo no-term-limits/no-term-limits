@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: creates a command based on user input. Run "crc -h" for details
+
+if grep -qE '^\-\<h\>$' <<<"$@" ; then
+  echo "usage: crc [command_name] [command_body](optional) [command_help](optional)"
+  exit 0
+fi
+
+new_command="$1"
+command_contents="$2"
+command_help="$3"
+
+if [[ -z "$COMMAND_DESTINATION_REPO" ]]; then
+  new_command_location="$(dirname "$0")/${new_command}"
+else
+  new_command_location="${COMMAND_DESTINATION_REPO}/${new_command}"
+fi
+cd "$(dirname "${new_command_location}")/../"
+
+function run() {
+  if [[ "$FORCE_CREATION" == "true" ]] || grep -q 'COMMAND_NOT_FOUND' <<<"$(cac "$new_command" 2>&1 || echo '')"; then
+    echo -e "#!/usr/bin/env bash\n\nset -eo pipefail\n\n# HELP: ${command_help}\n\n${command_contents}" >"$new_command_location"
+    chmod +x "$new_command_location"
+    if [[ "$NON_INTERACTIVE" != "true" ]]; then
+      vim "+normal G^" "$new_command_location"
+    fi
+  else
+    echo "ERROR: command already exists"
+  fi
+}
+
+run

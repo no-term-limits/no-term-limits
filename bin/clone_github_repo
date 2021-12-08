@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+github_dir="${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+user_and_repo_name="$1"
+if [[ -z "$user_and_repo_name" ]]; then
+  >&2 echo "ERROR: need user_and_repo_name argument"
+  exit 1
+fi
+
+repo_dir="${github_dir}/${user_and_repo_name}"
+if [[ ! -d "$repo_dir" ]]; then
+  mkdir -p "$github_dir"
+  git clone https://github.com/${user_and_repo_name}.git "$repo_dir"
+fi

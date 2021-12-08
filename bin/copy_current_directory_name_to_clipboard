@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: copy_current_directory_name_to_clipboard
+
+current_dir=$(basename $PWD) 
+echo -n $current_dir | cbcp

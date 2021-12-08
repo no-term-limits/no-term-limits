@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: exits 0 if a .svn directory is found
+
+if [[ -d .svn ]]; then
+  exit 0
+fi
+exit 1

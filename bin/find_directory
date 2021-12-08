@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -e
+
+# meta (c)hange directory to project
+# Usage: c ego
+# or: c pl<tab> # to autocomplete stuff in the ~/projects directory
+startdir=$1
+curdir=$2
+shift; shift
+
+# the "not" expression is to exclude hidden files and directories
+direxactmatch=$(find -L "$startdir" -maxdepth 3 -not -path '*/\.*' -type d -name "$curdir")
+
+if [[ -n $direxactmatch ]]; then
+  if echo "$direxactmatch" | grep -q plat; then
+    mainmatch=$(echo "$direxactmatch" | grep plat | head -n1)
+  else
+    mainmatch=$(echo "$direxactmatch" | head -n1);
+  fi
+else
+  dirpartialmatch=$(find_directories "$startdir" "$curdir" | head -n1)
+  if [[ -n $dirpartialmatch ]]; then
+    mainmatch=$dirpartialmatch
+  else
+    (echo "$curdir directory not found within $startdir" >&2)
+    exit 1
+  fi
+fi
+
+if [[ $# -ne 0 ]]; then
+  mainmatch=$(find_directory "$mainmatch" "$@")
+fi
+echo "$mainmatch"

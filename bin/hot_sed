@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+# HELP: runs gsed if found (like mac) or sed otherwise. This is to make both mac and linux run with gnu sed instead of mac's default sed which isn't fully compatible with the gnu version
+
+if type gsed >/dev/null 2>&1; then
+  gsed "$@"
+else
+  sed "$@"
+fi

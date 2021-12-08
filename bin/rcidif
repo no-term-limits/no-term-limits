@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# HELP: rcid but only disply directories that match pattern defined by the command
+
+PRINT_DIRECTORY_ON_SUCCESS=true rcid "$@"

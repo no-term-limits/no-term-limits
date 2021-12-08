@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: ONLY WORKS ON UBUNTU - opens a program with xdg-open
+
+# when another user signs into wemux the DISPLAY variable becomes unset
+# and results in: Unable to open X display
+# so forcing it to :0 here
+# not sure if this will cause other isssues but it at least fixed my box
+DISPLAY=:0 xdg-open "$@"

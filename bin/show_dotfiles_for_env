@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: show the dotfiles that are particularly important in the shell loading sequence. Looks mostly at alias, bash, zsh, env
+
+if [[ "$1" == "terse" ]]; then
+  ls -d $HOME/.{alias,bash,zsh,local,$USER}* | uniq | grep -vE '(logout|history|\.(zshenv|local|zsh)$)'
+else
+  ll -d $HOME/.{alias,bash,zsh,local,$USER}* | uniq | grep -vE '(logout|history|\.(zshenv|local|zsh)$)'
+fi

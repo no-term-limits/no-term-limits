@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: searches and replaces test in all files under the current working directory based on two arguments. usage# perlsr real_time very_fast
+
+perl -pi -e "s/$1/$2/g" `find ./ -type f | fgrep -v .svn | grep -v .git`

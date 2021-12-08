@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: rcid in all directories in pwd
+
+find_pwd_for_script | rcid "$@"

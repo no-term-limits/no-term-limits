@@ -1,0 +1,547 @@
+set nocompatible " We're running Vim, not Vi!
+
+" FIXME: hopefully real fix comes through in
+" https://github.com/vim/vim/issues/3117 and this hack fix can be deleted.
+" another hack fix is removing this plugin: https://github.com/editorconfig/editorconfig-vim/issues/108
+if has('python3')
+  silent! python3 1
+endif
+
+set et " expand tabs to spaces
+set ts=2  " Tabs are 2 spaces
+set sts=2 " softtabstop same as tabstop so hitting backspace deletes two spaces
+set shiftwidth=2  " Tabs under smart indent
+set bs=2  " Backspace over everything in insert mode
+set ruler " Show the cursor position all the time, including the line number
+set hidden " does something useful with hidden buffers
+set hlsearch
+set number
+set noswapfile
+
+" tmux on Ubuntu sets to light for some reason and messes up highlighting
+set background=dark
+
+" for vim-test. run tests (Leader+s for TestNearest, etc) using dispatch.vim
+let test#strategy = "dispatch"
+
+" Make Shift-K grep for word under cursor rather than look up docs
+nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
+
+let g:ctrlp_cmd = 'CtrlP .'
+let g:ctrlp_regexp = 1
+
+" Bubble (move) single lines
+nmap <C-Up> [e
+nmap <C-Down> ]e
+
+" Bubble (move) multiple lines
+vmap <C-Up> [egv
+vmap <C-Down> ]egv
+
+" Control
+nmap <C-Left> :bp<cr>
+nmap <C-Right> :bn<cr>
+
+" allow playback of a macro without having to type the @ sign
+nnoremap <silent> ,, @q
+
+" If you're splitting windows with :sp and :vsp, hitting ctrl+w h will move
+" you to the window to the left of the one you're in. it might be nicer
+" to allow just ctrl+h to do that, eh?
+nnoremap <C-h> <C-W>h
+nnoremap <C-j> <C-W>j
+nnoremap <C-k> <C-W>k
+nnoremap <C-l> <C-W>l
+
+
+" Leader mappings. Note that <leader> is the backslash key by default, and is
+" overriden to be the Space key by thoughtbot/dotfiles
+
+" fuzzy finding from fzf.vim. had been CtrlP.vim plugin
+nnoremap <leader>f :Files<CR>
+
+" buffer list via CtrlP
+nnoremap <leader>b :Buffers<CR>
+
+" search tabs similar to <leader>b
+" nnoremap <leader>w :Windows<CR>
+
+" Use the same symbols as TextMate for tabstops and EOLs
+" Whoops i tried to make the tab work with insert mode ctrl+v u 25b8, but no dice
+" http://vimcasts.org/episodes/show-invisibles/
+set listchars=eol:$,tab:>-,trail:~,extends:>,precedes:<
+
+if has("autocmd")
+  filetype plugin indent on " Enable filetype detection, filetype-specific indenting, and filetype-specific plugins
+
+  " Restore cursor position
+  autocmd BufReadPost *
+    \ if line("'\"") > 1 && line("'\"") <= line("$") |
+    \   exe "normal! g`\"" |
+    \ endif
+
+  " http://stackoverflow.com/questions/2393671/vim-restores-cursor-position-exclude-special-files
+  autocmd BufReadPost COMMIT_EDITMSG,svn-commit.tmp
+    \ exe "normal! gg"
+
+  " java
+  " autocmd FileType java setlocal noexpandtab
+  " autocmd Bufread,BufNewFile java setlocal noexpandtab
+  autocmd FileType java,python setlocal shiftwidth=4
+  autocmd FileType java,python setlocal tabstop=4
+  autocmd FileType java,python setlocal softtabstop=4
+  autocmd Bufread,BufNewFile java set list
+
+  " git config
+  autocmd Bufread,BufNewFile .gitconfig setlocal noexpandtab
+  autocmd Bufread,BufNewFile .gitconfig set list
+
+  " https://github.com/vim-scripts/Rainbow-Parentheses-Improved-and2
+  let g:rainbow_active = 1
+  let g:rainbow_operators = 1
+
+  " Source the .vimrc file after saving it
+  autocmd BufWritePost .vimrc source $MYVIMRC
+
+  " generate tags for any user-generated docs when those docs are saved
+  autocmd BufWritePost ~/.vim/doc/* :helptags ~/.vim/doc
+
+  au bufNewFile,BufRead *.txt set spell
+
+  " https://github.com/fatih/vim-go-tutorial#quick-setup.
+  " <leader>b is, of course, taken
+  " So i made <leader>w, <leader>n, and <leader>m, be useful
+  autocmd FileType go nmap <leader>w  <Plug>(go-build)
+  autocmd FileType go nmap <leader>n  :cnext<CR>
+  autocmd FileType go nmap <leader>m  :cprevious<CR>
+  autocmd FileType go nmap <leader>x  :cclose<CR>
+  autocmd FileType go nmap <leader>d  <Plug>(go-def)
+
+  " strip trailing whitespace when the file types in the BufWritePre line
+  " below. reference: https://unix.stackexchange.com/a/75438/456630
+  function! <SID>StripTrailingWhitespaces()
+    let l = line(".")
+    let c = col(".")
+    %s/\s\+$//e
+    call cursor(l, c)
+  endfun
+  autocmd BufWritePre * if &ft =~ '^\(ruby\|sh\|zsh\|javascript\)$' | :call <SID>StripTrailingWhitespaces() | endif
+
+endif
+
+" 'quote' (single quote) a word. otherwise, ysiw'
+nnoremap qw :silent! normal mpea'<Esc>bi'<Esc>`pl
+" remove quotes from a word
+nnoremap wq :silent! normal mpeld bhd `ph<CR>
+nnoremap qu :s#\(\<\u\l\+\|\l\+\)\(\u\)#\l\1_\l\2#g<CR>
+
+nmap <F8> :TagbarToggle<CR>
+
+if has("gui_running")
+  " work around linux gui F10 problem by making it a nice safe refresh
+  if has("gui_gnome") || has("gui_gtk") || has("gui_gtk2")
+    map <F10> <c-L>
+  endif
+endif
+
+syntax on " Enable syntax highlighting
+
+" highlights the whole line just for quickfix
+" would rather have this in a custom buffer
+au BufReadPost quickfix setlocal cursorline
+
+command! -nargs=* -complete=file T :tabnew <args>
+
+" Overrides for dotfiles setup
+set nolist
+set colorcolumn=0
+set textwidth=0
+
+" SpellCap was unreadable on iterm2 with 256 colors. underline instead of highlight is better anyway.
+hi clear SpellCap
+hi link SpellCap Underlined
+
+" https://thoughtbot.com/upcase/videos/tmux-vim-integration#final-configuration
+" automatically rebalance windows on vim resize
+autocmd VimResized * :wincmd =
+
+" copy the full file path into the system clipboard
+nmap cp :let @+ = expand("%:p")<cr>
+
+if has("autocmd")
+  autocmd BufRead,BufNewFile *.thrift set filetype=thrift
+
+  " java
+  " autocmd FileType java setlocal noexpandtab
+  " autocmd Bufread,BufNewFile java setlocal noexpandtab
+  autocmd FileType java,python setlocal shiftwidth=4
+  autocmd FileType java,python setlocal tabstop=4
+  autocmd FileType java,python setlocal softtabstop=4
+  autocmd Bufread,BufNewFile java set list
+
+  au BufReadPost Jenkinsfile set syntax=groovy
+  au BufReadPost Jenkinsfile set filetype=groovy
+  au FileType groovy setlocal expandtab
+endif
+
+" reactjs stuff
+" mostly from https://speakerdeck.com/jwworth/react-dot-js-plus-vim
+augroup fmt
+  autocmd!
+  " set up autocorrect just for js and jsx files in trove and tully-tokenizer.
+  " and fe (frontend).
+  " we originally had ImportJSFix before Neoformat, and had it on two lines.
+  " Neoformat actual sets -bar, so the bar (pipe) works in this order. i'm not
+  " sure the order is optimal, but at least it works on one line, which i
+  " suspect will help with undojoin
+  "
+  " FIXME:
+  " autocmd BufWritePre *projects/fe/*.js*,*trove/*.js*,*tully-tokenizer/*.js* undojoin | Neoformat | ImportJSFix
+augroup END
+
+" react
+let g:mta_filetypes = {
+      \ 'javascript.jsx': 1,
+      \}
+" end reactjs stuff
+
+fun! Should_execute_t_file(t_file_to_use)
+  if filereadable(a:t_file_to_use) && match(readfile(a:t_file_to_use),"DISABLE_T_FILE") == -1
+    if localtime() - getftime(a:t_file_to_use) < 86400
+      return 1
+    endif
+  endif
+  return 0
+endfun
+
+fun! Run_run_in_tmux_pane_ProgramInTmuxPane() "{{{
+  let file_that_was_changed = '<afile>'
+  " if you have a file called "t", it will run to the right, since t is short and right is best!
+  if Should_execute_t_file('t')
+      execute 'silent !tmux send-keys -t bottom-right "run_in_tmux_pane ' . getcwd() . '/t '. file_that_was_changed . '" Enter'
+      redraw!
+  endif
+  if Should_execute_t_file('t_right')
+    execute 'silent !tmux send-keys -t bottom-right "run_in_tmux_pane ' . getcwd() . '/t_right '. file_that_was_changed . '" Enter'
+    redraw!
+  endif
+  if Should_execute_t_file('t_bottom')
+    execute 'silent !tmux send-keys -t bottom "run_in_tmux_pane ' . getcwd() . '/t_bottom '. file_that_was_changed . '" Enter'
+    redraw!
+  endif
+endfunction "}}}
+autocmd BufWritePost * cal Run_run_in_tmux_pane_ProgramInTmuxPane()
+
+" Some folks are not huge fans of the "Get off my lawn" settings in thoughtbot dotfiles
+nnoremap <Left> <Left>
+nnoremap <Right> <Right>
+nnoremap <Up> <Up>
+nnoremap <Down> <Down>
+
+fun! Add_Shebang_line() "{{{
+  execute "normal! ggi#!/usr/bin/env bash\<cr>\<cr>"
+endfunction "}}}
+
+nnoremap <leader>rs :cal Add_Shebang_line()<cr>
+
+fun! OpenLastFailedTestFile() "{{{
+  let file_to_open = system('get_last_failed_test_file')
+  call feedkeys(":e " . file_to_open)
+endfun "}}}
+
+command! OpenLastFailedTestFile call OpenLastFailedTestFile()
+nnoremap <leader>7 :OpenLastFailedTestFile<cr>
+
+" disable window functionality for fzf because it causes the cursor to move to
+" the top of the current window whenever using ctrl-p which is really annoying
+"
+" FROM https://github.com/junegunn/fzf commit c60ed1758315f0d993fbcbf04459944c87e19a48
+"     If you prefer the previous default, add this to your Vim configuration file:
+"       let g:fzf_layout = { 'down': '40%' }
+"     (fzf will fall back to this if popup window is not supported)
+let g:fzf_layout = { 'down': '40%' }
+
+
+" remove mappings from thoughtbot/dotfiles
+nunmap <silent> <leader>t
+nunmap <silent> <leader>s
+nunmap <silent> <leader>l
+nunmap <silent> <leader>a
+nunmap <silent> <leader>gt
+nunmap <silent> <leader>r
+nunmap \
+
+" added by tabnine-vim/YouCompleteMe
+let g:ycm_key_detailed_diagnostics=''
+
+" added by tComment / tcomment_vim
+let g:tcommentMapLeader1=''
+let g:tcomment_mapleader1=''
+
+" default mapping from ctags in favor of "+run" menu, "run ctags", <leader>rc
+" unmap <silent!> <leader>ct
+" nmap <leader>ct :call ReindexCtags()<cr>
+let g:thoughtbot_ctags_mappings_enabled = 0
+
+" vim-which-key plugin
+" nnoremap <silent> <leader> :WhichKey '<Space>'<cr>
+nnoremap <silent> <leader> :silent WhichKey '<Space>'<cr>
+vnoremap <silent> <leader> :silent <c-u> :silent WhichKeyVisual '<Space>'<cr>
+nnoremap <silent> <localleader> :silent WhichKey '\'<cr>
+vnoremap <silent> <localleader> :silent <c-u> :silent WhichKeyVisual '\'<cr>
+
+" vim-jenkins
+let g:jenkins_enable_mappings = 0
+
+" credit to https://www.chrisatmachine.com/Neovim/15-which-key/ for initial
+" vim-which-key configs.
+"
+" Create map to add keys to
+let g:which_key_map =  {}
+
+let g:which_key_localleader_map =  {}
+
+" Define a separator
+let g:which_key_sep = '→'
+
+" defaults to 1000
+set timeoutlen=600
+
+" Not a fan of floating windows for this
+let g:which_key_use_floating_win = 0
+
+" Change the colors if you want
+highlight default link WhichKey          Operator
+highlight default link WhichKeySeperator DiffAdded
+highlight default link WhichKeyGroup     Identifier
+highlight default link WhichKeyDesc      Function
+
+" Hide status line
+autocmd! FileType which_key
+autocmd  FileType which_key set laststatus=0 noshowmode noruler
+  \| autocmd BufLeave <buffer> set laststatus=2 noshowmode ruler
+
+" Define prefix dictionary
+let g:which_key_map =  {}
+
+" Single mappings
+
+let g:which_key_map['s'] = [ ':ALEToggle'                   , 'toggle ale' ]
+" let g:which_key_map['/'] = [ '<Plug>NERDCommenterToggle'  , 'comment' ]
+" let g:which_key_map['e'] = [ ':CocCommand explorer'       , 'explorer' ]
+let g:which_key_map['f'] = [ ':Files'                       , 'search files' ]
+let g:which_key_map['b'] = [ ':Buffers'                     , 'search open buffers' ]
+" let g:which_key_map['h'] = [ '<C-W>s'                     , 'split below']
+" let g:which_key_map['r'] = [ ':Ranger'                    , 'ranger' ]
+" let g:which_key_map['S'] = [ ':Startify'                  , 'start screen' ]
+" let g:which_key_map['T'] = [ ':Rg'                        , 'search text' ]
+" let g:which_key_map['v'] = [ '<C-W>v'                     , 'split right']
+" let g:which_key_map['z'] = [ 'Goyo'                       , 'zen' ]
+
+nmap <leader>3 :%s/\s\+$//e<cr>
+let g:which_key_map.3 = 'delete trailing whitespace'
+
+" s is for search
+let g:which_key_map.s = {
+      \ 'name' : '+search' ,
+      \ '/' : [':History/'     , 'history'],
+      \ ';' : [':Commands'     , 'commands'],
+      \ 'b' : [':BLines'       , 'current buffer'],
+      \ 'B' : [':Buffers'      , 'open buffers'],
+      \ 'C' : [':BCommits'     , 'buffer commits'],
+      \ 'f' : [':Files'        , 'files'],
+      \ 'g' : [':GFiles'       , 'git files'],
+      \ 'G' : [':GFiles?'      , 'modified git files'],
+      \ 'h' : [':History'      , 'file history'],
+      \ 'H' : [':History:'     , 'command history'],
+      \ 'l' : [':Lines'        , 'lines'] ,
+      \ 'm' : [':Marks'        , 'marks'] ,
+      \ 'M' : [':Maps'         , 'normal maps'] ,
+      \ 'p' : [':Helptags'     , 'help tags'] ,
+      \ 'P' : [':Tags'         , 'project tags'],
+      \ 's' : [':Snippets'     , 'snippets'],
+      \ 'S' : [':Colors'       , 'color schemes'],
+      \ 't' : [':Rg'           , 'text Rg'],
+      \ 'T' : [':BTags'        , 'buffer tags'],
+      \ 'w' : [':Windows'      , 'search windows'],
+      \ 'y' : [':Filetypes'    , 'file types'],
+      \ 'z' : [':FZF'          , 'FZF'],
+      \ }
+
+nnoremap <leader>sa :Ag<Space>
+let g:which_key_map.s.a = 'text Ag'
+nnoremap <leader>sc :Commits<cr>
+let g:which_key_map.s.c = 'commits'
+
+let g:which_key_map.v = {
+      \ 'name' : '+vimrc' ,
+      \ 'v' : [':edit $MYVIMRC'                                                    , 'edit $MYVIMRC (thoughtbot dotfiles, ~/.vimrc)'],
+      \ 'g' : [':edit ~/vimrc.local'     , 'edit no-term-limits vimrc'],
+      \ 'p' : [':edit ~/vimrc.no_term_limits_overrides'                            , 'edit ~/.vimrc.no_term_limits_overrides'],
+      \ 's' : [':source $MYVIMRC'                                                  , 'source $MYVIMRC'],
+      \ }
+
+let g:which_key_map.t = {
+      \ 'name' : '+toggle' ,
+      \ 'a' : [':ALEToggle'     , 'toggle ale linting on/off'],
+      \ 'h' : [':set hlsearch!' , 'toggle highlighted search'],
+      \ 'l' : [':set list!'     , 'toggle list mode'],
+      \ 'p' : [':set paste!'    , 'toggle paste mode'],
+      \ }
+
+let g:CheatSheetDoNotMap=1
+
+" regarding ce CheatError and the someday comment:
+" see https://github.com/dbeniamine/cheat.sh-vim#errors about adding a provider and:
+" https://github.com/dense-analysis/ale/issues/1810#issuecomment-419708225
+let g:which_key_map.c = {
+      \ 'name' : '+cheat.sheet' ,
+      \ 'c' : [':call CheatSheetQueryToBuffer()'     , 'query cheat.sheet for current line'],
+      \ 'e' : [':CheatError'     , 'look up Error from syntastic and maybe someday ale'],
+      \ 'w' : [':call CheatSheetEntryToBuffer()'     , 'get cheat.sheet entry for current Word'],
+      \ 'b' : [':bd _cheat' , 'close _cheat Buffer'],
+      \ 'j' : [":call cheat#navigate(1,'Q')<CR>"     , 'next question'],
+      \ 'k' : [":call cheat#navigate(-1,'Q')<CR>"    , 'prev question'],
+      \ 'l' : [":call cheat#navigate(1,'A')<CR>"    , 'next answer'],
+      \ 'h' : [":call cheat#navigate(-1,'A')<CR>"     , 'prev answer'],
+      \ }
+
+fu! CheatSheetQueryToBuffer()
+  call cheat#cheat("", getcurpos()[1], getcurpos()[1], 0, 0, '!')
+endfunction
+
+" this takes the word under the cursor and opens up the
+" corresponding cheat sheet entry (rather than doing a query, which is likely
+" to return stackoverflow answers)
+fu! CheatSheetEntryToBuffer()
+  let l:filetypeforcheat = cheat#frameworks#getFt()
+  let l:wordundercursor = expand('<cword>')
+  execute 'Cheat ' . l:filetypeforcheat . ' ' . l:wordundercursor
+endfunction
+
+let g:which_key_map.l = { 'name' : '+language server protocol (lsp)' }
+nnoremap <leader>li :LspInstallServer<cr>
+let g:which_key_map.l.s = 'install lsp server'
+nnoremap <leader>ld :LspDefinition<cr>
+let g:which_key_map.l.s = 'lsp definition'
+nnoremap <leader>ls :LspStatus<cr>
+let g:which_key_map.l.s = 'lsp status'
+
+" START GENERATE UUID FUNCTION. this cannot be indented properly. :D
+" credit to https://gist.github.com/jonmorehouse/8442341
+fu! GenerateUUID()
+
+py3 << EOF
+import uuid
+import vim
+
+# output a uuid to the vim variable for insertion below
+vim.command("let generatedUUID = \"%s\"" % str(uuid.uuid4()))
+
+EOF
+
+" insert the python generated uuid into the current cursor's position
+:execute "normal i" . generatedUUID . ""
+endfunction
+" END GENERATE UUID FUNCTION
+
+"initialize the generateUUID function here and map it to a local command
+noremap <Leader>rg :call GenerateUUID()<CR>
+
+" added by vim-rubocop plugin, so just documenting here. can be switched off by user with: let g:vimrubocop_keymap = 0
+let g:which_key_map.r = {
+      \ 'name' : '+run' ,
+      \ 'c' : [':call ReindexCtags()<cr>'     , 'run ctags'],
+      \ }
+nnoremap <leader>rj :JenkinsValidateJenkinsFile<cr>
+let g:which_key_map.r.j = 'run Jenkinsfile lint'
+nnoremap <leader>rr :!open_url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"<cr>
+nnoremap <leader>rt :TestNearest<cr>
+let g:which_key_map.r.r = 'run rickroll'
+let g:which_key_map.r.s = 'run add shebang line'
+let g:which_key_map.r.t = 'run tests'
+let g:which_key_map.r.g = 'run guid generator'
+
+" FIXME: deprecated by <leader>rj, run Jenkinsfile lint
+nnoremap <leader>jj :JenkinsValidateJenkinsFile<cr>
+let g:which_key_map.j = { 'name' : '+jenkins deprecated by +run' }
+
+let g:which_key_map.r.u = 'run rubocop'
+
+" actually creating these mappings in which-key results in mappings that don't
+" work. so define them normally and document them with which key per below.
+" let g:which_key_map.p = {
+"       \ 'name' : '+panes' ,
+"       \ 'z' : [':wincmd _<cr>:wincmd \|<cr>'    , 'zoom'],
+"       \ 'r' : [':wincmd =<cr>'                  , 're-balance'],
+"       \ }
+let g:which_key_map.p = { 'name' : '+panes' }
+nnoremap <leader>pz :wincmd _<cr>:wincmd \|<cr>
+let g:which_key_map.p.z = 'zoom'
+nnoremap <leader>pr :wincmd =<cr>
+let g:which_key_map.p.r = 're-balance'
+
+nnoremap <leader>pz :wincmd _<cr>:wincmd \|<cr>
+
+" these make it really easy to open several files from the same directory:
+cnoremap %% <C-R>=expand('%:h').'/'<cr>
+map <localleader>ew :e %%
+map <localleader>es :sp %%
+map <localleader>ev :vsp %%
+map <localleader>et :tabe %%
+let g:which_key_localleader_map.e = { 'name' : '+edit' }
+let g:which_key_localleader_map.e.w = 'open file in same directory'
+
+" tcomment_vim mappings, meh
+let g:which_key_map['_'] = { 'name': 'which_key_ignore' }
+
+" FIXME: remove once https://github.com/thoughtbot/dotfiles/pull/684 is merged
+" but for now, ignore the ctags mapping on ct
+" UPDATE: now being used for cheat sheet shortcuts (see above)
+" let g:which_key_map.c = { 'name': 'which_key_ignore' }
+
+" from https://github.com/stsewd/fzf-checkout.vim
+nnoremap <leader>gc :GBranches<cr>
+
+" vim-fugitive
+nnoremap <leader>gs :G<cr>
+
+" after running git status and entering 3-column merge UI with dv (diff
+" vertical, shortcut for :Gvdiffsplit), use one of these to resolve the
+" conflict in each chunk. the f and j don't stand for anything. they are just
+" on the left and right on a qwerty keyboard. credit to theprimeagen for the
+" mapping idea.
+nnoremap <leader>gf :diffget //2<cr>
+nnoremap <leader>gj :diffget //3<cr>
+
+" vim-gitgutter
+let g:gitgutter_map_keys = 0
+
+" git undo (hunk)
+nmap <Leader>gu <Plug>(GitGutterUndoHunk)
+
+let g:which_key_map.g = { 'name': '+git' }
+let g:which_key_map.g.c = 'git checkout w/ fzf'
+let g:which_key_map.g.s = 'git status'
+let g:which_key_map.g.f = 'git resolve conflict left'
+let g:which_key_map.g.j = 'git resolve conflict right'
+let g:which_key_map.g.u = 'git undo hunk'
+
+" Register which key map
+call which_key#register('<Space>', "g:which_key_map")
+call which_key#register('\', "g:which_key_localleader_map")
+
+" https://stackoverflow.com/questions/14896327/ultisnips-and-youcompleteme
+" so you can hammer "rwb<ctrl>j>" instead of "rwb<tab>", which does not work
+let g:UltiSnipsExpandTrigger="<c-j>"
+let g:UltiSnipsListSnippets="<c-k>"
+
+" Trigger a highlight in the appropriate direction when pressing these keys:
+let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
+
+if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
+  source ~/.vimrc.no_term_limits_overrides
+endif
+
+" Fugitive .git/tags support removed in favor of `:set tags^=./.git/tags;`
+set tags^=./.git/tags

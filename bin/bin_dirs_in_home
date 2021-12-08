@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: returns all bin directories found in PATH that are located in the home directory
+
+perl -p -e 's/:/\n/g' <<<"$PATH" | grep "$HOME.*bin"

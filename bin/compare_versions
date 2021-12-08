@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: compares 2 given version numbers with each other. Example: if compare_versions '1 < 2'; then; echo yes, one is less than two; fi
+
+first_version="$1"
+operator="$2"
+second_version="$3"
+
+if [[ -z "$second_version" ]]; then
+  full_arg_string=$1
+  first_version=$(awk '{print $1}' <<<"$full_arg_string")
+  operator=$(awk '{print $2}' <<<"$full_arg_string")
+  second_version=$(awk '{print $3}' <<<"$full_arg_string")
+fi
+
+if [[ "${#operator}" -gt "1" ]]; then
+  >&2 echo "ERROR: this script can only handle the operators: >, <, and =. NOT >=, etc"
+  exit 1
+fi
+
+# The following tests should pass
+# Pass: '1 = 1'
+# Pass: '2.1 < 2.2'
+# Pass: '3.0.4.10 > 3.0.4.2'
+# Pass: '4.08 < 4.08.01'
+# Pass: '3.2.1.9.8144 > 3.2'
+# Pass: '3.2 < 3.2.1.9.8144'
+# Pass: '1.2 < 2.1'
+# Pass: '2.1 > 1.2'
+# Pass: '5.6.7 = 5.6.7'
+# Pass: '1.01.1 = 1.1.1'
+# Pass: '1.1.1 = 1.01.1'
+# Pass: '1 = 1.0'
+# Pass: '1.0 = 1'
+# Pass: '1.0.2.0 = 1.0.2'
+# Pass: '1..0 = 1.0'
+# Pass: '1.0 = 1..0'
+# The following test should fail (test the tester)
+# FAIL: Expected '>', Actual '=', Arg1 '1', Arg2 '1'
+
+function compare() {
+  if [[ $1 == $2 ]]; then
+    echo -n 0
+    return 0
+  fi
+
+  local IFS=.
+  local i ver1=($1) ver2=($2)
+
+  # fill empty fields in ver1 with zeros
+  for ((i=${#ver1[@]}; i<${#ver2[@]}; i++)); do
+    ver1[i]=0
+  done
+
+  for ((i=0; i<${#ver1[@]}; i++)); do
+    if [[ -z ${ver2[i]} ]]; then
+      # fill empty fields in ver2 with zeros
+      ver2[i]=0
+    fi
+    if ((10#${ver1[i]} > 10#${ver2[i]})); then
+      echo -n 1
+      return 0
+    fi
+    if ((10#${ver1[i]} < 10#${ver2[i]})); then
+      echo -n 2
+      return 0
+    fi
+  done
+  echo -n 0
+}
+
+function check_result() {
+  case $1 in
+    '0') op='=';;
+    '1') op='>';;
+    '2') op='<';;
+  esac
+
+  if [[ $op != $operator ]]; then
+    if [[ "$VERBOSE_DEBUG" == "true" ]]; then
+      >&2 echo "FAIL: Expected '$operator', Actual '$op', Result '$1', Arg1 '$first_version', Arg2 '$second_version'"
+    fi
+    exit 1
+  else
+    exit 0
+  fi
+}
+
+result=$(compare "$first_version" "$second_version")
+check_result "$result"

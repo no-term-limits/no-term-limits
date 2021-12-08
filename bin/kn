@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: show the current cluster and namespace
+
+config_view=$(k config view -o json)
+current_context=$(jq -r '."current-context"' <<<"$config_view")
+if [[ -n "$current_context" ]]; then
+  cluster_name=$(sed 's/^[^-]*-//' <<<"$current_context")
+  cluster=$(jq -r ".clusters | map(select(.name == \"${cluster_name}\")) | .[].cluster.server" <<<"$config_view")
+  namespace=$(jq -r ".contexts | map(select(.name == \"${current_context}\")) | .[].context.namespace" <<<"$config_view")
+  echo "${cluster} >>> ${namespace}"
+else
+  exit 1
+fi

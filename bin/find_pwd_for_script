@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: finds all files within current directory and formats in script friendly way
+
+find . -maxdepth 1 -type d ! -name '.' | sort

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: git the branch name of current directory
+
+git rev-parse --abbrev-ref HEAD

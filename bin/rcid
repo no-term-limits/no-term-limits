@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+# HELP: shortcut for run_command_in_dirs
+
+run_command_in_dirs "$@"

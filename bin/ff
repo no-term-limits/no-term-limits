@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: find file
+
+find . -name "*$1*" -not -path '*/.git/*'

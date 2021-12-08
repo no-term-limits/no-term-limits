@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: edit (first matching) file by file name
+
+vim $(find_first_file $1)

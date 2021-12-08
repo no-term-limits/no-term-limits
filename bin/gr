@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: popular: checks out main branch and runs git pull
+
+git fetch
+
+if has_main_branch; then
+  git checkout main
+elif git ls-remote --exit-code . origin/master &>/dev/null; then
+  git checkout master
+fi
+
+gp

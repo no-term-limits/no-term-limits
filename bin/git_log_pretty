@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: log that lets you see the flow of branching and merging
+
+git log --graph --pretty=oneline --abbrev-commit

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: check to see if a main branch already exists for current directory
+
+git ls-remote --exit-code . origin/main &>/dev/null

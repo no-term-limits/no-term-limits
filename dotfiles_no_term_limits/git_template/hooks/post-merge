@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# fail fast if `bundle` isn't an available command
+if (command -v bundle >/dev/null 2>&1);
+then
+  # find the configured Gemfile path
+  if [ -n "$BUNDLE_GEMFILE" ]; then
+    gemfile_path="$BUNDLE_GEMFILE"
+  elif ( bundle config list | grep -q '^gemfile$' ); then
+    gemfile_path="$( bundle config list | sed -n '/^gemfile$/{n;s/^Set .*: "\(.*\)"/\1/;p;}' 2>/dev/null )"
+  else
+    gemfile_path='Gemfile'
+  fi
+
+  # run `bundle install` if the Gemfile exists and has been updated in the last commit
+  if [ -f "$gemfile_path" ] && ( git diff --name-only HEAD HEAD\~1 | grep -q "^$(basename "$gemfile_path")$" ); then
+    bundle install
+  fi
+fi

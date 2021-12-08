@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+# HELP: passes all args to git. Defaults to "git status" if no args are given
+
+if [[ $# -gt 0 ]]; then
+  git "$@"
+else
+  git status
+fi

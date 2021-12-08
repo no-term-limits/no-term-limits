@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+set -e
+
+diff_with_less "$(no_term_limits_location)/bin/diff_with_color $@"

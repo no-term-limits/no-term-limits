@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: remove_broken_symlinks
+
+# mac find does not have -xtype
+# symlinks=$(find . -xtype l)
+
+symlinks=$(find . -type l -exec test ! -e {} \; -print)
+echo "$symlinks"
+echo "$symlinks" | xargs rm -rf

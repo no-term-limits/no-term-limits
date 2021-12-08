@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: Uses either say or espeak to synthesis speech on given text
+
+if [[ -n "$2" ]]; then
+  >&2 echo "ERROR: espeak only works with one arg so quote full text arg like: $(basename "$0") 'hello world'"
+  exit 1
+fi
+
+# mac has say and ubuntu has espeak
+if command -v say >/dev/null ; then
+  say "$@"
+else
+  espeak "$1"
+fi

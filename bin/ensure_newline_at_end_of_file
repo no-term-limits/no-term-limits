@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: ensure a given file ends with a new line
+
+if [[ -f "$1" ]]; then
+  hot_sed -i -e '$a\' "$1"
+fi

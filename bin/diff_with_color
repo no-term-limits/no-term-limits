@@ -1,0 +1,1 @@
+colordiff -r --unified=0 --exclude='*.svn*' --exclude='*.git' "$@"

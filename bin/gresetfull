@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: calls gitcleanup but then also removes ignored files and then checks out the master branch and pulls
+
+gitc
+git clean -fdx
+gr

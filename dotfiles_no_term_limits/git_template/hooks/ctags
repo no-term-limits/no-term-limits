@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# just trying to override thoughbot dotfiles default post-checkout script, which
+# we believe may cause out-of-control sort commands during the ctags run depending
+# on where you run it from.
+echo hello >/dev/null

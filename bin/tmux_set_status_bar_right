@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: set the bottom right status bar in tmux
+
+if [[ -n "$TMUX" ]]; then
+  if [[ "$RS_TMUX_SET_GLOBAL" == "true" ]]; then
+    tmux set -g status-right "$(tmux_status_bar_right)"
+  else
+    tmux set status-right "$(tmux_status_bar_right)"
+  fi
+fi

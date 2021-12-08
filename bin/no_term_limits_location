@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: returns the location of no-term-limits
+
+dirname "$(dirname "$0")"

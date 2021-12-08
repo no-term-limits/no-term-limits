@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: runs: "git checkout .", given command, "git --no-pager diff". Multiple commands can be passed in. Args can be used if quoted with corresponding command like: "ls blah"
+
+gitc
+git merge --abort 2>/dev/null || true
+
+echo "$@"
+eval "$@"
+
+if [[ "$SKIP_GIT_DIFF" != 'true' ]]; then
+  results=$(gd)
+  if [[ "$(wc -l <<<"$results")" -lt 100 ]]; then
+    colordiff <<<"$results"
+  else
+    echo -e "\nGit diff exceeds 100 lines. Skipping..."
+  fi
+fi

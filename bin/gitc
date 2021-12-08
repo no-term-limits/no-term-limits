@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: popular: reset local repo or a given directory, removing all local changes
+
+path="$*"
+if [[ -z "$path" ]]; then
+  path='.'
+fi
+
+git reset HEAD $path
+git checkout $path
+git clean -df $path

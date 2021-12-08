@@ -1,0 +1,76 @@
+#!/bin/zsh
+
+# HELP: cd's into each directory in a given list and runs a given command. Easiest usage is "ls | rcid pwd"
+
+if [[ "$PRINT_ONLY_IF_OUTPUT" == "true" ]]; then
+  original_print_directory_name="$PRINT_DIRECTORY_NAME"
+  PRINT_DIRECTORY_NAME="false"
+  EXIT_ON_ERROR="false"
+fi
+
+if [[ "$PRINT_DIRECTORY_ON_SUCCESS" == "true" ]]; then
+  redirect_output=" >/dev/null 2>&1"
+  EXIT_ON_ERROR="false"
+fi
+
+# info on checking for piped input: https://stackoverflow.com/a/30520299
+if [[ -p /dev/stdin ]] ; then
+  list=$(cat /dev/stdin)
+else
+  list=$(eval "$1")
+  shift
+fi
+
+starting_dir=$(pwd)
+
+# zsh parameter expansion split on newline to initialize array
+# http://zsh.sourceforge.net/Doc/Release/Expansion.html#Parameter-Expansion-Flags
+list=(${(f)list})
+
+for directory in $list; do
+  if [[ -d $directory ]]; then
+    if [[ "$PRINT_DIRECTORY_NAME" != "false" ]]; then
+      eval "echo ${directory}${redirect_output}"
+    fi
+
+    cd "$directory"
+    if [[ "$PRINT_ONLY_IF_OUTPUT" == "true" ]]; then
+      output=$(eval "${@}${redirect_output}")
+    else
+      eval "${@}${redirect_output}"
+    fi
+    exit_status="$?"
+
+    if [[ "$PRINT_DIRECTORY_NAME" != "false" ]]; then
+      eval "echo $redirect_output"
+    fi
+
+    cd "$starting_dir"
+
+    if [[ "$PRINT_ONLY_IF_OUTPUT" == "true" ]]; then
+      if [[ -n "$output" ]]; then
+        if [[ "$original_print_directory_name" != "false" ]]; then
+          echo "$directory"
+        fi
+        if [[ "$PRINT_NON_DIRECTORY_OUTPUT" != "false" ]]; then
+          printf "$output"
+          echo
+        fi
+      fi
+    elif [[ "$PRINT_DIRECTORY_ON_SUCCESS" == "true" ]]; then
+      if [[ "$exit_status" == "0" ]]; then
+        echo "$directory"
+      fi
+    fi
+
+    if [[ "$EXIT_ON_ERROR" != "false" ]]; then
+      if [[ "$exit_status" != "0" ]]; then
+        echo "Failure on ${directory}: Exit status: '$exit_status'"
+        exit 1
+      fi
+    fi
+  else
+    >&2 echo "ERROR: Could not find directory: '${directory}' under '$(pwd)'"
+    exit 1
+  fi
+done

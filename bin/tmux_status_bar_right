@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+# when mouse support is off, it is like a paradise
+mouse_setting=🏝️
+if [[ "$(tmux show -v mouse)" == "on" ]]; then
+  mouse_setting=🖱️
+fi
+
+# i really don't want "no server running on /tmp/wemux-wemux" in my stderr whenever i run kc
+echo "${mouse_setting}  $(wemux status_users 2>&1 | grep -Ev '(no server running|error connecting to)' || echo '') #[fg=red,dim,bg=white]$(kn_for_prompt)"

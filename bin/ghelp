@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: metahelpcommands: git: search / list git commands
+
+ntlhelp 'git:' "$@"

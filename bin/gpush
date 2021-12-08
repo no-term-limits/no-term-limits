@@ -1,0 +1,7 @@
+#!/bin/zsh
+
+# HELP: popular: shortcut for "git push" while ensuring it pushes to origin with the correct branch
+
+branchname=$(git symbolic-ref HEAD | cut -d'/' -f3,4)
+echo "git push origin $branchname"
+git push origin $branchname $@

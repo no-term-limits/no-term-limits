@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -e
+
+find_directories "${NO_TERM_LIMITS_PROJECTS_DIR}" "$1"

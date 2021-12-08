@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd.
+
+commit_message="$@"
+
+if [[ -z "$RUN_GIT_ADD" ]]; then
+  RUN_GIT_ADD=all
+fi
+
+if [[ -z "$commit_message" ]]; then
+  echo "ERROR: please supply commit message as first argument"
+  exit 1
+fi
+
+if [[ -n "$COMMIT_MESSAGE_SUFFIX" ]]; then
+  commit_message="${commit_message}${COMMIT_MESSAGE_SUFFIX}"
+fi
+
+sleep_period=1
+
+echo "about to commit with commit message: $commit_message"
+echo "ctrl+c in next ${sleep_period} seconds to abort git commit"
+sleep "$sleep_period"
+
+if [[ "$RUN_GIT_ADD" == "all" ]]; then
+  git add .
+elif [[ "$RUN_GIT_ADD" == "updated" ]]; then
+  git add -u
+elif [[ "$RUN_GIT_ADD" == "patch" ]]; then
+  # always add all untracked files, but let the -p deal with updated files
+  git ls-files --others --exclude-standard | xargs git add
+  git add -p
+fi
+
+git commit -m "$commit_message"
+echo "committed. ctrl+c in next ${sleep_period} seconds to abort gpush"
+sleep "$sleep_period"
+
+gpush

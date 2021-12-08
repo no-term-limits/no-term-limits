@@ -1,0 +1,259 @@
+#!/usr/bin/env bash
+
+# we started with: https://raw.githubusercontent.com/thoughtbot/laptop/master/mac
+# this file is basically the above, but with some search and replaces that we performed on it.
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+
+trap 'error_handler ${LINENO} $?' ERR
+
+set -o errexit
+set -o errtrace
+set -o pipefail
+set -x
+
+# shellcheck disable=SC2154
+trap 'ret=$?; test $ret -ne 0 && printf "failed\n\n" >&2; exit $ret' EXIT
+
+if [ ! -d "$HOME/.bin/" ]; then
+  mkdir "$HOME/.bin"
+fi
+
+if [ ! -f "$HOME/.zshrc" ]; then
+  touch "$HOME/.zshrc"
+fi
+
+asdf_branch_name='v0.9.0'
+HOMEBREW_PREFIX="/usr/local"
+
+function update_shell() {
+  local shell_path;
+  shell_path="$(command -v zsh)"
+
+  echo "Changing your shell to zsh ..."
+  if ! grep "$shell_path" /etc/shells > /dev/null 2>&1 ; then
+    echo "Adding '$shell_path' to /etc/shells"
+    sudo sh -c "echo $shell_path >> /etc/shells"
+  fi
+  sudo chsh -s "$shell_path" "$USER"
+}
+
+function gem_install_or_update() {
+  if gem list "$1" --installed > /dev/null; then
+    gem update "$@"
+  else
+    gem install "$@"
+  fi
+}
+
+function get_additional_apt_keys() {
+  # thoughtbot rcm
+  wget -qO - https://apt.thoughtbot.com/thoughtbot.gpg.key | sudo apt-key add -
+  echo "deb https://apt.thoughtbot.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/thoughtbot.list
+
+  # kubectl
+  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+  # ubuntu 18.04 for openssl1.0
+  echo "deb http://security.ubuntu.com/ubuntu bionic-security main" | sudo tee /etc/apt/sources.list.d/bionic-security.list
+
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo apt-key fingerprint 0EBFCD88
+  sudo add-apt-repository -y \
+    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) \
+    stable"
+  sudo add-apt-repository -y \
+    "deb http://security.ubuntu.com/ubuntu \
+    $(lsb_release -cs)-security \
+    main"
+}
+
+function add_or_update_asdf_plugin() {
+  local name="$1"
+  local url="$2"
+
+  if ! asdf plugin-list | grep -Fq "$name"; then
+    asdf plugin-add "$name" "$url"
+  else
+    asdf plugin-update "$name"
+  fi
+}
+
+function install_asdf_language() {
+  local language="$1"
+  local version
+  version="$(asdf list-all "$language" | grep -v "[a-z]" | tail -1)"
+
+  if ! asdf list "$language" | grep -Fq "$version"; then
+    asdf install "$language" "$version"
+    asdf global "$language" "$version"
+  fi
+}
+
+function add_user_to_docker_group() {
+  if grep -Eq docker /etc/group; then
+    groups_for_user=$(id -nG "$USER")
+    if ! grep -qw "docker" <<< "$groups_for_user"; then
+      sudo usermod -a -G docker $USER
+      newgrp docker
+    fi
+  fi
+}
+
+function set_number_of_cores_for_bundler() {
+  if is_mac ; then
+    number_of_cores=$(sysctl -n hw.ncpu)
+  elif [[ -f /proc/cpuinfo ]]; then
+    number_of_cores=$(grep -c processor /proc/cpuinfo)
+  fi
+
+  if [[ -n "$number_of_cores" ]]; then
+    bundle config --global jobs $((number_of_cores - 1))
+  fi
+}
+
+# shellcheck disable=SC1090
+if is_mac ; then
+  if [ -d "$HOMEBREW_PREFIX" ]; then
+    if ! [ -r "$HOMEBREW_PREFIX" ]; then
+      sudo chown -R "$LOGNAME:admin" /usr/local
+    fi
+  else
+    sudo mkdir "$HOMEBREW_PREFIX"
+    sudo chflags norestricted "$HOMEBREW_PREFIX"
+    sudo chown -R "$LOGNAME:admin" "$HOMEBREW_PREFIX"
+  fi
+
+  if ! command -v brew >/dev/null; then
+    echo "Installing Homebrew ..."
+    /bin/bash -c \
+      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
+    export PATH="/usr/local/bin:$PATH"
+  fi
+
+  if brew list | grep -Fq brew-cask; then
+    echo "Uninstalling old Homebrew-Cask ..."
+    brew uninstall --force brew-cask
+  fi
+
+  echo "Updating Homebrew formulae ..."
+  brew update --force # https://github.com/Homebrew/brew/issues/1151
+  brew bundle --file=- <<EOF
+tap "thoughtbot/formulae"
+tap "homebrew/services"
+tap "universal-ctags/universal-ctags"
+
+# Unix
+brew "universal-ctags", args: ["HEAD"]
+brew "git"
+brew "openssl"
+brew "rcm"
+brew "reattach-to-user-namespace"
+brew "the_silver_searcher"
+brew "tmux"
+brew "vim"
+brew "watchman"
+brew "zsh"
+
+# GitHub
+brew "gh"
+
+# Image manipulation
+brew "imagemagick@6"
+
+# Programming language prerequisites and package managers
+brew "libyaml" # should come after openssl
+brew "coreutils"
+brew "yarn"
+cask "gpg-suite"
+
+# Databases
+brew "redis", restart_service: :changed
+EOF
+else
+  sudo apt-get update
+  sudo apt-get install -y \
+    build-essential \
+    colordiff \
+    curl \
+    expect \
+    gettext-base \
+    htop \
+    imagemagick \
+    jq \
+    language-pack-en \
+    libcurl4-openssl-dev \
+    libfcgi \
+    libfcgi-dev \
+    libffi-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    libyaml-dev \
+    net-tools \
+    openssl \
+    openssh-server \
+    parallel \
+    rsync \
+    ripgrep \
+    screen \
+    silversearcher-ag \
+    software-properties-common \
+    sqlite3 \
+    tmux \
+    unzip \
+    vim \
+    vim-gtk \
+    wget \
+    zlib1g-dev \
+    zsh
+
+  get_additional_apt_keys
+
+  sudo apt-get update
+  sudo apt-get install -y \
+    containerd.io \
+    docker-ce \
+    docker-ce-cli \
+    kubectl \
+    rcm
+
+  add_user_to_docker_group
+fi
+
+case "$SHELL" in
+  */zsh)
+    if [ "$(command -v zsh)" != '/usr/local/bin/zsh' ] ; then
+      update_shell
+    fi
+    ;;
+  *)
+    update_shell
+    ;;
+esac
+
+echo "Configuring asdf version manager ..."
+if [ ! -d "$HOME/.asdf" ]; then
+  git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch "$asdf_branch_name"
+fi
+
+source "$HOME/.asdf/asdf.sh"
+add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
+add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
+
+echo "Installing latest Ruby ..."
+install_asdf_language "ruby"
+gem update --system
+set_number_of_cores_for_bundler
+
+echo "Installing latest Node ..."
+bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+install_asdf_language "nodejs"

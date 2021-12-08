@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: ccc
+
+copy_current_directory_name_to_clipboard "$@"

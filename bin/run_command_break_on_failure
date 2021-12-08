@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: run a command until it fails. tries 3 times by default (set ATTEMPTS=100)
+
+if [[ -z "$ATTEMPTS" ]]; then
+  attempts=3
+else
+  attempts=$ATTEMPTS
+fi
+
+for i in $(eval "echo {1..$attempts}"); do
+  echo "index: $i"
+  eval "$@"
+  exitcode=$?
+  echo "Completed index: $i"
+
+  if [ "$exitcode" != "0" ]; then
+    break
+  fi
+done

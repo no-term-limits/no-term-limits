@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+set +e
+kns=$(kn)
+exitstatus=$?
+set -e
+
+if [[ "$exitstatus" == "0" ]]; then
+  kns_line=$(perl -p -e 's~.*//(.*?)\..*> (.*)~\1:\2~' <<<"$kns")
+  echo "(${kns_line}) "
+else
+  echo ""
+fi

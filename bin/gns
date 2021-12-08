@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: Made to work similarly to rak but better since it's grep
+
+grep --color -RE --line-number --exclude-dir={.svn*,.git} "${@}"

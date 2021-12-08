@@ -1,0 +1,34 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: formats a list of command help messages for readability. They should be given in format: "**command ---> help message\n"
+
+padlength=15
+
+while read -r line; do
+  function_name=$(awk -F ' ---> ' '{print $1}' <<<"$line")
+  function_name_length=${#function_name}
+  if [[ $function_name_length -gt $padlength ]]; then
+    padlength=$(($function_name_length + 5))
+  fi
+done <<< "$@"
+
+# this line requires zsh
+pad=$(printf '%0.1s' "."{1..${padlength}})
+
+while read -r line; do
+  if grep -q '^\*\*' <<<"$line"; then
+    function_name=$(awk -F ' ---> ' '{print $1}' <<<"$line" | perl -p -e 's/^\*\*//g')
+    function_help=$(awk -F ' ---> ' '{for (i=2; i<=NF; i++) print $i}' <<<"$line")
+    if [[ -n "$function_help" ]]; then
+      printf '  %s' "$function_name "
+      printf '%*.*s' 0 $((padlength - ${#function_name} )) "$pad"
+      printf '%s\n' " $function_help"
+    else
+      printf '  %s\n' "$function_name"
+    fi
+  else
+    echo -e "$line"
+  fi
+done <<< "$@"

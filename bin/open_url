@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: open a url in a web browser
+
+if [[ -n "$2" ]]; then
+  if which chromium-browser >/dev/null 2>&1; then
+    chromium-browser "$@"
+  else
+    >&2 echo "ERROR: Extra options were passed in but cannot be used. Currently chromium-browser needs to be installed to use these options. OPTIONS PASSED IN: '$*'"
+    exit 1
+  fi
+elif is_mac; then
+  open "$1"
+elif which xdg-open >/dev/null 2>&1; then
+  xo "$1"
+  sleep 1 # allow for stdout to print for clarity
+else
+  >&2 echo 'ERROR: not sure how to open url on your system. Currently only support "open" for mac and "xdg-open" for ubuntu'
+  exit 1
+fi

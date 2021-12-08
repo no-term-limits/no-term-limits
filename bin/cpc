@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: copy an existing command to a new file
+
+if [[ -z "$2" ]]; then
+  >&2 echo 'ERROR: Please provide both a source command and a new command name'
+  exit 1
+fi
+file=$(which "$1")
+
+if [[ -z "$file" ]]; then
+  >&2 echo "ERROR: Could not find command: ${1}"
+  exit 1
+fi
+
+cp "$file" "$(dirname "$file")/${2}"

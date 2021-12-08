@@ -1,0 +1,129 @@
+#!/usr/bin/env zsh
+
+# HELP: finds and prints command and can take a search pattern. type "ntlhelp" with no arguments for more info
+
+set -e
+
+pattern="$1"
+extra_patterns=$(perl -p -e "s/ /\n/g" <<<${@:2})
+
+function print_usage() {
+  echo 'usage: ntlhelp (optional)[search_pattern1] [search_pattern2] [search_pattern3] [...]'
+  echo
+  echo -e '\tcommand_search_pattern:\tgets passed directly into grep to search and into perl for coloring'
+  echo -e '\t\tThis means a pattern to search the bundle exec shortcut like "\<be\>" will grep properly but found items will not be red'
+  echo -e '\t\tHowever "\\bbe\\b" will work with both grep and with perl for coloring'
+  echo -e '\tuse NO_TERM_LIMITS_DO_NOT_PRINT_HELP_MESSAGE=true to not print the help messages and only print the commands'
+  echo -e '\trun cac with any command to print out its full definition'
+}
+
+if help_option_passed_in_command_arg "$@"; then
+  print_usage
+  exit 0
+fi
+
+if [[ -z "$pattern" ]]; then
+  print_usage
+  echo
+fi
+
+function grep_and_highlight() {
+  local_pattern="$1"
+  shift
+  if [[ -n "$local_pattern" ]]; then
+    grep -E "$local_pattern" <<<"$@" | perl -p -e "s/(${local_pattern})/$(print_color red)\1$(print_color end)/g"
+  else
+    echo "$@"
+  fi
+}
+
+function process_file() {
+  file="$1"
+
+  # avoid empty strings
+  if [[ -f "$file" ]]; then
+    command_name=$(awk -F '/' '{print $NF}' <<<"$file")
+    help_messages=''
+    if [[ "$NO_TERM_LIMITS_DO_NOT_PRINT_HELP_MESSAGE" != "true" ]]; then
+      help_messages=$(grep '^# HELP' "$file" || echo '')
+    fi
+
+    is_source_file='false'
+    if [[ "$(wc -l <<<"$help_messages")" -gt "1" ]]; then
+      is_source_file='true'
+    fi
+
+    results=''
+    while read -r help_message; do
+      result=''
+
+      if [[ -n "$help_message" ]]; then
+        if [[ "${is_source_file}" == 'true' ]]; then
+          command_name=$(perl -p -e 's/# HELP ((\w|-)*):.*/\1/g' <<<"$help_message")
+          help_message=$(perl -p -e 's/# HELP (\w|-)*: (.*)/\2/g' <<<"$help_message")
+        fi
+        result=$(grep_and_highlight "$pattern" "${command_name} ---> $(perl -p -e 's/^# HELP:? ?//' <<<"$help_message")")
+      else
+        result=$(grep_and_highlight "$pattern" "$command_name")
+      fi
+
+      while read -r extra_pattern; do
+        if [[ -n "$extra_pattern" ]]; then
+          result=$(grep_and_highlight "$extra_pattern" "$result")
+        fi
+      done <<<"${extra_patterns}"
+
+      if [[ -n "$result" ]]; then
+        results="${results}\n**${result}"
+      fi
+    done <<<"${help_messages}"
+
+    if [[ -n "$results" ]]; then
+      echo -n "${results}"
+    fi
+  fi
+
+}
+
+function get_help_from_bin_dirs() {
+  for bin_dir in $(bin_dirs_in_home) ; do
+    all_files=$(find "$bin_dir" -type f)
+    if [[ -n "$pattern" ]]; then
+      files_that_match=$(grep -E "$pattern" <<<"$all_files" || echo '')
+      help_messages_that_match=$(grep -lRE "^# ?HELP:.*${pattern}" "$bin_dir" || echo '')
+      files_to_process=$(echo "$files_that_match\n$help_messages_that_match" | sort | uniq)
+    else
+      files_to_process="$all_files"
+    fi
+
+    full_output_message=""
+    while read -r file; do
+      full_output_message="${full_output_message}$(process_file "$file")"
+    done <<<"$files_to_process"
+
+    if [[ -n "$full_output_message" ]]; then
+      echo -e "\n$(print_color green)Commands in ${bin_dir}:$(print_color end)"
+      echo -e "${full_output_message}"
+    fi
+  done
+}
+
+function get_help_from_sourced_files() {
+  results_from_common="$(process_file "${HOME}/.zshrc.local")"
+  if [[ -n "$results_from_common" ]]; then
+    results_from_common=$(echo -e "\n\n$(print_color green)Commands in ${HOME}/.zshrc.local:$(print_color end)\n${results_from_common}")
+  fi
+  echo "$results_from_common"
+}
+
+if [[ -z "$pattern" ]]; then
+  dohelp "${HOME}/.zshrc.local"
+  pattern=metahelpcommands
+  get_help_from_bin_dirs
+  pattern=''
+fi
+
+if [[ -n "$pattern" ]]; then
+  output="$(get_help_from_bin_dirs)$(get_help_from_sourced_files)"
+  format_command_help_messages "$output"
+fi

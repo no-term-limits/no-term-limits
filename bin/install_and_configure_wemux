@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+wemux_installation_directory="/usr/local/lib"
+
+function configure_wemux_to_allow_for_starting_sessions() {
+  if [[ -f /usr/local/etc/wemux.conf ]]; then
+    perl -pi -e "s/^(## example: )?host_list=\(.*/host_list=($USER)/g" /usr/local/etc/wemux.conf
+
+    # uncomments the line that sets default_client_mode to pair (default is mirror), so the pair user can type as well.
+    # but there's no strict need to do this, since the client can just say "wemux pair" to join in pair mode.
+    # perl -pi -e "s/^# default_client_mode=\"pair\"/default_client_mode=\"pair\"/g" /usr/local/etc/wemux.conf
+  fi
+}
+
+function install_wemux() {
+  if ! command -v wemux ; then
+    if [[ ! -d "$wemux_installation_directory" ]]; then
+      mkdir -p "$wemux_installation_directory"
+    fi
+    sudo git clone https://github.com/zolrath/wemux.git "$wemux_installation_directory/wemux"
+    sudo ln -s "${wemux_installation_directory}/wemux/wemux" /usr/local/bin/wemux
+    sudo mkdir -p /usr/local/etc
+    # the env var USER is blank at this point on ubuntu at least so using whoami
+    sudo chown -R "$(whoami)" /usr/local/etc
+    cp "$wemux_installation_directory/wemux/wemux.conf.example" /usr/local/etc/wemux.conf
+  fi
+}
+
+install_wemux
+configure_wemux_to_allow_for_starting_sessions

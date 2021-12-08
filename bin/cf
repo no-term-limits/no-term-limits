@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -e
+
+cat $(find_first_file $1)

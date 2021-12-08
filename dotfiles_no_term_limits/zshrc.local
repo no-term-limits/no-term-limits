@@ -1,0 +1,244 @@
+#!/bin/zsh
+# for syntax highlighting
+
+if [[ -z "$NO_TERM_LIMITS_PROJECTS_DIR" ]]
+then
+  export NO_TERM_LIMITS_PROJECTS_DIR="$HOME/projects"
+fi
+
+# checking for profile shell will catch the case where this file is sourced from a bash script
+# so we don't then do crazy things like source powerlevel10k in bash
+if test -n "$ZSH_VERSION"; then
+  NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION=zsh
+elif test -n "$BASH_VERSION"; then
+  NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION=bash
+else
+  NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION=sh
+fi
+
+export PATH="$HOME/.bin:$PATH"
+export PATH="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits/bin:$PATH"
+
+# Favor if conditionals over shortcut: [[ blah ]] && blah
+# since it still exits 1 and causes scripts sourcing this file to fail
+if [[ -f "${HOME}/.aliases.local" ]]
+then
+  source "${HOME}/.aliases.local"
+fi
+
+if [[ -d "$HOME/.vim/bundle/vimpager" ]]
+then
+  export PATH=$HOME/.vim/bundle/vimpager:$PATH
+fi
+
+# binstubs. https://twitter.com/tpope/status/165631968996900865. see also function be that creates .git/safe
+PATH=".git/safe/../../bin:$PATH"
+
+# setup environment variables
+export PATH=/usr/local/sbin:$PATH
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+export EDITOR=vim
+
+if [[ -z "$NO_TERM_LIMITS_CURRENT_SHELL" ]]; then
+  NO_TERM_LIMITS_CURRENT_SHELL="$(basename $(ps -o comm= -p $$ | sed -e 's/^-//g'))"
+fi
+export NO_TERM_LIMITS_CURRENT_SHELL
+
+# tmux sessions in ubuntu seem to need DISPLAY set
+# in order to properly copy to system clipboard in vim
+#   https://askubuntu.com/a/1132882
+if ! is_mac; then
+  export DISPLAY=:0
+  alias ls='ls --color'
+fi
+
+# don't throw duplicate commands, plain ls's, fg's, bg's or exit's into the command history
+export HISTIGNORE="&:ls:[bf]g:exit"
+
+export LESS='--RAW-CONTROL-CHARS --force' # make less keep it more real with colors and not asking if i want to open a file i just opened
+
+#### CD commands (cannot be programs, since they need to set the $PWD scope)
+
+# HELP c: cd (almost) anywhere, from anywhere. For example, type "c ego" or even partial directory names like "c bib"
+function c() {
+  if [[ -d "${NO_TERM_LIMITS_PROJECTS_DIR}/$1" ]]; then
+    dir="${NO_TERM_LIMITS_PROJECTS_DIR}/$1"
+  elif grep -q '/' <<<"$@"; then
+    return 1
+  else
+    dir=$(find_directory ${NO_TERM_LIMITS_PROJECTS_DIR} "$@" || echo 'DNE')
+    if [[ "$dir" == 'DNE' ]]; then
+      return 1
+    fi
+  fi
+
+  if [[ "$PRINT_DIRECTORY" != "false" ]]
+  then
+    echo "$dir"
+  fi
+
+  cd "$dir"
+}
+
+function git_super_status_with_fallback() {
+  current_branch=$(git_branch 2> /dev/null)
+  if [[ -n $current_branch ]]; then
+    if ! git_super_status 2>/dev/null; then
+      git_prompt_info
+    fi
+  fi
+}
+
+# https://zenbro.github.io/2015/07/23/show-exit-code-of-last-command-in-zsh
+function check_last_exit_code() {
+  local LAST_EXIT_CODE=$?
+  # if 0, ignore because success. if 130, ignore because that's ctrl+c,
+  # and the user already knows they hit ctrl+c
+  if [[ "$LAST_EXIT_CODE" -ne 0 && "$LAST_EXIT_CODE" != 130 ]]; then
+    local EXIT_CODE_PROMPT=''
+    EXIT_CODE_PROMPT+="%{$fg[red]%}[%{$reset_color%}"
+    EXIT_CODE_PROMPT+="%{$fg_bold[red]%}$LAST_EXIT_CODE%{$reset_color%}"
+    EXIT_CODE_PROMPT+="%{$fg[red]%}]%{$reset_color%} "
+    echo "$EXIT_CODE_PROMPT"
+  fi
+}
+
+function path_for_prompt() {
+  echo "%{$fg_bold[blue]%}$(shrink_path -f)%{$reset_color%}"
+}
+
+function cd_to_project() {
+  cd "${NO_TERM_LIMITS_PROJECTS_DIR}/$1"
+}
+alias cproj=cd_to_project
+alias ntl='c no-term-limits'
+
+# for the c function, autocomplete as if we were in the ~/projects directory
+if type compctl >/dev/null 2>&1
+then
+  compctl -/ -W "${HOME}/projects" c
+  compctl -c -f run_command_in_dirs
+  compctl -c -f rcid
+  compctl -c -f rcidc
+  compctl -c -f rcidio
+  compctl -c -f rcidif
+  compctl -c -f rcidne
+  compctl -c -f cac
+  compctl -c -f edc
+  compctl -c -f rmc
+  compctl -c -f cpc
+  compctl -c -f test_command_on_git_repo
+fi
+
+alias cd..='cd ..'
+for count in {1..9}
+do
+  eval "alias c${count}='cd $(printf '../%.0s' {1..$count})'"
+done
+# alias c1='cd ../'
+# alias c2='cd ../../'
+#    ...etc...
+# alias c9='cd ../../../../../../../../../'
+
+# sometimes it's annoying that <ctrl+r> does fuzzy matching
+# this will make it do exact matching temporarily
+function eee() {
+  export FZF_DEFAULT_OPTS='-e'
+}
+
+# HELP ra: reloads the local shell files
+function ra() {
+  source "${HOME}/.zshrc"
+}
+
+# load asdf
+if [[ -f "$HOME/.asdf/asdf.sh" ]]
+then
+  source "$HOME/.asdf/asdf.sh"
+fi
+
+setopt HISTIGNORESPACE
+
+if which setopt > /dev/null; then
+  setopt rm_star_silent
+
+  # from thoughtbot/dotfiles/zsh/configs/prompt.zsh:
+  #  PS1='${SSH_CONNECTION+"%{$fg_bold[green]%}%n@%m:"}%{$fg_bold[blue]%}%c%{$reset_color%}$(git_prompt_info) %# '
+
+  # this prompt is different from thoughtbot/dotfiles default in that it:
+  ## uses shrink_path, copied from https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/shrink-path/shrink-path.plugin.zsh into bin
+  ## uses git_super_status_with_fallback, which prefers git_super_status over git_prompt_info, if available
+  ## adds the exit status of the last command, per https://stackoverflow.com/questions/4466245/customize-zshs-prompt-when-displaying-previous-command-exit-code
+  setopt prompt_subst
+
+  # when using check_last_exit_code, it seems to be sensitive to other commands in the PS1, like git_super_status_with_fallback
+  # so it won't actually work correctly if in the wrong order, unlike the previous implementation of showing bad exit statuses.
+  # previously we used this magic expression: %(?.. [%?])
+  # but check_last_exit_code seems more flexible.
+  export PS1='$(check_last_exit_code)$(path_for_prompt)$(git_super_status_with_fallback) %# '
+fi
+
+# https://techoverflow.net/2013/01/11/enable-menu-style-autocompletion-in-zsh/
+if which zstyle > /dev/null; then
+  zstyle ':completion:*' menu select
+fi
+
+if [[ "$SHELL" = *"zsh" ]]; then
+  if [[ -f "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+    source "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  fi
+
+  # https://krew.sigs.k8s.io/docs/user-guide/setup/install/
+  if [[ -d "$HOME/.krew" ]]; then
+    export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+  fi
+fi
+
+if [[ -d "/usr/local/opt/gnu-getopt/bin" ]]; then
+  export PATH="/usr/local/opt/gnu-getopt/bin:$PATH"
+fi
+
+export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git --ignore .svn -g ""'
+
+export PATH="$HOME/.bin:$PATH"
+
+# fixes vi insert mode issue where backspace key stops working.
+# https://github.com/denysdovhan/spaceship-prompt/issues/91
+bindkey "^?" backward-delete-char
+
+if [ -f ~/.fzf.zsh ]
+then
+  source ~/.fzf.zsh
+fi
+
+if [[ "$LOAD_POWERLEVEL_P10K" != "false" ]] && [[ "$NO_TERM_LIMITS_CURRENT_SHELL" == "zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]]; then
+  # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+  # Initialization code that may require console input (password prompts, [y/n]
+  # confirmations, etc.) must go above this block; everything else may go below.
+  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+  fi
+
+  if [[ -d ~/projects/github/romkatv/powerlevel10k ]]; then
+    source ~/projects/github/romkatv/powerlevel10k/powerlevel10k.zsh-theme
+  fi
+
+  # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+  [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+  # Show all versions in a projects .tool-versions file instead of omitting ones set globally
+  export POWERLEVEL9K_ASDF_PROMPT_ALWAYS_SHOW=true
+  export POWERLEVEL9K_ASDF_SOURCES=(local)
+fi
+
+if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]
+then
+  if [[ "$LOAD_NO_TERM_LIMITS_OVERRIDES" != "false" ]]; then
+    source "${HOME}/.zshrc.no_term_limits_overrides"
+  fi
+fi
+
+if [[ -d "$HOME/.zsh/zsh-autosuggestions" ]]; then
+  source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi

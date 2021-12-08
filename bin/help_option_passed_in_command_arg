@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: returns true if options "-h" OR "--help" were passed in as args. Use like: help_option_passed_in_command_arg "$@"
+
+grep -qE '(\-\-\<help\>|\-\<h\>)' <<<"$@"

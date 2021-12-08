@@ -1,0 +1,284 @@
+#!/usr/bin/env bash
+
+# designed to be run as the very first (and only) setup script
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+
+trap 'error_handler ${LINENO} $?' ERR
+
+set -o errexit
+set -o errtrace
+set -o pipefail
+
+function print_help() {
+  echo "Usage: ${0}"
+  echo "Requirements:"
+  echo -e "\tPrograms: git sudo"
+}
+
+if [[ "$1" == '-h' ]]; then
+  print_help
+  exit
+fi
+
+for cmd in sudo git ; do
+  if ! command -v "$cmd" &>/dev/null; then
+    >&2 echo "ERROR: Missing required program. Please install it and then try running this script again: ${cmd}"
+    print_help
+    exit 1
+  fi
+done
+
+echo "Testing for sudo. This will probably prompt for your computer password."
+if ! sudo ls >/dev/null 2>&1 ; then
+  >&2 echo "ERROR: sudo failed to run. It may require using a password but we may be non-interactive mode"
+  exit 1
+fi
+
+if [[ -z "$NO_TERM_LIMITS_PROJECTS_DIR" ]]; then
+  export NO_TERM_LIMITS_PROJECTS_DIR="$HOME/projects"
+fi
+
+initial_directory="$PWD"
+no_term_limits_directory="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits"
+
+# this breaks the add_or_update_asdf_plugin in the mac_install script from thoughtbot,
+# making it so asdf plugins are always added instead of being updated when they
+# are already installed.
+# set -o pipefail
+
+mkdir -p /var/tmp/no_term_limits_setup
+
+set -x
+
+if [[ -d "$no_term_limits_directory" ]]; then
+  cd "$no_term_limits_directory"
+  git pull
+else
+  git clone https://github.com/no-term-limits/no-term-limits.git "$no_term_limits_directory"
+  cd "$no_term_limits_directory"
+fi
+
+function is_mac() {
+  if [[ "${operating_system}" == "mac" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# won't prompt. won't overwite an existing key.
+# https://unix.stackexchange.com/a/135090
+function generate_ssh_key_pair_if_needed() {
+  if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
+    # exits with a bad exit status when it creates the key if pipefail is set
+    set +o pipefail
+    cat /dev/zero | ssh-keygen -q -N "" > /dev/null
+    set -o pipefail
+  fi
+}
+
+function set_computer_to_not_sleep() {
+  if is_mac ; then
+    if [[ ! -f /var/tmp/no_term_limits_setup/previous_energy_saver_preferences.txt ]]; then
+      echo "Setting computer not to go to sleep. Saving existing preferences in /var/tmp/no_term_limits_setup/previous_energy_saver_preferences.txt. This may ask for your computer password."
+      sudo pmset -g > /var/tmp/no_term_limits_setup/previous_energy_saver_preferences.txt
+
+      # defaults to 1 (which means yes, i think). note that the system squacks at
+      # you if you set disksleep to 0 before setting sleep to 0
+      sudo pmset sleep 0
+
+      # defaults to 10 (which means minutes, i think)
+      sudo pmset disksleep 0
+
+      # defaults to 10 (which means minutes, i think)
+      sudo pmset displaysleep 0
+    fi
+  fi
+}
+
+function check_sudo() {
+  echo "Testing for sudo. This will probably prompt for your computer password."
+  if ! sudo ls >/dev/null 2>&1 ; then
+    >&2 echo "ERROR: sudo failed to run. It may require using a password but we may be non-interactive mode"
+    exit 1
+  fi
+}
+
+function detach_volume() {
+  echo "detach_volume: unmounting Command Line Developer Tools"
+  mounts="$(mount)"
+  mount_line="$(grep "Command Line Developer Tools"<<< "$mounts")"
+  #FIND RELEVANT DISK AND UNMOUNT
+  mount_point=$(awk '{ print $1 }' <<< "$mount_line")
+  echo $mount_point
+  hdiutil detach "$mount_point"
+}
+
+function determine_os() {
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+    Linux*)     operating_system=linux;;
+    Darwin*)    operating_system=mac;;
+    *)          operating_system="UNKNOWN:${unameOut}"
+  esac
+}
+
+function get_thoughtbot_dotfiles() {
+  if [[ ! -d "$HOME/dotfiles" ]]; then
+    git clone https://github.com/thoughtbot/dotfiles.git "${HOME}/dotfiles"
+  else
+    cd "${HOME}/dotfiles"
+    git pull
+    cd "$initial_directory"
+  fi
+}
+
+function assert_asdf_is_installed_and_loaded() {
+  if [[ -f ~/.asdf/asdf.sh ]]; then
+    source ~/.asdf/asdf.sh
+  else
+    echo "ERROR: asdf was not installed successfully by https://github.com/thoughtbot/laptop. check ~/laptop.log for errors"
+    exit 1
+  fi
+}
+
+function add_no_term_limits_bin_to_path() {
+  export PATH="${no_term_limits_directory}/bin:$PATH"
+}
+
+function run_rcup() {
+  if [[ "$NO_TERM_LIMITS_RCUP_FORCE" == "true" ]]; then
+    rcup -f -q
+  else
+    rcup
+  fi
+}
+
+function set_up_github_repos() {
+  clone_github_repo "romkatv/powerlevel10k"
+  desired_location_for_autosuggestions="$HOME/.zsh/zsh-autosuggestions"
+  github_dir="${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+  if [[ ! -d "$desired_location_for_autosuggestions" ]]; then
+    mkdir -p "$HOME/.zsh"
+    clone_github_repo "zsh-users/zsh-autosuggestions"
+    mv "$github_dir/zsh-users/zsh-autosuggestions" "$desired_location_for_autosuggestions"
+  fi
+}
+
+add_no_term_limits_bin_to_path
+check_sudo
+determine_os
+
+# caffeinate prevents the computer from sleeping while running a command.
+# from caffeinate manual, regarding the -s switch:
+# -s      Create an assertion to prevent the system from sleeping. This assertion is valid only when system is running on AC power.
+# since caffeinate only works when running an external program, just use pmset in our own set_computer_to_not_sleep
+set_computer_to_not_sleep
+
+generate_ssh_key_pair_if_needed
+"${no_term_limits_directory}/bin/sudo_start_executing_commands_with_no_password"
+
+set_up_github_repos
+
+if is_mac ; then
+  sudo chown -R "$(whoami)" /usr/local/*
+  chmod u+w /usr/local/*
+  for dir in bin include lib share var Cellar .git; do
+    if [[ -d "/usr/local/${dir}" ]]; then
+      sudo chown -R "$(whoami)" "/usr/local/${dir}"
+      chmod u+w "/usr/local/${dir}"
+    fi
+  done
+fi
+
+if [[ "$NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT" != "false" ]]; then
+  "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
+fi
+
+echo "running get_thoughtbot_dotfiles: $operating_system"
+get_thoughtbot_dotfiles
+
+# most of this is done in the linux_install script for ubuntu
+if is_mac ; then
+  brew tap thoughtbot/formulae
+
+  brew list --formula > /tmp/brew_list
+
+  # rcm for rcup, etc.
+  # jq is just awesome
+  # gnu-sed so we can use sed in scripts the way it was intended (via hot_sed)
+  # libxml for libxml-ruby
+  # libxslt for hydra-services
+  # wget because it's nice to have around for scripting
+  # htop to monitor local processes
+  # stern to make ktail (tailing kubernetes logs) more awesome
+  # colordiff for test_command_on_git_repo, etc
+  # telnet because we use computers
+  # bash because otherwise you are running bash 3
+  # (gnu) parallel for ggs
+  # bat because it is great
+  # shared-mime-info for hydra-services https://github.com/mimemagicrb/mimemagic gem
+  for brew_package in rcm jq gnu-sed gnu-getopt libxml2 libxslt wget htop stern ripgrep colordiff telnet bash parallel bat shared-mime-info; do
+    if ! grep -q $brew_package /tmp/brew_list; then
+      brew install $brew_package
+    fi
+  done
+
+  if grep -q "asdf" /tmp/brew_list; then
+    echo 'asdf should be installed in ~/.asdf by the thoughtbot laptop setup script, so uninstalling from homebrew'
+    brew uninstall asdf
+  fi
+fi
+
+assert_asdf_is_installed_and_loaded
+
+export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
+run_rcup
+
+# one time it felt like this file got out of date.
+if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
+  # mv ~/.vim/autoload/plug.vim /tmp
+  curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+fi
+
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  export TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins/"
+  "$HOME/.tmux/plugins/tpm/bin/install_plugins"
+fi
+
+if [ ! -d "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting" ]; then
+  mkdir -p "${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+  pushd "${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git
+  popd
+fi
+
+run_rcup
+
+if [[ -d "$HOME/.bin" ]]; then
+  cd "$HOME/.bin"
+  remove_broken_symlinks
+fi
+
+if [[ -d "$HOME/.asdf/plugins/nodejs" ]]; then
+  bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
+fi
+
+install_and_configure_wemux
+
+# https://stackoverflow.com/a/22753363
+# doesn't work in CI. not sure if that's because it's never installed on linux, or because it isn't installed yet.
+# will find out if it's a general problem the next time i bootstrap a mac.
+if command -v compaudit; then
+  compaudit | xargs chmod g-w
+fi
+
+cd "$initial_directory"
+
+set +x
+
+echo 'no-term-limits provision completed successfully ❤️'

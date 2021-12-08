@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+set -eo pipefail
+
+eval "echo Diffing in $PWD && $@" | less -R

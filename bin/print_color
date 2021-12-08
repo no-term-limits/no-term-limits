@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: adds an escape sequence for coloring on the terminal. usage like "uncolored portion $(print_color blue)the blue section$(print_color end) more uncolored portion". Use TURN_OFF_OUTPUT_COLOR=true if the escape sequences are not desired in other commands. This will help when chaining commands with grep. If using print_color in a regex use the second and third args to pass in escape sequences like $(print_color red '\')".
+
+color="$1"
+prepend_string="$2"
+append_string="$3"
+
+if [[ "$TURN_OFF_OUTPUT_COLOR" == "true" ]]; then
+  red=''
+  green=''
+  blue=''
+  gray=''
+  nocolor=''
+else
+  red="${prepend_string}\\033[0;31m${append_string}"
+  green="${prepend_string}\\033[0;32m${append_string}"
+  blue="${prepend_string}\\033[0;94m${append_string}"
+  gray="${prepend_string}\\033[0;100m${append_string}"
+  nocolor="${prepend_string}\\033[0m${append_string}"
+fi
+
+if [[ "$color" == "red" ]]; then
+  echo "$red"
+elif [[ "$color" == "blue" ]]; then
+  echo "$blue"
+elif [[ "$color" == "green" ]]; then
+  echo "$green"
+elif [[ "$color" == "gray" ]]; then
+  echo "$gray"
+elif [[ "$color" == "end" ]] || [[ "$color" == "nocolor" ]]; then
+  echo "$nocolor"
+else
+  echo "$nocolor"
+fi

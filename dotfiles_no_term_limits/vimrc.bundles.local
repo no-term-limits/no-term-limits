@@ -1,0 +1,56 @@
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+
+Plug 'vim-scripts/PreserveNoEOL'
+Plug 'nono/vim-handlebars'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'airblade/vim-gitgutter'
+Plug 'tpope/vim-dispatch'
+Plug 'majutsushi/tagbar'
+Plug 'ekalinin/Dockerfile.vim'
+
+" commented out since i think vim-fugitive has this covered
+" Plug 'vim-scripts/vcscommand.vim'
+
+" This plugin redefines 6 search commands (/,?,n,N,*,#). At every search command, it automatically prints> At match #N out of M matches
+Plug 'henrik/vim-indexed-search'
+
+Plug 'tpope/vim-abolish'
+Plug 'christoomey/vim-tmux-navigator'
+Plug 'christoomey/vim-tmux-runner'
+Plug 'wincent/terminus'
+
+Plug 'burnettk/vim-jenkins'
+Plug 'SirVer/ultisnips'
+Plug 'ngmy/vim-rubocop'
+Plug 'vim-scripts/groovy.vim'
+
+" helps you remember and discover key bindings. type <spacebar> to use.
+Plug 'liuchengxu/vim-which-key'
+
+" allows you to hammer <leader>c to open up and manipulate cheat sheets.
+" See http://cht.sh/ and the plugin page for more features.
+Plug 'dbeniamine/cheat.sh-vim'
+
+" language server protocol for letting vim communicate with a server that knows
+" all about how the current language works.
+Plug 'prabirshrestha/vim-lsp'
+Plug 'mattn/vim-lsp-settings'
+
+" we want to install the plugin regardless of vim or nvim, and then only
+" *load* it as appropriate
+Plug 'neovim/nvim-lspconfig', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'nvim-lua/completion-nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+
+" this is mostly for vimcat, which is used by cac ("CAt Command)
+Plug 'rkitover/vimpager'
+
+" An always-on highlight for a unique character in every word on a line to help you use f, F and family.
+Plug 'unblevable/quick-scope'
+
+" Manage branches and tags with fzf. Mapped to <leader>gc (git checkout)
+Plug 'stsewd/fzf-checkout.vim'
+
+if filereadable(expand("~/user-dotfiles/vimrc.bundles.no_term_limits_overrides"))
+  source ~/user-dotfiles/vimrc.bundles.no_term_limits_overrides
+endif

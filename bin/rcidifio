@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+# HELP: rcid but only output if command returns output and only output directory
+
+PRINT_ONLY_IF_OUTPUT=true PRINT_NON_DIRECTORY_OUTPUT=false rcid "$@"

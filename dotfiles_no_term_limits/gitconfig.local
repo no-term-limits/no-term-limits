@@ -1,0 +1,14 @@
+# we want to "unset" this config, but there's no way to do that.
+# https://stackoverflow.com/questions/17568274/override-git-config-system-in-gitconfig-user-file-git-config-global
+# ff only is bad, since then we never get merge commits
+# ff false is bad, since they it adds a merge commit even if you didn't change anything in your local repo
+# so we just have to comment out the [merge] ff = only in .gitconfig i guess
+[merge]
+  ff = true
+
+# https://stackoverflow.com/a/62653400/6090676
+[pull]
+  rebase = false
+
+[include]
+  path = ~/.gitconfig.no_term_limits_overrides

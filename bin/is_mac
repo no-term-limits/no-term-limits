@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: return good exit status if the current box matches darwin in the uname
+
+uname -a | grep -qi darwin
