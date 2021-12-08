@@ -28,11 +28,11 @@ Based on https://github.com/gpakosz/.tmux
 **Note**: We override <Leader> from ctrl-b to ctrl-s.
 
 Common shortcuts:
-  * <Leader>\ - split pane vertically
-  * <Leader>- - split pane horizontally
-  * <Leader>c - create new window
-  * <Leader>, - rename current window
-  * <Leader>m - toggle mouse support (mouse is disabled by default)
-  * <Leader>[number] - go to numbered window (indexed from 1)
-  * ctrl-h - move focus to the pane to the left (hjkl for any direction like vim - also works with <Leader>h)
-  * shift-<left-arrow> - resize current pane left (directional arrows to resize in other directions)
+  * `<Leader>\` - split pane vertically
+  * `<Leader>-` - split pane horizontally
+  * `<Leader>c` - create new window
+  * `<Leader>,` - rename current window
+  * `<Leader>m` - toggle mouse support (mouse is disabled by default)
+  * `<Leader>[number]` - go to numbered window (indexed from 1)
+  * `ctrl-h` - move focus to the pane to the left (hjkl for any direction like vim - also works with <Leader>h)
+  * `shift-<left-arrow>` - resize current pane left (directional arrows to resize in other directions)
