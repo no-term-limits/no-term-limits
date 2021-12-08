@@ -158,9 +158,8 @@ then
   source "$HOME/.asdf/asdf.sh"
 fi
 
-setopt HISTIGNORESPACE
-
-if which setopt > /dev/null; then
+if command -v setopt > /dev/null; then
+  setopt HISTIGNORESPACE
   setopt rm_star_silent
 
   # from thoughtbot/dotfiles/zsh/configs/prompt.zsh:
