@@ -1,4 +1,4 @@
-# No Term Limits
+# No Term Limits - [![CI](https://github.com/no-term-limits/no-term-limits/actions/workflows/ci.yml/badge.svg)](https://github.com/no-term-limits/no-term-limits/actions/workflows/ci.yml)
 
 no-term[inal]-limits
 
