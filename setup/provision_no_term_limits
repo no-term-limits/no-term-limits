@@ -235,8 +235,8 @@ fi
 
 assert_asdf_is_installed_and_loaded
 
-export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
-run_rcup
+# export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
+# run_rcup
 
 # one time it felt like this file got out of date.
 if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
@@ -257,7 +257,10 @@ if [ ! -d "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting" ]; the
   popd
 fi
 
-run_rcup
+if [[ "$NO_TERM_LIMITS_RUN_RCUP" != "false" ]]; then
+  export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
+  run_rcup
+fi
 
 if [[ -d "$HOME/.bin" ]]; then
   cd "$HOME/.bin"

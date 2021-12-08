@@ -182,6 +182,7 @@ else
     build-essential \
     colordiff \
     curl \
+    espeak \
     expect \
     gettext-base \
     htop \
@@ -245,9 +246,11 @@ if [ ! -d "$HOME/.asdf" ]; then
   git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch "$asdf_branch_name"
 fi
 
-source "$HOME/.asdf/asdf.sh"
-add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
-add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
+if [[ "$NO_TERM_LIMITS_INSTALL_ASDF_LANGUAGES" != "false" ]]; then
+  source "$HOME/.asdf/asdf.sh"
+  add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
+  add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
+fi
 
 echo "Installing latest Ruby ..."
 install_asdf_language "ruby"
