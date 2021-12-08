@@ -250,13 +250,13 @@ if [[ "$NO_TERM_LIMITS_INSTALL_ASDF_LANGUAGES" != "false" ]]; then
   source "$HOME/.asdf/asdf.sh"
   add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
   add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
+
+  echo "Installing latest Ruby ..."
+  install_asdf_language "ruby"
+  gem update --system
+  set_number_of_cores_for_bundler
+
+  echo "Installing latest Node ..."
+  bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+  install_asdf_language "nodejs"
 fi
-
-echo "Installing latest Ruby ..."
-install_asdf_language "ruby"
-gem update --system
-set_number_of_cores_for_bundler
-
-echo "Installing latest Node ..."
-bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
-install_asdf_language "nodejs"
