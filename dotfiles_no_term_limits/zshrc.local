@@ -183,7 +183,7 @@ if which zstyle > /dev/null; then
   zstyle ':completion:*' menu select
 fi
 
-if [[ "$SHELL" = *"zsh" ]]; then
+if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]]; then
   if [[ -f "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
     source "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
   fi
@@ -191,6 +191,14 @@ if [[ "$SHELL" = *"zsh" ]]; then
   # https://krew.sigs.k8s.io/docs/user-guide/setup/install/
   if [[ -d "$HOME/.krew" ]]; then
     export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+  fi
+
+  # fixes vi insert mode issue where backspace key stops working.
+  # https://github.com/denysdovhan/spaceship-prompt/issues/91
+  bindkey "^?" backward-delete-char
+
+  if [ -f ~/.fzf.zsh ]; then
+    source ~/.fzf.zsh
   fi
 fi
 
@@ -201,15 +209,6 @@ fi
 export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git --ignore .svn -g ""'
 
 export PATH="$HOME/.bin:$PATH"
-
-# fixes vi insert mode issue where backspace key stops working.
-# https://github.com/denysdovhan/spaceship-prompt/issues/91
-bindkey "^?" backward-delete-char
-
-if [ -f ~/.fzf.zsh ]
-then
-  source ~/.fzf.zsh
-fi
 
 if [[ "$LOAD_POWERLEVEL_P10K" != "false" ]] && [[ "$NO_TERM_LIMITS_CURRENT_SHELL" == "zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]]; then
   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -229,6 +228,10 @@ if [[ "$LOAD_POWERLEVEL_P10K" != "false" ]] && [[ "$NO_TERM_LIMITS_CURRENT_SHELL
   # Show all versions in a projects .tool-versions file instead of omitting ones set globally
   export POWERLEVEL9K_ASDF_PROMPT_ALWAYS_SHOW=true
   export POWERLEVEL9K_ASDF_SOURCES=(local)
+
+  if [[ -d "$HOME/.zsh/zsh-autosuggestions" ]]; then
+    source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+  fi
 fi
 
 if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]
@@ -236,8 +239,4 @@ then
   if [[ "$LOAD_NO_TERM_LIMITS_OVERRIDES" != "false" ]]; then
     source "${HOME}/.zshrc.no_term_limits_overrides"
   fi
-fi
-
-if [[ -d "$HOME/.zsh/zsh-autosuggestions" ]]; then
-  source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
