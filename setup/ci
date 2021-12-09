@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# designed to be run as the very first (and only) setup script
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+
+trap 'error_handler ${LINENO} $?' ERR
+
+set -o errexit
+set -o errtrace
+set -o pipefail
+
+./setup/provision_no_term_limits
+./setup/check_dotfiles setup/expected_dotfiles.txt

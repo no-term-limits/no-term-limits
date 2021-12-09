@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+expected_dotfiles_file=$1
+
+if [[ -z "$expected_dotfiles_file" ]]; then
+  >&2 echo "ERROR: usage: $(basename $0) [expected_dotfiles_file]"
+  exit 1
+fi
+
+if [[ ! -f "$expected_dotfiles_file" ]]; then
+  >&2 echo "ERROR: expected_dotfiles_file argument '${expected_dotfiles_file}' does not exist"
+  exit 1
+fi
+
+found_problem_dotfile=false
+
+while read -r line ; do
+  if ! grep -qE '(^ *#|^$)' <<<"$line" ; then
+    dotfile=$(awk -F ':' '{print $1}' <<<"$line")
+    symlink_destination=$(awk -F ':' '{print $2}' <<<"$line")
+
+    cd "$HOME"
+    if [[ ! -e "$dotfile" ]]; then
+      >&2 echo "ERROR: Missing '${dotfile}'"
+      found_problem_dotfile=true
+    elif [[ -n "$symlink_destination" ]]; then
+      if [[ "$(readlink "$dotfile")" != "${symlink_destination}" ]]; then
+        >&2 echo "ERROR: Symlink Misconfigured. '${dotfile}' should point to '${symlink_destination}'. NOT '$(readlink "$dotfile")'"
+        found_problem_dotfile=true
+      fi
+    fi
+  fi
+done <<<"$(envsubst '${HOME}' <$expected_dotfiles_file)"
+
+if [[ "$found_problem_dotfile" == "true" ]]; then
+  exit 1
+fi

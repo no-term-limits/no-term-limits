@@ -32,7 +32,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          ./setup/provision_no_term_limits
+          ./setup/ci
   build_mac:
     # The type of runner that the job will run on
     runs-on: macos-11
@@ -44,4 +44,4 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: provision
-        run: ./setup/provision_no_term_limits
+        run: ./setup/ci
