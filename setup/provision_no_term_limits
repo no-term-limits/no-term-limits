@@ -164,7 +164,7 @@ function set_up_github_repos() {
   if [[ ! -d "$desired_location_for_autosuggestions" ]]; then
     mkdir -p "$HOME/.zsh"
     clone_github_repo "zsh-users/zsh-autosuggestions"
-    mv "$github_dir/zsh-users/zsh-autosuggestions" "$desired_location_for_autosuggestions"
+    ln -s "$github_dir/zsh-users/zsh-autosuggestions" "$desired_location_for_autosuggestions"
   fi
 }
 
@@ -240,7 +240,6 @@ assert_asdf_is_installed_and_loaded
 
 # one time it felt like this file got out of date.
 if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
-  # mv ~/.vim/autoload/plug.vim /tmp
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 fi
 

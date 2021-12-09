@@ -539,9 +539,9 @@ let g:UltiSnipsListSnippets="<c-k>"
 " Trigger a highlight in the appropriate direction when pressing these keys:
 let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
 
+" Fugitive .git/tags support removed in favor of `:set tags^=./.git/tags;`
+set tags^=./.git/tags
+
 if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
   source ~/.vimrc.no_term_limits_overrides
 endif
-
-" Fugitive .git/tags support removed in favor of `:set tags^=./.git/tags;`
-set tags^=./.git/tags

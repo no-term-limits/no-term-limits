@@ -27,6 +27,7 @@ if [ ! -f "$HOME/.zshrc" ]; then
 fi
 
 asdf_branch_name='v0.9.0'
+vim_version='8.2.3768'
 HOMEBREW_PREFIX="/usr/local"
 
 function update_shell() {
@@ -46,6 +47,22 @@ function gem_install_or_update() {
     gem update "$@"
   else
     gem install "$@"
+  fi
+}
+
+# we need vim 8.2 and ppa:jonathonf/vim seems fail
+# installation on ubuntu 20.04 so compile from source instead
+# ubuntu 20.04 has 8.1 by default in apt
+function install_vim_from_source() {
+  if ! command -v vim >/dev/null || vim --cmd 'if v:version < 802 | q | else | cq | fi' ; then
+    # sudo apt install ncurses-dev
+    curl  --fail -sL "https://github.com/vim/vim/archive/refs/tags/v${vim_version}.zip" -o /tmp/vim.zip
+    unzip /tmp/vim.zip -d /tmp/vim
+    pushd "/tmp/vim/vim-${vim_version}/src"
+    ./configure
+    make
+    sudo make install
+    popd
   fi
 }
 
@@ -211,12 +228,12 @@ else
     sqlite3 \
     tmux \
     unzip \
-    vim \
     vim-gtk \
     wget \
     zlib1g-dev \
     zsh
 
+  install_vim_from_source
   get_additional_apt_keys
 
   sudo apt-get update
