@@ -233,7 +233,10 @@ else
     zlib1g-dev \
     zsh
 
-  install_vim_from_source
+  if [[ "$NO_TERM_LIMITS_INSTALL_VIM_FROM_SOURCE" != "false" ]]; then
+    install_vim_from_source
+  fi
+
   get_additional_apt_keys
 
   sudo apt-get update

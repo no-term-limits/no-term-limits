@@ -27,9 +27,9 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: provision
-        run: NO_TERM_LIMITS_INSTALL_ASDF_LANGUAGES=false ./setup/ci
+        run: ./setup/ci
   build_mac:
-    if: ${{ false }}  # disable for now
+    # if: ${{ false }}  # disable for now
     # The type of runner that the job will run on
     runs-on: macos-11
 
