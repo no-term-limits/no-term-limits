@@ -234,8 +234,7 @@ if [[ "$LOAD_POWERLEVEL_P10K" != "false" ]] && [[ "$NO_TERM_LIMITS_CURRENT_SHELL
   fi
 fi
 
-if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]
-then
+if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]; then
   if [[ "$LOAD_NO_TERM_LIMITS_OVERRIDES" != "false" ]]; then
     source "${HOME}/.zshrc.no_term_limits_overrides"
   fi

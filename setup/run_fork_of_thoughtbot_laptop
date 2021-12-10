@@ -26,20 +26,29 @@ if [ ! -f "$HOME/.zshrc" ]; then
   touch "$HOME/.zshrc"
 fi
 
+if [[ -z "$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
+  export NO_TERM_LIMITS_PREFERRED_SHELL=zsh
+elif ! grep -qE '^(zsh|bash)$' <<<"$NO_TERM_LIMITS_PREFERRED_SHELL" ; then
+  >&2 echo "ERROR: no-term-limits only supports zsh and bash but you have specified $NO_TERM_LIMITS_PREFERRED_SHELL. Please either unset this variable which will default to zsh or set it to bash"
+  exit 1
+fi
+
 asdf_branch_name='v0.9.0'
 vim_version='8.2.3768'
 HOMEBREW_PREFIX="/usr/local"
 
 function update_shell() {
-  local shell_path;
-  shell_path="$(command -v zsh)"
+  if [[ "$SHELL" != *"$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
+    local shell_path;
+    shell_path="$(command -v "$NO_TERM_LIMITS_PREFERRED_SHELL")"
 
-  echo "Changing your shell to zsh ..."
-  if ! grep "$shell_path" /etc/shells > /dev/null 2>&1 ; then
-    echo "Adding '$shell_path' to /etc/shells"
-    sudo sh -c "echo $shell_path >> /etc/shells"
+    echo "Changing your shell to $NO_TERM_LIMITS_PREFERRED_SHELL ..."
+    if ! grep "$shell_path" /etc/shells > /dev/null 2>&1 ; then
+      echo "Adding '$shell_path' to /etc/shells"
+      sudo sh -c "echo $shell_path >> /etc/shells"
+    fi
+    sudo chsh -s "$shell_path" "$USER"
   fi
-  sudo chsh -s "$shell_path" "$USER"
 }
 
 function gem_install_or_update() {

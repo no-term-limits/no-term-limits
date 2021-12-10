@@ -153,6 +153,7 @@ function run_rcup() {
   if [[ "$NO_TERM_LIMITS_RCUP_FORCE" == "true" ]]; then
     rcup -f -q
   else
+    ./setup/check_for_dotfiles_that_will_be_overwritten
     rcup
   fi
 }
@@ -225,7 +226,6 @@ fi
 
 if [[ "$NO_TERM_LIMITS_RUN_RCUP" != "false" ]]; then
   export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
-  ./setup/check_for_dotfiles_that_will_be_overwritten
   run_rcup
 fi
 

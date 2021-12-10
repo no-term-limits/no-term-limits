@@ -2,4 +2,32 @@
 
 set -eo pipefail
 
+files_that_will_be_overwritten=''
 
+while read -r rc_file ; do
+  symlink_location=$(awk -F ':' '{print $1}' <<<"$rc_file")
+  source_location=$(awk -F ':' '{print $2}' <<<"$rc_file")
+
+  file_already_exists=false
+  if [[ -e "$symlink_location" ]]; then
+    if [[ ! -L "$symlink_location" ]]; then
+      file_already_exists=true
+    elif [[ $(readlink "$symlink_location") != "$source_location" ]]; then
+      file_already_exists=true
+    fi
+  fi
+
+  if [[ "$file_already_exists" == "true" ]]; then
+    files_that_will_be_overwritten="${files_that_will_be_overwritten} $symlink_location"
+  fi
+done <<<"$(lsrc)"
+
+if [[ -n "$files_that_will_be_overwritten" ]]; then
+  >&2 echo "WARNING: These files will be overwritten by script. You will want to back them up if you want to keep any of their contents. After the script runs, you will be able to create new files with names like [full_path_to_file]/[current_filename].no_term_limits_overrides in order to override no-term-limits defaults:"
+  >&2 echo -e "$(perl -pe "s|${HOME}|~|g" <<<"$files_that_will_be_overwritten" | perl -pe 's/ /\n\t/g')\n"
+  >&2 echo 'Continue? (y/N)'
+  read continue_running
+  if ! grep -qEi '^[yY]$' <<<"$continue_running" ; then
+    exit 1
+  fi
+fi
