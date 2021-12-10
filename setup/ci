@@ -14,10 +14,6 @@ set -o errtrace
 set -o pipefail
 
 export NO_TERM_LIMITS_RCUP_FORCE=true
-export NO_TERM_LIMITS_INSTALL_ASDF_LANGUAGES=false
 
 ./setup/provision_no_term_limits
-ls -al ~
-echo 'here is zshrc'
-cat ~/.zshrc
 ./setup/check_dotfiles setup/expected_dotfiles.txt

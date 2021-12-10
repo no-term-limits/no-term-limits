@@ -37,6 +37,11 @@ asdf_branch_name='v0.9.0'
 vim_version='8.2.3768'
 HOMEBREW_PREFIX="/usr/local"
 
+function ubuntu_greater_than_18_04() {
+  ubuntu_version="$(lsb_release -sr | sed 's/\.//')"
+  [[ "$ubuntu_version" -gt "1804" ]]
+}
+
 function update_shell() {
   if [[ "$SHELL" != *"$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
     local shell_path;
@@ -282,7 +287,6 @@ else
     openssh-server \
     parallel \
     rsync \
-    ripgrep \
     screen \
     silversearcher-ag \
     software-properties-common \
@@ -300,13 +304,17 @@ else
 
   get_additional_apt_keys
 
+  if ubuntu_greater_than_18_04 ; then
+    additional_packages="$additional_packages ripgrep"
+  fi
+
   sudo apt-get update
   sudo apt-get install -y \
     containerd.io \
     docker-ce \
     docker-ce-cli \
     kubectl \
-    rcm
+    rcm "$additional_packages"
 
   add_user_to_docker_group
 fi
