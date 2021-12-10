@@ -14,4 +14,7 @@ set -o errtrace
 set -o pipefail
 
 ./setup/provision_no_term_limits
+ls -al ~
+echo 'here is zshrc'
+cat ~/.zshrc
 ./setup/check_dotfiles setup/expected_dotfiles.txt
