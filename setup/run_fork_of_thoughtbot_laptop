@@ -46,13 +46,15 @@ function update_shell() {
   if [[ "$SHELL" != *"$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
     local shell_path;
     shell_path="$(command -v "$NO_TERM_LIMITS_PREFERRED_SHELL")"
+    local username_of_current_user
+    username_of_current_user="$(whoami)"
 
     echo "Changing your shell to $NO_TERM_LIMITS_PREFERRED_SHELL ..."
     if ! grep "$shell_path" /etc/shells > /dev/null 2>&1 ; then
       echo "Adding '$shell_path' to /etc/shells"
       sudo sh -c "echo $shell_path >> /etc/shells"
     fi
-    sudo chsh -s "$shell_path" "$USER"
+    sudo chsh -s "$shell_path" "$username_of_current_user"
   fi
 }
 
