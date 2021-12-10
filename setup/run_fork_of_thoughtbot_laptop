@@ -314,7 +314,7 @@ else
     docker-ce \
     docker-ce-cli \
     kubectl \
-    rcm "$additional_packages"
+    rcm $additional_packages
 
   add_user_to_docker_group
 fi
