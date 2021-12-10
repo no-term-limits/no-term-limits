@@ -127,10 +127,12 @@ function install_asdf_language() {
 }
 
 function add_user_to_docker_group() {
+  local username_of_current_user
+  username_of_current_user="$(whoami)"
   if grep -Eq docker /etc/group; then
-    groups_for_user=$(id -nG "$USER")
+    groups_for_user=$(id -nG "$username_of_current_user")
     if ! grep -qw "docker" <<< "$groups_for_user"; then
-      sudo usermod -a -G docker $USER
+      sudo usermod -a -G docker "$username_of_current_user"
       newgrp docker
     fi
   fi
