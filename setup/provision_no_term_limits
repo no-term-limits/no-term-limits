@@ -161,6 +161,10 @@ function set_up_github_repos() {
   clone_github_repo "romkatv/powerlevel10k"
   desired_location_for_autosuggestions="$HOME/.zsh/zsh-autosuggestions"
   github_dir="${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+  if [[ -d "$desired_location_for_autosuggestions" ]] && [[ ! -L "$desired_location_for_autosuggestions" ]] ; then
+    # if it's s directory and not a symlink, kill it. we want a symlink.
+    rm -rf "$desired_location_for_autosuggestions"
+  fi
   if [[ ! -d "$desired_location_for_autosuggestions" ]]; then
     mkdir -p "$HOME/.zsh"
     clone_github_repo "zsh-users/zsh-autosuggestions"
@@ -182,6 +186,7 @@ generate_ssh_key_pair_if_needed
 "${no_term_limits_directory}/bin/sudo_start_executing_commands_with_no_password"
 
 set_up_github_repos
+get_thoughtbot_dotfiles
 
 if is_mac ; then
   sudo chown -R "$(whoami)" /usr/local/*
@@ -198,45 +203,7 @@ if [[ "$NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT" != "false" ]]; then
   "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
 fi
 
-echo "running get_thoughtbot_dotfiles: $operating_system"
-get_thoughtbot_dotfiles
-
-# most of this is done in the linux_install script for ubuntu
-if is_mac ; then
-  brew tap thoughtbot/formulae
-
-  brew list --formula > /tmp/brew_list
-
-  # rcm for rcup, etc.
-  # jq is just awesome
-  # gnu-sed so we can use sed in scripts the way it was intended (via hot_sed)
-  # libxml for libxml-ruby
-  # libxslt for hydra-services
-  # wget because it's nice to have around for scripting
-  # htop to monitor local processes
-  # stern to make ktail (tailing kubernetes logs) more awesome
-  # colordiff for test_command_on_git_repo, etc
-  # telnet because we use computers
-  # bash because otherwise you are running bash 3
-  # (gnu) parallel for ggs
-  # bat because it is great
-  # shared-mime-info for hydra-services https://github.com/mimemagicrb/mimemagic gem
-  for brew_package in rcm jq gnu-sed gnu-getopt libxml2 libxslt wget htop stern ripgrep colordiff telnet bash parallel bat shared-mime-info; do
-    if ! grep -q $brew_package /tmp/brew_list; then
-      brew install $brew_package
-    fi
-  done
-
-  if grep -q "asdf" /tmp/brew_list; then
-    echo 'asdf should be installed in ~/.asdf by the thoughtbot laptop setup script, so uninstalling from homebrew'
-    brew uninstall asdf
-  fi
-fi
-
 assert_asdf_is_installed_and_loaded
-
-# export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
-# run_rcup
 
 # one time it felt like this file got out of date.
 if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
@@ -258,6 +225,7 @@ fi
 
 if [[ "$NO_TERM_LIMITS_RUN_RCUP" != "false" ]]; then
   export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
+  ./setup/check_for_dotfiles_that_will_be_overwritten
   run_rcup
 fi
 

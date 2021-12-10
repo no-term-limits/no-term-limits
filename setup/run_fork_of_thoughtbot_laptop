@@ -170,7 +170,10 @@ tap "universal-ctags/universal-ctags"
 brew "universal-ctags", args: ["HEAD"]
 brew "git"
 brew "openssl"
+
+# rcm for rcup, etc.
 brew "rcm"
+
 brew "reattach-to-user-namespace"
 brew "the_silver_searcher"
 brew "tmux"
@@ -192,7 +195,56 @@ cask "gpg-suite"
 
 # Databases
 brew "redis", restart_service: :changed
+
+# jq is just awesome
+brew "jq"
+
+# gnu-sed so we can use sed in scripts the way it was intended (via hot_sed)
+brew "gnu-sed"
+
+# libxml for libxml-ruby
+brew "libxml2"
+
+# libxslt for hydra-services
+brew "libxslt"
+
+# wget because it's nice to have around for scripting
+brew "wget"
+
+# htop to monitor local processes
+brew "htop"
+
+# stern to make tailing kubernetes logs more awesome
+brew "stern"
+
+# telnet because we use computers
+brew "telnet"
+
+# colordiff for test_command_on_git_repo, etc
+brew "colordiff"
+
+# bash because otherwise you are running bash 3
+brew "bash"
+
+# (gnu) parallel
+brew "parallel"
+
+# cat commands with syntax highlighting
+brew "bat"
+
+brew "gnu-getopt"
+
+# super-fast grep in rust
+brew "ripgrep"
+
+# for ruby install
+brew "shared-mime-info"
 EOF
+
+  if grep -q "asdf" /tmp/brew_list; then
+    echo 'asdf should be installed in ~/.asdf by the thoughtbot laptop setup script, so uninstalling from homebrew'
+    brew uninstall asdf
+  fi
 else
   sudo apt-get update
   sudo apt-get install -y \
