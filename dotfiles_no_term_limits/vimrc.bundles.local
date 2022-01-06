@@ -51,6 +51,6 @@ Plug 'unblevable/quick-scope'
 " Manage branches and tags with fzf. Mapped to <leader>gc (git checkout)
 Plug 'stsewd/fzf-checkout.vim'
 
-if filereadable(expand("~/user-dotfiles/vimrc.bundles.no_term_limits_overrides"))
-  source ~/user-dotfiles/vimrc.bundles.no_term_limits_overrides
+if filereadable(expand("~/.vimrc.bundles.no_term_limits_overrides"))
+  source ~/.vimrc.bundles.no_term_limits_overrides
 endif
