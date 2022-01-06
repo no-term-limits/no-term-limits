@@ -234,10 +234,6 @@ if [[ -d "$HOME/.bin" ]]; then
   remove_broken_symlinks
 fi
 
-if [[ -d "$HOME/.asdf/plugins/nodejs" ]]; then
-  bash ~/.asdf/plugins/nodejs/bin/import-release-team-keyring
-fi
-
 install_and_configure_wemux
 
 # https://stackoverflow.com/a/22753363

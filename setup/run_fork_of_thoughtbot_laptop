@@ -350,6 +350,5 @@ if [[ "$NO_TERM_LIMITS_INSTALL_ASDF_LANGUAGES" != "false" ]]; then
   set_number_of_cores_for_bundler
 
   echo "Installing latest Node ..."
-  bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
   install_asdf_language "nodejs"
 fi
