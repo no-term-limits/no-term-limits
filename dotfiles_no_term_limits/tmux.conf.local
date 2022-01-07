@@ -128,6 +128,8 @@ run -b '~/.tmux/plugins/tpm/tpm'
 # Stay in copy mode after copying with 'y'
 run -b 'tmux bind-key -T copy-mode-vi y send -X copy-selection 2> /dev/null || true'
 
+bind Enter copy-mode # enter copy mode
+
 # unsorted mappings
 # rebind-key window/pane controls
 bind-key L list-windows
