@@ -239,7 +239,7 @@ nnoremap <Up> <Up>
 nnoremap <Down> <Down>
 
 fun! Add_Shebang_line() "{{{
-  execute "normal! ggi#!/usr/bin/env bash\<cr>\<cr>"
+  execute "normal! ggi#!/usr/bin/env bash\<cr>\<cr>set -eo pipefail\<cr>\<cr>"
 endfunction "}}}
 
 nnoremap <leader>rs :cal Add_Shebang_line()<cr>
@@ -542,16 +542,15 @@ let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
 " Fugitive .git/tags support removed in favor of `:set tags^=./.git/tags;`
 set tags^=./.git/tags
 
-hi fullPathHi gui=none cterm=bold ctermbg=black ctermfg=blue
-hi fileHi gui=none cterm=bold ctermbg=black ctermfg=green
-hi mainHi gui=none cterm=bold ctermbg=black ctermfg=white
-
 " set statusline
 " resources:
 "   * https://learnvimscriptthehardway.stevelosh.com/chapters/17.html
 "   * https://stackoverflow.com/questions/33033646/how-to-show-constantly-current-working-directory-in-vim
 " ending in space for padding on the right side
-set statusline=%#fullPathHi#%{getcwd()}%#fileHi#/%f%m%#mainHi#\ %y%=%l,%c\ Total:\ %L\ 
+hi fullPathHi gui=none cterm=bold ctermbg=black ctermfg=blue
+hi fileHi gui=none cterm=bold ctermbg=black ctermfg=green
+hi mainHi gui=none cterm=bold ctermbg=black ctermfg=white
+set statusline=%#fullPathHi#%{getcwd()}/%#fileHi#%f%m%#mainHi#\ %y%=%l,%c\ Total:\ %L\ 
 
 if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
   source ~/.vimrc.no_term_limits_overrides

@@ -146,4 +146,10 @@ bind-key , rename-window '' \; command-prompt -I "#W" "rename-window '%%'"
 #   set the active window, set the active pane, resize panes and automatically switches to copy-mode to select text.
 bind-key m run "t toggle_mouse"
 
+# so vim auto reloads when the filesystem changes outside of it
+set -s focus-events on
+
+# we accidentally hit prefix Space too often, and next-layout moves the panes into a totally different configuration, which is highly undesirable when not expected.
+unbind Space
+
 if '[ -f ~/.tmux.conf.no_term_limits_overrides ]' 'source ~/.tmux.conf.no_term_limits_overrides'

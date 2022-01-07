@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: auto_maintain: repo_name
+
+if is_git_app
+then
+  basename "$(git config --get remote.origin.url)" .git
+elif is_svn_app
+then
+  svn info | grep -E "^URL:" | sed -e 's/\/\(trunk\|\(\(branches\|tags\)\/.*\)\)$//g' | awk -F '/' '{print $NF}'
+elif [[ -d ../.git ]]
+then
+  basename "$(git config --get remote.origin.url)" ../.git
+else
+  >&2 echo ERROR: Cannot find repo name
+  exit 1
+fi

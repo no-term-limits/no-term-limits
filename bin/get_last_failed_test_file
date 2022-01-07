@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: rails_tests: get the last failed test file found from running rl
+
+if [[ -z "$RT_OUTPUT_BASE_DIR" ]]; then
+  RT_OUTPUT_BASE_DIR=/var/tmp
+fi
+
+app_identifier=$(repo_name)
+last_failed_file=$(ls -t  "${RT_OUTPUT_BASE_DIR}/${app_identifier}_last_failed_"* | head -n 1)
+cat "$last_failed_file"
