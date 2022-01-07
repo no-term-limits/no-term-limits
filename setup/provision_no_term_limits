@@ -2,7 +2,15 @@
 
 # designed to be run as the very first (and only) setup script
 
+function cleanup() {
+  if [[ -n "$no_term_limits_directory" ]] && [[ -f "${no_term_limits_directory}/bin/sudo_stop_executing_commands_with_no_password" ]]; then
+    "${no_term_limits_directory}/bin/sudo_stop_executing_commands_with_no_password"
+  fi
+}
+
 function error_handler() {
+  # make sure we remove this file if something goes wrong
+  cleanup
   echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
@@ -243,10 +251,10 @@ if command -v compaudit; then
   compaudit | xargs chmod g-w
 fi
 
+cleanup
+
 cd "$initial_directory"
 
 set +x
-
-"${no_term_limits_directory}/bin/sudo_stop_executing_commands_with_no_password"
 
 echo 'no-term-limits provision completed successfully ❤️'
