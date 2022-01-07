@@ -247,4 +247,6 @@ cd "$initial_directory"
 
 set +x
 
+"${no_term_limits_directory}/bin/sudo_stop_executing_commands_with_no_password"
+
 echo 'no-term-limits provision completed successfully ❤️'
