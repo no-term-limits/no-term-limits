@@ -35,7 +35,7 @@ Plug 'dbeniamine/cheat.sh-vim'
 " language server protocol for letting vim communicate with a server that knows
 " all about how the current language works.
 Plug 'prabirshrestha/vim-lsp'
-Plug 'mattn/vim-lsp-settings'
+" Plug 'mattn/vim-lsp-settings'
 
 " we want to install the plugin regardless of vim or nvim, and then only
 " *load* it as appropriate

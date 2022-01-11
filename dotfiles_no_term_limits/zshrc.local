@@ -40,7 +40,8 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export EDITOR=vim
 
-if [[ -z "$NO_TERM_LIMITS_CURRENT_SHELL" ]]; then
+# HACK: Ignore shell being set to Xsession on login on Ubuntu since that is not the correct shell
+if [[ -z "$NO_TERM_LIMITS_CURRENT_SHELL" ]] || [[ "$NO_TERM_LIMITS_CURRENT_SHELL" == "Xsession" ]] ; then
   NO_TERM_LIMITS_CURRENT_SHELL="$(basename $(ps -o comm= -p $$ | sed -e 's/^-//g'))"
 fi
 export NO_TERM_LIMITS_CURRENT_SHELL
