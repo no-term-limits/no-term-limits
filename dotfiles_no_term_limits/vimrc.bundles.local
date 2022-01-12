@@ -35,7 +35,9 @@ Plug 'dbeniamine/cheat.sh-vim'
 " language server protocol for letting vim communicate with a server that knows
 " all about how the current language works.
 Plug 'prabirshrestha/vim-lsp'
-" Plug 'mattn/vim-lsp-settings'
+Plug 'mattn/vim-lsp-settings'
+" vim-lsp-ale is a bridge plugin to solve the problem when using both ALE and vim-lsp. With the plugin, diagnostics are provided by vim-lsp and ALE can handle all the errors. Please see https://github.com/rhysd/vim-lsp-ale/blob/master/doc/vim-lsp-ale.txt for more details.
+Plug 'rhysd/vim-lsp-ale'
 
 " we want to install the plugin regardless of vim or nvim, and then only
 " *load* it as appropriate

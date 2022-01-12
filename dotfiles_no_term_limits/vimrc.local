@@ -427,6 +427,14 @@ let g:which_key_map.l.s = 'lsp definition'
 nnoremap <leader>ls :LspStatus<cr>
 let g:which_key_map.l.s = 'lsp status'
 
+" this is broken after :LspInstallServer typeprof:
+" BUNDLE_GEMFILE=~/.local/share/vim-lsp-settings/servers/typeprof/Gemfile bundle exec ruby ~/.local/share/vim-lsp-settings/servers/typeprof/exe/typeprof certain-files.rb
+let g:lsp_settings = {
+\  'typeprof': {
+\    'disabled': 1,
+\   }
+\}
+
 " START GENERATE UUID FUNCTION. this cannot be indented properly. :D
 " credit to https://gist.github.com/jonmorehouse/8442341
 fu! GenerateUUID()
