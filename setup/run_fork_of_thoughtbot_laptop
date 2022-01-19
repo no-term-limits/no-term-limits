@@ -291,7 +291,6 @@ else
     silversearcher-ag \
     software-properties-common \
     sqlite3 \
-    tmux \
     unzip \
     vim-gtk \
     wget \
@@ -302,7 +301,21 @@ else
     if [[ "$NO_TERM_LIMITS_INSTALL_VIM_FROM_SOURCE" != "false" ]]; then
       install_vim_from_source
     fi
+    additional_packages="$additional_packages tmux"
   else
+    # so we can install tmux 3 on ubuntu 18.04
+    if [[ "$NO_TERM_LIMITS_INSTALL_TMUX_FROM_SOURCE" != "false" ]]; then
+      sudo apt update && sudo apt install -y libevent-dev libncurses5-dev byacc bison
+      rm -fr /tmp/tmux
+      git clone https://github.com/tmux/tmux.git /tmp/tmux
+      cd /tmp/tmux
+      git checkout 3.0
+      sh autogen.sh
+      ./configure && make
+      sudo make install
+      cd -
+      rm -fr /tmp/tmux
+    fi
     sudo add-apt-repository ppa:jonathonf/vim
     additional_packages="$additional_packages vim"
   fi
