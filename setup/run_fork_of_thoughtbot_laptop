@@ -116,7 +116,11 @@ function add_or_update_asdf_plugin() {
 function install_asdf_language() {
   local language="$1"
   local version
-  version="$(asdf list-all "$language" | grep -v "[a-z]" | tail -1)"
+
+  # FIXME: 17.4.0 seems to be broken with the newest nodejs plugin. It sometimes lists the version
+  # with: "asdf list-all nodejs" but gives the error "node-build: definition not found: 17.4.0"
+  # when trying to install it so avoid it for now
+  version="$(asdf list-all "$language" | grep -v "[a-z]" | grep -v "17.4.0" | tail -1)"
 
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"

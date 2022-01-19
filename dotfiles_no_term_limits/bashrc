@@ -5,5 +5,3 @@ if [[ -f "${HOME}/.bashrc.no_term_limits_overrides" ]]; then
     source "${HOME}/.bashrc.no_term_limits_overrides"
   fi
 fi
-
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
