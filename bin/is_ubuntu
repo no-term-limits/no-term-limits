@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: returns 0 if ubuntu and matches given version if given and operator. Operator defaults to equal to. Example: "is_ubuntu 18.04 '>'" returns good exit status when on ubuntu 20.04
+
+version=$1
+operator=$2
+
+if uname -a | grep -qiE "\<(debian|ubuntu)\>"; then
+  if [[ -n "$version" ]]; then
+    if [[ -z "$operator" ]]; then
+      operator="="
+    fi
+    ubuntu_version="$(lsb_release -sr)"
+    compare_versions "${ubuntu_version} ${operator} ${version}"
+  else
+    exit 0
+  fi
+else
+  exit 1
+fi
