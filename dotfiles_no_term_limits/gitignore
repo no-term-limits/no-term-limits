@@ -8,7 +8,6 @@
 .git/
 /bower_components/
 /node_modules/
-/vendor
 db/*.sqlite3
 log/*.log
 rerun.txt

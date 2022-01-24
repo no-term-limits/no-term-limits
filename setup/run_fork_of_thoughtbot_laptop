@@ -260,6 +260,9 @@ brew "ripgrep"
 
 # for ruby install
 brew "shared-mime-info"
+
+# useful utility
+brew "watch"
 EOF
 
   if grep -q "asdf" /tmp/brew_list; then
