@@ -155,6 +155,19 @@ function set_number_of_cores_for_bundler() {
   fi
 }
 
+function install_stern() {
+  local version="1.21.0"
+  local tmp_output="/tmp/stern_$(date +%s)"
+  mkdir -p "$tmp_output"
+  pushd "$tmp_output"
+
+  curl -L --fail "https://github.com/stern/stern/releases/download/v${version}/stern_${version}_linux_amd64.tar.gz" -o "$tmp_output/stern_${version}_linux_amd64.tar.gz"
+  tar xpvf *.tar.gz
+  sudo cp stern /usr/local/bin/stern
+  popd
+  rm -rf "$tmp_output"
+}
+
 # shellcheck disable=SC1090
 if is_mac ; then
   if [ -d "$HOMEBREW_PREFIX" ]; then
@@ -345,6 +358,8 @@ else
     rcm $additional_packages
 
   add_user_to_docker_group
+
+  install_stern
 fi
 
 case "$SHELL" in
