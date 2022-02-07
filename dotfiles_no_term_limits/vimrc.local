@@ -410,7 +410,7 @@ let g:CheatSheetDoNotMap=1
 " https://github.com/dense-analysis/ale/issues/1810#issuecomment-419708225
 let g:which_key_map.c = {
       \ 'name' : '+cheat.sheet' ,
-      \ 'c' : [':call CheatSheetQueryToBuffer()'     , 'query cheat.sheet for current line'],
+      \ 'c' : ['CheatSheetQueryToBuffer()'     , 'query cheat.sheet for current line'],
       \ 'e' : [':CheatError'     , 'look up Error from syntastic and maybe someday ale'],
       \ 'w' : [':call CheatSheetEntryToBuffer()'     , 'get cheat.sheet entry for current Word'],
       \ 'r' : [':call CheatSheetSelectEntryFromRosettaCode()'     , 'select rosetta code cheat.sheet entry'],
@@ -432,13 +432,16 @@ fu! CheatSheetOpenEntryForLang(entry_from_fzf)
   " Cheat only accepts one slash and the rest is ignored, so
   " rust/rosetta/Tree-traversal doesn't work that great.
   " execute 'Cheat rust/rosetta-what/' . a:entry_from_fzf
-  " TODO: unhardcode rust by currying the lang in from the
-  " CheatSheetSelectEntryFromRosettaCode function.
-  execute 'Cheat rust/' . a:entry_from_fzf
+  let l:filetypeforcheat = cheat#frameworks#getFt()
+  execute 'Cheat '. l:filetypeforcheat .'/' . a:entry_from_fzf
 endfunction
 
 fu! CheatSheetQueryToBuffer()
-  call cheat#cheat("", getcurpos()[1], getcurpos()[1], 0, 0, '!')
+  let l:filetypeforcheat = cheat#frameworks#getFt()
+  let query = input('Enter ' . l:filetypeforcheat . ' query: ')
+  if ! empty(query)
+    call cheat#cheat(l:filetypeforcheat . "/" . query, 0, 0, 0, 0, '!')
+  endif
 endfunction
 
 " this takes the word under the cursor and opens up the
