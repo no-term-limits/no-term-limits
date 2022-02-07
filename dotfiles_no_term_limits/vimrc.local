@@ -263,13 +263,27 @@ let g:fzf_layout = { 'down': '40%' }
 
 
 " remove mappings from thoughtbot/dotfiles
+if ! empty(maparg('<leader>t', 'n'))
 nunmap <silent> <leader>t
+endif
+if ! empty(maparg('<leader>s', 'n'))
 nunmap <silent> <leader>s
+endif
+if ! empty(maparg('<leader>l', 'n'))
 nunmap <silent> <leader>l
+endif
+if ! empty(maparg('<leader>a', 'n'))
 nunmap <silent> <leader>a
+endif
+if ! empty(maparg('<leader>gt', 'n'))
 nunmap <silent> <leader>gt
+endif
+if ! empty(maparg('<leader>r', 'n'))
 nunmap <silent> <leader>r
+endif
+if ! empty(maparg('\', 'n'))
 nunmap \
+endif
 
 " added by tabnine-vim/YouCompleteMe
 let g:ycm_key_detailed_diagnostics=''
@@ -418,6 +432,23 @@ fu! CheatSheetEntryToBuffer()
   let l:wordundercursor = expand('<cword>')
   execute 'Cheat ' . l:filetypeforcheat . ' ' . l:wordundercursor
 endfunction
+
+" when using cht.sh plugin (https://github.com/dbeniamine/cheat.sh-vim),
+" this will remap gf inside the _cheat buffer so you can open the shortened
+" stackoverflow links (that look like [so/q/56148586]) in a browser.
+function! <SID>GfForCheatShBufferInCaseStackoverflowLink()
+  let line = getline('.')
+  let stackoverflow_pattern = '\[so\/q\/\d\+\]'
+  if line =~ stackoverflow_pattern
+    let matched_thing = matchstr(getline('.'), stackoverflow_pattern)
+    let matched_thing = substitute(matched_thing, '[so/q/', 'https://stackoverflow.com/questions/', 'g')
+    let matched_thing = substitute(matched_thing, ']', '', '')
+    silent exec "!open_url '". matched_thing ."'"
+    redraw!
+  endif
+endfun
+
+autocmd BufRead,BufNewFile */_cheat map <buffer> gf :call <SID>GfForCheatShBufferInCaseStackoverflowLink()<cr>
 
 let g:which_key_map.l = { 'name' : '+language server protocol (lsp)' }
 nnoremap <leader>li :LspInstallServer<cr>
