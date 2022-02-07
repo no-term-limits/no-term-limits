@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+lang="$1"
+
+if [[ -z "$lang" ]]; then
+  >&2 echo "ERROR: need one arg, lang"
+  exit 1
+fi
+
+# curl -s cht.sh/rust/rosetta/:list | sed -E 's/^/rosetta\//g'
+# curl -s cht.sh/rust/rosetta/:list
+curl -s cht.sh/$lang/:list
