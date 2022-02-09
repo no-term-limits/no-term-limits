@@ -274,6 +274,9 @@ brew "ripgrep"
 # for ruby install
 brew "shared-mime-info"
 
+# for linting shell scripts
+brew "shellcheck"
+
 # useful utility
 brew "watch"
 EOF
@@ -311,6 +314,7 @@ else
     parallel \
     rsync \
     screen \
+    shellcheck \
     silversearcher-ag \
     software-properties-common \
     sqlite3 \
