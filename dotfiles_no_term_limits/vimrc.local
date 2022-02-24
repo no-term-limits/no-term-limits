@@ -601,6 +601,74 @@ let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
 " Fugitive .git/tags support removed in favor of `:set tags^=./.git/tags;`
 set tags^=./.git/tags
 
+
+function! RunMakeAndMaybeOpenQuickfixWindow()
+  execute "silent make"
+  if empty(getqflist())
+    cclose
+  else
+    copen
+  endif
+  redraw!
+endfunction
+
+" run :make to compile a java class
+autocmd Filetype java set makeprg=javac\ %
+autocmd Filetype java set errorformat=%A%f:%l:\ %m,%-Z%p^,%-C%.%#
+autocmd Filetype java map <leader>ra :call RunMakeAndMaybeOpenQuickfixWindow()<cr>
+autocmd Filetype java map <leader>rr :call RunJavaClass()<cr>
+autocmd Filetype java map <F6> :cprevious<Return>
+autocmd Filetype java map <F7> :cnext<Return>
+" nnoremap M :silent make\|redraw!\|cw\|silent cc<CR>\|call RunJavaClass()<cr>
+
+function! SearchForLinesContainingPattern(pattern)
+    let line1 = search(a:pattern)
+    return getbufline(bufnr('%'), line1, line1)
+endfunction
+
+" command! -bang -nargs=* -complete=file Make AsyncRun -program=make @ <args>
+
+func! RunJavaClass()
+  " Dispatch " runs make by default
+  " Make " would use commented out command! above
+  " if you RunMakeAndMaybeOpenQuickfixWindow, it doesn't show you the output of the program when it
+  " runs, so compile and run in separate commands.
+  " call RunMakeAndMaybeOpenQuickfixWindow()
+  "
+  let lines = SearchForLinesContainingPattern("^package")
+  let numberOfPackageParts = 0
+  let package = ''
+  let javaClassName = expand('%:p:t:r')
+
+  if !empty(lines)
+    let line = lines[0]
+    let package = substitute(line, 'package ', '', '')
+    let package= substitute(package, ';', '', '')
+    let numberOfPackageParts = count(package, '.') + 1
+  endif
+
+  let ii = 0
+  let filenameModifiers = '%:p:h'
+  while ii < numberOfPackageParts
+    " get the head of the filename (parent dir) as many times as necessary
+    let filenameModifiers = filenameModifiers . ':h'
+    let ii += 1
+  endwhile
+
+  let directoryForClassPath = expand(filenameModifiers)
+  let javaClassName = expand('%:p:t:r')
+  if empty(package)
+    let packageAndClassName = javaClassName
+  else
+    let packageAndClassName = package . '.' . javaClassName
+  endif
+
+  " echo '!java -cp ' . directoryForClassPath . ' ' . packageAndClassName
+  execute '!java -cp ' . directoryForClassPath . ' ' . packageAndClassName
+endfunc
+
+command! Java call RunJavaClass()
+
 " set statusline
 " resources:
 "   * https://learnvimscriptthehardway.stevelosh.com/chapters/17.html

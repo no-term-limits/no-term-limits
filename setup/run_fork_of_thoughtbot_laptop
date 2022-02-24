@@ -157,6 +157,12 @@ function set_number_of_cores_for_bundler() {
 
 function install_stern() {
   local version="1.21.0"
+  if command -v stern >/dev/null; then
+    stern_version_output="$(stern --version)"
+    if grep -q "$version" <<< "$stern_version_output"; then
+      return # got it already
+    fi
+  fi
   local tmp_output="/tmp/stern_$(date +%s)"
   mkdir -p "$tmp_output"
   pushd "$tmp_output"
