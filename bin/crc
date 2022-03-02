@@ -22,7 +22,16 @@ cd "$(dirname "${new_command_location}")/../"
 
 function run() {
   if [[ "$FORCE_CREATION" == "true" ]] || grep -q 'COMMAND_NOT_FOUND' <<<"$(cac "$new_command" 2>&1 || echo '')"; then
-    echo -e "#!/usr/bin/env bash\n\nset -eo pipefail\n\n# HELP: ${command_help}\n\n${command_contents}" >"$new_command_location"
+    echo -e "#!/usr/bin/env bash\n" >"$new_command_location"
+    echo -e 'function error_handler() {' >>"$new_command_location"
+    echo -e "  echo \"Exited with BAD EXIT CODE '\${2}' in \${0} script at line: \${1}.\"" >>"$new_command_location"
+    echo -e '  exit "$2"' >>"$new_command_location"
+    echo -e '}' >>"$new_command_location"
+    echo -e "trap 'error_handler \${LINENO} \$?' ERR" >>"$new_command_location"
+
+    # Eeu is errtrace, errexit, nounset
+    echo -e "set -Eeuo pipefail\n" >>"$new_command_location"
+    echo -e "# HELP: ${command_help}\n\n${command_contents}" >>"$new_command_location"
     chmod +x "$new_command_location"
     if [[ "$NON_INTERACTIVE" != "true" ]]; then
       vim "+normal G^" "$new_command_location"
