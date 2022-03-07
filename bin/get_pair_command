@@ -4,9 +4,9 @@ set -eo pipefail
 
 # HELP: assemble a pairing command and copy to clipboard. Attempts to use the hostname as the ssh target and will fall back to ip if it can't be resoved. Set NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX if hostname can be used but a hostname suffix is required.
 
-if [[ -z "$REMOTE_PAIR_USERNAME" ]]; then
+if [[ -z "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" ]]; then
   # trying to change this to remotepair, but need to migrate existing users so default like this for now
-  REMOTE_PAIR_USERNAME=pair
+  NO_TERM_LIMITS_REMOTE_PAIR_USERNAME=pair
 fi
 
 domain="$(hostname | tr '[:upper:]' '[:lower:]')"
@@ -20,6 +20,6 @@ if [[ "$ip_from_ifconfig" != "$ip_from_domain" ]]; then
   ssh_target="$ip_from_ifconfig"
 fi
 
-thing_to_copy="ssh -o \"StrictHostKeyChecking=no\" $REMOTE_PAIR_USERNAME@${ssh_target}"
+thing_to_copy="ssh -o \"StrictHostKeyChecking=no\" $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME@${ssh_target}"
 echo "$thing_to_copy"
 cbcp "$thing_to_copy"

@@ -4,21 +4,21 @@ set -eo pipefail
 
 # HELP: delete all traces of the setup created by start_pairing
 
-if [[ -z "$REMOTE_PAIR_USERNAME" ]]; then
-  REMOTE_PAIR_USERNAME=pair
+if [[ -z "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" ]]; then
+  NO_TERM_LIMITS_REMOTE_PAIR_USERNAME=pair
 fi
 
 if is_mac; then
-  user_dir="/Users/$REMOTE_PAIR_USERNAME"
+  user_dir="/Users/$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
 else
-  user_dir="/home/${REMOTE_PAIR_USERNAME}"
+  user_dir="/home/${NO_TERM_LIMITS_REMOTE_PAIR_USERNAME}"
 fi
 
 function user_exists() {
   if is_mac; then
     dscl . list "$user_dir"  > /dev/null 2>&1
   else
-    id -u "$REMOTE_PAIR_USERNAME"
+    id -u "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
   fi
 }
 
@@ -32,7 +32,7 @@ function delete_stuff() {
   if user_exists; then
 
     # remove all processes for pair user to ensure we can fully cleanup
-    pids=$(ps -u "$REMOTE_PAIR_USERNAME" -o 'pid=' || echo '')
+    pids=$(ps -u "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" -o 'pid=' || echo '')
     if [[ -n "$pids" ]]; then
       while read -r pid ; do
         set +e
@@ -41,22 +41,22 @@ function delete_stuff() {
       done<<<"$pids"
     fi
 
-    echo "deleting $REMOTE_PAIR_USERNAME user"
+    echo "deleting $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME user"
     if is_mac; then
       sudo dscl . -delete "$user_dir"
     else
-      sudo userdel --remove "$REMOTE_PAIR_USERNAME"
+      sudo userdel --remove "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
     fi
   fi
   if [[ -d "$user_dir" ]]; then
-    echo "deleting $REMOTE_PAIR_USERNAME user home directory"
+    echo "deleting $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME user home directory"
     sudo rm -rf "$user_dir"
   fi
 }
 
 function wemux_kick_all() {
-  if grep -q "$REMOTE_PAIR_USERNAME" <<<"$(wemux users)"; then
-    wemux kick "$REMOTE_PAIR_USERNAME"
+  if grep -q "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" <<<"$(wemux users)"; then
+    wemux kick "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
     wemux_kick_all
   fi
 }
@@ -64,8 +64,8 @@ function wemux_kick_all() {
 ### MAC SPECIFIC FUNCTIONS
 function remote_user_from_group() {
   if [[ -n "$1" ]]; then
-    echo "deleting $REMOTE_PAIR_USERNAME from group $1"
-    sudo dscl . -delete /Groups/$1 GroupMembership $REMOTE_PAIR_USERNAME
+    echo "deleting $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME from group $1"
+    sudo dscl . -delete /Groups/$1 GroupMembership $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME
   fi
 }
 
@@ -80,7 +80,7 @@ function get_a_group_the_user_is_in_and_remove_user_from_group() {
 }
 
 function groups_for_user() {
-  dscl . search /Groups GroupMembership "$REMOTE_PAIR_USERNAME" | grep = | awk '{print $1}'
+  dscl . search /Groups GroupMembership "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" | grep = | awk '{print $1}'
 }
 
 function random_group_the_user_is_in() {

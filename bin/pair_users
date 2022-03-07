@@ -4,14 +4,14 @@ set -eo pipefail
 
 # HELP: shows list of users in the pair users authoized_keys file
 
-if [[ -z "$REMOTE_PAIR_USERNAME" ]]; then
-  export REMOTE_PAIR_USERNAME=pair
+if [[ -z "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" ]]; then
+  export NO_TERM_LIMITS_REMOTE_PAIR_USERNAME=pair
 fi
 
 if is_mac; then
-  user_dir="/Users/$REMOTE_PAIR_USERNAME"
+  user_dir="/Users/$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
 else
-  user_dir="/home/${REMOTE_PAIR_USERNAME}"
+  user_dir="/home/${NO_TERM_LIMITS_REMOTE_PAIR_USERNAME}"
 fi
 
 if [[ -f "${user_dir}/.ssh/authorized_keys" ]]; then

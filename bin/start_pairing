@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-# HELP: set up your computer to allow a remote pair partner to join temporarily. Defaults to getting the ssh public for a user from github. Add a get_ssh_public_key_from_username command for custom ssh keys if github will not work for that user.
+# HELP: set up your computer to allow a remote pair partner to join temporarily. Defaults to getting the ssh public for a user from github. Add a get_ssh_public_key_from_username command for custom ssh keys if github will not work for that user. Set NO_TERM_LIMITS_REMOTE_PAIR_USERNAME for the desired username of the pair user. It defaults to 'pair'.
 
 if [[ -n "$1" ]]; then
   USER_CSV_STRING="$1"
@@ -12,21 +12,21 @@ else
   echo "defaulting to allowing pair access for bitbucket server user: ${USER_CSV_STRING}"
 fi
 
-if [[ -z "$REMOTE_PAIR_USERNAME" ]]; then
-  export REMOTE_PAIR_USERNAME=pair
+if [[ -z "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" ]]; then
+  export NO_TERM_LIMITS_REMOTE_PAIR_USERNAME=pair
 fi
 
 if is_mac; then
-  user_dir="/Users/$REMOTE_PAIR_USERNAME"
+  user_dir="/Users/$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
 else
-  user_dir="/home/${REMOTE_PAIR_USERNAME}"
+  user_dir="/home/${NO_TERM_LIMITS_REMOTE_PAIR_USERNAME}"
 fi
 
 function user_exists() {
   if is_mac; then
     dscl . list "$user_dir"  > /dev/null 2>&1
   else
-    id -u "$REMOTE_PAIR_USERNAME"
+    id -u "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
   fi
 }
 
@@ -34,15 +34,15 @@ function create_stuff() {
   # not sure why removing the user from admin group makes it stop working even when the user is in the staff group
   # and /tmp/wemux-wemux is owned by the group staff
   if is_mac; then
-    sudo sysadminctl -addUser "$REMOTE_PAIR_USERNAME" -fullName "$REMOTE_PAIR_USERNAME" -admin -home "$user_dir"
-    sudo dscl . -append /Groups/staff GroupMembership $REMOTE_PAIR_USERNAME
+    sudo sysadminctl -addUser "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" -fullName "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" -admin -home "$user_dir"
+    sudo dscl . -append /Groups/staff GroupMembership $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME
 
     # otherwise it's owned by $USER:wheel, a more powerful group
     if [[ -e /tmp/wemux-wemux ]]; then
       sudo chown "$(echo $USER):staff" /tmp/wemux-wemux
     fi
   else
-    sudo useradd --create-home "$REMOTE_PAIR_USERNAME"
+    sudo useradd --create-home "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME"
   fi
   sudo mkdir -p "$user_dir/.ssh"
 
@@ -77,7 +77,7 @@ function create_stuff() {
   sudo mv /tmp/superawesomestuffthatisgreatbashrc "$user_dir/.bashrc"
   sudo mv /tmp/superawesomestuffthatisgreat "$user_dir/.ssh/authorized_keys"
   sudo chmod 600 "$user_dir/.ssh/authorized_keys"
-  sudo chown -R "$REMOTE_PAIR_USERNAME" "$user_dir"
+  sudo chown -R "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" "$user_dir"
 }
 
 install_and_configure_wemux
