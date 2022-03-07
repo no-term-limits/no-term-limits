@@ -4,4 +4,4 @@ set -eo pipefail
 
 # HELP: git: like gc, but does git add -p instead of git add .
 
-RUN_GIT_ADD=patch gc "$@"
+NO_TERM_LIMITS_RUN_GIT_ADD=patch gc "$@"

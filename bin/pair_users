@@ -2,6 +2,6 @@
 
 set -eo pipefail
 
-# HELP: shows list of users in the pair users authoized_keys file
+# HELP: shows list of users that can ssh into this machine using wemux
 
 cat /var/tmp/no_term_limits_wemux_ssh_users

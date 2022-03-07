@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP: shows list of users that are currently connected using ssh and wemux
+
+wemux users | grep -v 'connected.*:' | perl -p -e 's/^ +\d+\. (.*)/\1/' | sed -E "/\<$(whoami)\>/d"

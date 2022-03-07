@@ -2,12 +2,12 @@
 
 set -eo pipefail
 
-# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd.
+# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
 
-commit_message="$@"
+commit_message="$*"
 
-if [[ -z "$RUN_GIT_ADD" ]]; then
-  RUN_GIT_ADD=all
+if [[ -z "$NO_TERM_LIMITS_RUN_GIT_ADD" ]]; then
+  NO_TERM_LIMITS_RUN_GIT_ADD=all
 fi
 
 if [[ -z "$commit_message" ]]; then
@@ -15,8 +15,14 @@ if [[ -z "$commit_message" ]]; then
   exit 1
 fi
 
-if [[ -n "$COMMIT_MESSAGE_SUFFIX" ]]; then
-  commit_message="${commit_message}${COMMIT_MESSAGE_SUFFIX}"
+currently_connected_paired_users=""
+if command -v get_pair_users_for_git_commit_message >/dev/null ; then
+  currently_connected_paired_users=$(get_pair_users_for_git_commit_message)
+else
+  currently_connected_paired_users=$(currently_connected_paired_users | tr '\n' ' ' | perl -p -e 's/ *$//')
+fi
+if [[ -n "$currently_connected_paired_users" ]]; then
+  commit_message="$commit_message w/ $currently_connected_paired_users"
 fi
 
 sleep_period=1
@@ -25,11 +31,11 @@ echo "about to commit with commit message: $commit_message"
 echo "ctrl+c in next ${sleep_period} seconds to abort git commit"
 sleep "$sleep_period"
 
-if [[ "$RUN_GIT_ADD" == "all" ]]; then
+if [[ "$NO_TERM_LIMITS_RUN_GIT_ADD" == "all" ]]; then
   git add .
-elif [[ "$RUN_GIT_ADD" == "updated" ]]; then
+elif [[ "$NO_TERM_LIMITS_RUN_GIT_ADD" == "updated" ]]; then
   git add -u
-elif [[ "$RUN_GIT_ADD" == "patch" ]]; then
+elif [[ "$NO_TERM_LIMITS_RUN_GIT_ADD" == "patch" ]]; then
   # always add all untracked files, but let the -p deal with updated files
   git ls-files --others --exclude-standard | xargs git add
   git add -p
