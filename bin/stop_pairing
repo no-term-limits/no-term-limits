@@ -1,0 +1,92 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: delete all traces of the setup created by start_pairing
+
+if [[ -z "$REMOTE_PAIR_USERNAME" ]]; then
+  REMOTE_PAIR_USERNAME=pair
+fi
+
+if is_mac; then
+  user_dir="/Users/$REMOTE_PAIR_USERNAME"
+else
+  user_dir="/home/${REMOTE_PAIR_USERNAME}"
+fi
+
+function user_exists() {
+  if is_mac; then
+    dscl . list "$user_dir"  > /dev/null 2>&1
+  else
+    id -u "$REMOTE_PAIR_USERNAME"
+  fi
+}
+
+function delete_stuff() {
+  if is_mac; then
+    while get_a_group_the_user_is_in_and_remove_user_from_group; do
+      echo > /dev/null
+    done
+  fi
+
+  if user_exists; then
+
+    # remove all processes for pair user to ensure we can fully cleanup
+    pids=$(ps -u "$REMOTE_PAIR_USERNAME" -o 'pid=' || echo '')
+    if [[ -n "$pids" ]]; then
+      while read -r pid ; do
+        set +e
+        sudo kill $pid
+        set -e
+      done<<<"$pids"
+    fi
+
+    echo "deleting $REMOTE_PAIR_USERNAME user"
+    if is_mac; then
+      sudo dscl . -delete "$user_dir"
+    else
+      sudo userdel --remove "$REMOTE_PAIR_USERNAME"
+    fi
+  fi
+  if [[ -d "$user_dir" ]]; then
+    echo "deleting $REMOTE_PAIR_USERNAME user home directory"
+    sudo rm -rf "$user_dir"
+  fi
+}
+
+function wemux_kick_all() {
+  if grep -q "$REMOTE_PAIR_USERNAME" <<<"$(wemux users)"; then
+    wemux kick "$REMOTE_PAIR_USERNAME"
+    wemux_kick_all
+  fi
+}
+
+### MAC SPECIFIC FUNCTIONS
+function remote_user_from_group() {
+  if [[ -n "$1" ]]; then
+    echo "deleting $REMOTE_PAIR_USERNAME from group $1"
+    sudo dscl . -delete /Groups/$1 GroupMembership $REMOTE_PAIR_USERNAME
+  fi
+}
+
+function get_a_group_the_user_is_in_and_remove_user_from_group() {
+  group="$(random_group_the_user_is_in)"
+  if [[ -n "$group" ]]; then
+    remote_user_from_group "$group"
+    return 0
+  else
+    return 1
+  fi
+}
+
+function groups_for_user() {
+  dscl . search /Groups GroupMembership "$REMOTE_PAIR_USERNAME" | grep = | awk '{print $1}'
+}
+
+function random_group_the_user_is_in() {
+  groups_for_user | head -n 1
+}
+###############################
+
+wemux_kick_all
+delete_stuff
