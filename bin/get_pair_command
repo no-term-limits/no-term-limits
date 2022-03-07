@@ -4,11 +4,6 @@ set -eo pipefail
 
 # HELP: assemble a pairing command and copy to clipboard. Attempts to use the hostname as the ssh target and will fall back to ip if it can't be resoved. Set NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX if hostname can be used but a hostname suffix is required.
 
-if [[ -z "$NO_TERM_LIMITS_REMOTE_PAIR_USERNAME" ]]; then
-  # trying to change this to remotepair, but need to migrate existing users so default like this for now
-  NO_TERM_LIMITS_REMOTE_PAIR_USERNAME=pair
-fi
-
 domain="$(hostname | tr '[:upper:]' '[:lower:]')"
 if [[ -n "${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX:-}" ]]; then
   domain="${domain}.${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX}"
@@ -20,6 +15,15 @@ if [[ "$ip_from_ifconfig" != "$ip_from_domain" ]]; then
   ssh_target="$ip_from_ifconfig"
 fi
 
-thing_to_copy="ssh -o \"StrictHostKeyChecking=no\" $NO_TERM_LIMITS_REMOTE_PAIR_USERNAME@${ssh_target}"
-echo "$thing_to_copy"
-cbcp "$thing_to_copy"
+if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]]; then
+  commands_to_copy=""
+
+  while read -r pair_user ; do
+    if [[ "$pair_user" != "$(whoami)" ]]; then
+      commands_to_copy="${commands_to_copy}ssh -o \"StrictHostKeyChecking=no\" $pair_user@${ssh_target}:"
+    fi
+  done </var/tmp/no_term_limits_wemux_ssh_users
+  commands_to_copy=$(perl -p -e 's/:*$//' <<<"$commands_to_copy" | tr ':' '\n')
+  echo -e "$commands_to_copy"
+  cbcp "$commands_to_copy"
+fi
