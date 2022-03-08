@@ -138,7 +138,6 @@ function add_user_to_docker_group() {
     groups_for_user=$(id -nG "$username_of_current_user")
     if ! grep -qw "docker" <<< "$groups_for_user"; then
       sudo usermod -a -G docker "$username_of_current_user"
-      newgrp docker
     fi
   fi
 }
