@@ -361,7 +361,7 @@ else
   fi
 
   sudo apt-get update
-  sudo apt-get install -y \
+  sudo apt-get install -y --allow-change-held-packages \
     containerd.io \
     docker-ce \
     docker-ce-cli \
