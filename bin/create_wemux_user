@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP: delete a single wemux pair user
+
+pair_user="${1:-}"
+
+if [[ -z "$pair_user" ]]; then
+  >&2 echo "ERROR: usage: $(basename "$0") [wemux_pair_user]"
+  exit 1
+fi
+
+function create_pair_user() {
+  local pair_user="$1"
+
+  # not sure why removing the user from admin group makes it stop working even when the user is in the staff group
+  # and /tmp/wemux-wemux is owned by the group staff
+  if is_mac; then
+    sudo sysadminctl -addUser "$pair_user" -fullName "$pair_user" -admin -home "$pair_user_dir"
+    sudo dscl . -append /Groups/staff GroupMembership $pair_user
+
+    # otherwise it's owned by $USER:wheel, a more powerful group
+    if [[ -e /tmp/wemux-wemux ]]; then
+      sudo chown "$(echo $USER):staff" /tmp/wemux-wemux
+    fi
+  else
+    sudo useradd --create-home "$pair_user"
+  fi
+  sudo mkdir -p "$pair_user_dir/.ssh"
+
+}
+
+for pair_user in ${user_array} ; do
+  if [[ "$pair_user" != "$(whoami)" ]]; then
+    if is_mac; then
+      pair_user_dir="/Users/${pair_user}"
+    else
+      pair_user_dir="/home/${pair_user}"
+    fi
+    create_pair_user "$pair_user" "$pair_user_dir"
+
+    echo "adding user to authorized keys: ${pair_user}"
+    ssh_public_keys=""
+    if command -v get_ssh_public_key_from_username >/dev/null ; then
+      ssh_public_keys=$(get_ssh_public_key_from_username "$pair_user")
+    fi
+
+    if [[ -z "$ssh_public_keys" ]]; then
+      ssh_public_keys="$(curl --fail "https://github.com/${pair_user}.keys")"
+    fi
+    if [[ -z "$ssh_public_keys" ]]; then
+      >&2 echo "ERROR: Could not grab ssh public key for '${pair_user}'. Check github username or add get_ssh_public_key_from_username command to your PATH"
+      exit 1
+    fi
+
+    while read -r ssh_public_key; do
+      if [[ -n "$ssh_public_key" ]]; then
+        cleaned_key=$(tr '\r' ' ' <<<"$ssh_public_key" | tr '\n' ' ')
+        if [[ "${RS_FORCE_WEMUX:-}" != "false" ]]; then
+          echo "command=\". ~/.bashrc; /usr/local/bin/wemux pair\" ${cleaned_key}" >> /tmp/superawesomestuffthatisgreat
+        else
+          echo "${cleaned_key}" >> /tmp/superawesomestuffthatisgreat
+        fi
+      else
+        >&2 echo "$(print_color red)WARNING: Could not find ssh key for $pair_user. The user will need to add one at https://stash.trstone.com/plugins/servlet/ssh/account/keys$(print_color)"
+      fi
+    done <<<"${ssh_public_keys}"
+
+    # because the wemux script refers to tmux without the full absolute path and therefore, with a command in authorized_keys, it fails
+    echo "export PATH=\"/usr/local/bin:\$PATH\"" > /tmp/superawesomestuffthatisgreatbashrc
+    sudo mv /tmp/superawesomestuffthatisgreatbashrc "$pair_user_dir/.bashrc"
+    sudo mv /tmp/superawesomestuffthatisgreat "$pair_user_dir/.ssh/authorized_keys"
+    sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
+    sudo chown -R "$pair_user" "$pair_user_dir"
+
+    echo "$pair_user" >>/var/tmp/no_term_limits_wemux_ssh_users
+  fi
+done

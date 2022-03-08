@@ -48,9 +48,7 @@ function delete_stuff() {
     pids=$(ps -u "$wemux_pair_user" -o 'pid=' || echo '')
     if [[ -n "$pids" ]]; then
       while read -r pid ; do
-        set +e
-        sudo kill "$pid"
-        set -e
+        sudo kill "$pid" || echo ''
       done<<<"$pids"
     fi
 
