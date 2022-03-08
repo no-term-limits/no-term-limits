@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# HELP: finds and prints command and can take a search pattern. type "ntlhelp" with no arguments for more info
+# HELP: finds and prints command and can take a regex search pattern. type "ntlhelp" with no arguments for more info
 
 set -e
 
@@ -8,11 +8,11 @@ pattern="$1"
 extra_patterns=$(perl -p -e "s/ /\n/g" <<<${@:2})
 
 function print_usage() {
-  echo 'usage: ntlhelp (optional)[search_pattern1] [search_pattern2] [search_pattern3] [...]'
+  echo 'usage: ntlhelp (optional)[regex_search_pattern1] [regex_search_pattern2] [...]'
   echo
-  echo -e '\tcommand_search_pattern:\tgets passed directly into grep to search and into perl for coloring'
-  echo -e '\t\tThis means a pattern to search the bundle exec shortcut like "\<be\>" will grep properly but found items will not be red'
-  echo -e '\t\tHowever "\\bbe\\b" will work with both grep and with perl for coloring'
+  echo -e '\tregex_search_patterns:\tgets passed directly into grep to search and into perl for coloring'
+  echo -e '\t\tThis means a pattern to search for the edit file with pattern shortcut like "\<ef\>" will grep properly but found items will not be red'
+  echo -e '\t\tHowever "\\bef\\b" will work with both grep and with perl for coloring'
   echo -e '\tuse NO_TERM_LIMITS_DO_NOT_PRINT_HELP_MESSAGE=true to not print the help messages and only print the commands'
   echo -e '\trun cac with any command to print out its full definition'
 }
