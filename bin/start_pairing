@@ -13,7 +13,6 @@ else
 fi
 
 function create_stuff() {
-  string="1::3"
   user_array=("${(@s/,/)USER_CSV_STRING}")
   for pair_user in ${user_array} ; do
     create_wemux_user "$pair_user"
