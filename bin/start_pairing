@@ -17,6 +17,11 @@ else
   echo "defaulting to allowing pair access for bitbucket server user: ${user_csv_string}"
 fi
 
+if [[ -z "$user_csv_string" ]]; then
+  >&2 echo "ERROR: Did not receive any users. Please provide a csv string of users."
+  exit 1
+fi
+
 function create_stuff() {
   user_array=$(sed -E 's/,/ /g' <<<"$user_csv_string")
   for pair_user in ${user_array} ; do
