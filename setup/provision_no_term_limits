@@ -198,8 +198,8 @@ set_up_github_repos
 get_thoughtbot_dotfiles
 
 if is_mac ; then
-  sudo chown -R "$(whoami)" /usr/local/*
-  chmod u+w /usr/local/*
+  # sudo chown -R "$(whoami)" /usr/local/*
+  # chmod u+w /usr/local/*
   for dir in bin include lib share var Cellar .git; do
     if [[ -d "/usr/local/${dir}" ]]; then
       sudo chown -R "$(whoami)" "/usr/local/${dir}"
