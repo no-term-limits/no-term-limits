@@ -58,13 +58,14 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
     exit 1
   fi
 
+  rm -f /tmp/temp_auth_content
   while read -r ssh_public_key; do
     if [[ -n "$ssh_public_key" ]]; then
       cleaned_key=$(tr '\r' ' ' <<<"$ssh_public_key" | tr '\n' ' ')
       if [[ "${RS_FORCE_WEMUX:-}" != "false" ]]; then
-        echo "command=\". ~/.bashrc; /usr/local/bin/wemux pair\" ${cleaned_key}" >> /tmp/superawesomestuffthatisgreat
+        echo "command=\". ~/.bashrc; /usr/local/bin/wemux pair\" ${cleaned_key}" >> /tmp/temp_auth_content
       else
-        echo "${cleaned_key}" >> /tmp/superawesomestuffthatisgreat
+        echo "${cleaned_key}" >> /tmp/temp_auth_content
       fi
     else
       >&2 echo "$(print_color red)WARNING: Could not find ssh key for $pair_user. The user will need to add one at https://stash.trstone.com/plugins/servlet/ssh/account/keys$(print_color)"
@@ -72,9 +73,9 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   done <<<"${ssh_public_keys}"
 
   # because the wemux script refers to tmux without the full absolute path and therefore, with a command in authorized_keys, it fails
-  echo "export PATH=\"/usr/local/bin:\$PATH\"" > /tmp/superawesomestuffthatisgreatbashrc
-  sudo mv /tmp/superawesomestuffthatisgreatbashrc "$pair_user_dir/.bashrc"
-  sudo mv /tmp/superawesomestuffthatisgreat "$pair_user_dir/.ssh/authorized_keys"
+  echo "export PATH=\"/usr/local/bin:\$PATH\"" > /tmp/tmp_bashrc
+  sudo mv /tmp/tmp_bashrc "$pair_user_dir/.bashrc"
+  sudo mv /tmp/temp_auth_content "$pair_user_dir/.ssh/authorized_keys"
   sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
   sudo chown -R "$pair_user" "$pair_user_dir"
 

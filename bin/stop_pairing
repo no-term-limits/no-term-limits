@@ -1,13 +1,20 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
-set -eo pipefail
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
 
 # HELP: delete all traces of the setup created by start_pairing
 
 if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]] ; then
   wemux_ssh_users=$(</var/tmp/no_term_limits_wemux_ssh_users)
 
-  while read -r pair_user ; do
-    delete_wemux_user  "$pair_user"
-  done <<<"$wemux_ssh_users"
+  if [[ -n "$wemux_ssh_users" ]] ; then
+    while read -r pair_user ; do
+      delete_wemux_user  "$pair_user"
+    done <<<"$wemux_ssh_users"
+  fi
 fi

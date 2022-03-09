@@ -12,7 +12,7 @@ set -Eeuo pipefail
 wemux_pair_user="$1"
 
 if [[ -z "$wemux_pair_user" ]]; then
-  >&2 echo "ERROR: usage $(basename $0) [wemux_pair_user]"
+  >&2 echo "ERROR: usage $(basename "$0") [wemux_pair_user]"
   exit 1
 fi
 
