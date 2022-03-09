@@ -5,9 +5,12 @@ set -eo pipefail
 # HELP: set the bottom right status bar in tmux
 
 if [[ -n "$TMUX" ]]; then
+  content="$(tmux_status_bar_right)"
   if [[ "$RS_TMUX_SET_GLOBAL" == "true" ]]; then
-    tmux set -g status-right "$(tmux_status_bar_right)"
+    tmux set -g status-right "$content"
+    tmux set -g status-right-length "$(wc -c <<<"$content")"
   else
-    tmux set status-right "$(tmux_status_bar_right)"
+    tmux set status-right "$content"
+    tmux set status-right-length "$(wc -c <<<"$content")"
   fi
 fi
