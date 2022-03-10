@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-# HELP: git: git pull ensuring correct branch
+# HELP: git: popular: git pull ensuring correct branch
 
 branch_name=$(git symbolic-ref HEAD | cut -d'/' -f3,4) 
 git branch --set-upstream-to="origin/$branch_name" "$branch_name"

@@ -292,8 +292,10 @@ EOF
   fi
 else
   sudo apt-get update
+  # automake so we can sh autogen.sh to install tmux below
   sudo apt-get install -y \
     at \
+    automake \
     build-essential \
     colordiff \
     curl \
