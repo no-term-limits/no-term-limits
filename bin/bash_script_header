@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP:
+
+echo -e "#!/usr/bin/env bash\n"
+echo -e 'function error_handler() {'
+echo -e "  echo \"Exited with BAD EXIT CODE '\${2}' in \${0} script at line: \${1}.\""
+echo -e '  exit "$2"'
+echo -e '}'
+echo -e "trap 'error_handler \${LINENO} \$?' ERR"
+
+# Eeu is errtrace, errexit, nounset
+echo -e "set -Eeuo pipefail\n"

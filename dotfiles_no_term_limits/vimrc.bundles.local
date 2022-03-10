@@ -53,6 +53,10 @@ Plug 'unblevable/quick-scope'
 " Manage branches and tags with fzf. Mapped to <leader>gc (git checkout)
 Plug 'stsewd/fzf-checkout.vim'
 
+if !empty($NO_TERM_LIMITS_PROJECTS_DIR)
+  Plug $NO_TERM_LIMITS_PROJECTS_DIR . '/github/no-term-limits/vim_plugin/no-term-limits-snippets'
+endif
+
 if filereadable(expand("~/.vimrc.bundles.no_term_limits_overrides"))
   source ~/.vimrc.bundles.no_term_limits_overrides
 endif
