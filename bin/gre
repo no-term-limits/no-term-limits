@@ -4,4 +4,8 @@ set -eo pipefail
 
 # HELP: grep recursively in all directories minus .svn and .git. run "cac gre" for full exclusion list
 
-gns --exclude={*.log,tags} --exclude-dir={target,coverage,doc,build} "${@}"
+exclusions="tags"
+if ! grep -E '\<logs?\>' <<<"$@" ; then
+  exclusions="*.log,${exclusions}"
+fi
+eval "gns --exclude={$exclusions} --exclude-dir={target,coverage,doc,build} ${*}"
