@@ -16,5 +16,4 @@ echo -e '  exit "$2"'
 echo -e '}'
 echo -e "trap 'error_handler \${LINENO} \$?' ERR"
 
-# Eeu is errtrace, errexit, nounset
-echo -e "set -Eeuo pipefail\n"
+echo -e "set -o errtrace -o errexit -o nounset -o pipefail\n"

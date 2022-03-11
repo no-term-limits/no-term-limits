@@ -253,6 +253,9 @@ brew "wget"
 # htop to monitor local processes
 brew "htop"
 
+# kubectl
+brew "kubernetes-cli"
+
 # stern to make tailing kubernetes logs more awesome
 brew "stern"
 
