@@ -21,6 +21,7 @@ if command -v get_pair_users_for_git_commit_message >/dev/null ; then
 else
   currently_connected_paired_users=$(currently_connected_paired_users | tr '\n' ' ' | perl -p -e 's/ *$//')
 fi
+
 if [[ -n "$currently_connected_paired_users" ]]; then
   commit_message="$commit_message w/ $currently_connected_paired_users"
 fi

@@ -7,6 +7,12 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -Eeuo pipefail
 
-# HELP: shows list of users that are currently connected using ssh and wemux
+# HELP: shows list of users that are currently connected to your wemux session via ssh (see start_pairing)
 
-wemux users | grep -v 'connected.*:' | perl -p -e 's/^ +\d+\. (.*)/\1/' | sed -E "/\<$(whoami)\>/d"
+# get STDERR so we can filter out the message we don't care about: no server running on /tmp/wemux-wemux
+wemux_users_output="$(wemux users 2>&1)"
+wemux_users_output="$(grep -v 'no server running' <<< "$wemux_users_output" || echo '')"
+
+if [[ -n "$wemux_users_output" ]]; then
+  grep -v 'connected.*:' <<< "$wemux_users_output" | perl -p -e 's/^ +\d+\. (.*)/\1/' | sed -E "/\<$(whoami)\>/d"
+fi
