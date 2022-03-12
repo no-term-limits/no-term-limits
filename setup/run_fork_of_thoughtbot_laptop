@@ -329,6 +329,7 @@ else
     silversearcher-ag \
     software-properties-common \
     sqlite3 \
+    universal-ctags \
     unzip \
     vim-gtk \
     wget \
