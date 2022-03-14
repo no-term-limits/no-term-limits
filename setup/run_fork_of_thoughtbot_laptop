@@ -329,7 +329,6 @@ else
     silversearcher-ag \
     software-properties-common \
     sqlite3 \
-    universal-ctags \
     unzip \
     vim-gtk \
     wget \
@@ -362,7 +361,7 @@ else
   get_additional_apt_keys
 
   if ubuntu_greater_than_18_04 ; then
-    additional_packages="$additional_packages ripgrep"
+    additional_packages="$additional_packages ripgrep universal-ctags"
   fi
 
   sudo apt-get update
