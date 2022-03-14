@@ -21,6 +21,10 @@ If you aren't super attached to your current dotfiles, and you are aware that it
       chmod +x /tmp/provision_no_term_limits && \
       /tmp/provision_no_term_limits
 
+## Help and Search
+
+`ntlhelp` can be used to search for commands. Run without arguments for details.
+
 ## TMUX
 
 Based on https://github.com/gpakosz/.tmux
@@ -36,3 +40,5 @@ Common shortcuts:
   * `<Leader>[number]` - go to numbered window (indexed from 1)
   * `ctrl-h` - move focus to the pane to the left (hjkl for any direction like vim - also works with `<Leader>h`)
   * `shift-<left-arrow>` - resize current pane left (directional arrows to resize in other directions)
+  * `<Leader>{` - swap current pane with the one to the left
+  * `<Leader>}` - swap current pane with the one to the right

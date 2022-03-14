@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: metahelpcommands: Docs on productivity shortcuts. Assorted stuff goes here.
+
+helpexcludelist="help|functions" dohelp "$(no_term_limits_location)/dotfiles_no_term_limits/zshrc.local"
+
+ntlhelp popular:

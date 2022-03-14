@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: metahelpcommands: kubernetes/k8s: popular: search / list kubernetes commands
+
+ntlhelp k8s "$@"
