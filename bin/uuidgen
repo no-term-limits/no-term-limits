@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# update path so we call the original uuidgen below (sort of like calling super, eh)
+PATH=$(echo "$PATH" | sed -e "s|:$(no_term_limits_location)/bin||g" -e "s|$(no_term_limits_location)/bin:||g")
+
+# https://coderwall.com/p/ifxb-g/uuidgen-in-lowercase-on-mac-os-x
+# this will have no effect on linux
+uuidgen | tr "[:upper:]" "[:lower:]"
