@@ -3,3 +3,7 @@ snippet e "Create error message and exit"
 >&2 echo "ERROR: ${1:errorMessage}"
 exit 1
 endsnippet
+
+snippet s "Create script_dir variable"
+script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+endsnippet
