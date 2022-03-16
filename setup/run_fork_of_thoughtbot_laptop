@@ -51,7 +51,21 @@ function update_shell() {
       echo "Adding '$shell_path' to /etc/shells"
       sudo sh -c "echo $shell_path >> /etc/shells"
     fi
-    sudo chsh -s "$shell_path" "$username_of_current_user"
+
+    local should_change_shell="false"
+    if is_mac; then
+      if dscl . -read "/Users/${username_of_current_user}" UniqueID > /dev/null; then
+        should_change_shell="true"
+      fi
+    else
+      # if you sign in via some sort of single sign on and do not have local accounts, changing the shell won't work
+      if grep -Eq "^${username_of_current_user}" /etc/password; then
+        should_change_shell="true"
+      fi
+    fi
+    if [[ "$should_change_shell" == "true" ]]; then
+      sudo chsh -s "$shell_path" "$username_of_current_user"
+    fi
   fi
 }
 
