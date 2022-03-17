@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+script_dir="$( cd -- "$(dirname "")" >/dev/null 2>&1 ; pwd -P )"
+PATH="${script_dir}/../bin:$PATH"
+
+has_git_branch main
+if has_git_branch NOT_A_BRANCH_EVER ; then
+  >&2 echo "ERROR: NOT_A_BRANCH_EVER does not exist but has_git_branch thinks it does"
+  exit 1
+fi

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: checks to see if repo has a given branch
+
+branch="${1:-}"
+if [[ -z "$branch" ]]; then
+  >&2 echo "ERROR: usage: $(basename "$0") [branch_name]"
+  exit 1
+fi
+
+git ls-remote --exit-code . "origin/${branch}" &>/dev/null
