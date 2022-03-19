@@ -682,3 +682,42 @@ set statusline=%#fullPathHi#%{getcwd()}/%#fileHi#%f%m%#mainHi#\ %y%=%l,%c\ Total
 if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
   source ~/.vimrc.no_term_limits_overrides
 endif
+
+" https://aloha.org.cn/2021/03/28/Create-Snippets-for-Ultisnips/ with vimscript
+" regex explanation:
+" turn on very magic. match optional two characters. match any number of
+" word characters and capture them. match an equal sign and number-related
+" variable on the right. these three should all match if found at the
+" beginning of the line and find the name on the left:
+" something="$1"
+" another="${2}"
+" stillanother="${3:-}"
+func! SnippetAddUsageLineToBashScript()
+  let regexForVariableAssignments = '\v^(\w+)\="\$\{?(\d)(:-)?\}?"'
+  let argVariableAssignmentLineNumbers=getline(1, '$')->map({l, v -> [l+1, v =~ regexForVariableAssignments]})->filter({k,v -> v[1]})->map({k,v -> v[0]})
+  let biggestArgumentNumber = 0
+  let variableNames = []
+  for lineNumber in argVariableAssignmentLineNumbers
+    let textOnLine = getbufline(bufname(), lineNumber)
+    let matchlist = matchlist(textOnLine, regexForVariableAssignments)
+    let variableName = matchlist[1]
+    let variableNumber = matchlist[2]
+    if variableNumber > biggestArgumentNumber
+      let biggestArgumentNumber = variableNumber
+    endif
+    call add(variableNames, variableName)
+  endfor
+  let usageLine = '  >&2 echo "usage: $(basename "$0")'
+  for variableName in variableNames
+    let usageLine = usageLine . ' [' . variableName . ']'
+  endfor
+  let usageLine = usageLine . '"'
+
+  let firstLine = 'if [[ -z "${' . biggestArgumentNumber . ':-}" ]]; then'
+  let lines = [firstLine, usageLine, '  exit 1', 'fi']
+  " setline (change line) and append (append after line) don't work as well since ultisnips wants to use the return value,
+  " which is going to be 0 or 1 if you return nothing.
+  " call setline('.', getline('.') . firstLine)
+  " call append(line('.'), lines)
+  return join(lines, "\n")
+endfunc
