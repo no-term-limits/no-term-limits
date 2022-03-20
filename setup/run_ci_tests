@@ -9,9 +9,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 export PATH="${script_dir}/../bin:$PATH"
-echo "PATH: $PATH"
-echo "pwd: $PWD"
-ls
 
 has_git_branch main
 if has_git_branch NOT_A_BRANCH_EVER ; then

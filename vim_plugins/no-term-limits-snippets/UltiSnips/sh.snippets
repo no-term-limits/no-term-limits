@@ -4,7 +4,7 @@ exit 1
 endsnippet
 
 snippet s "Create script_dir variable"
-script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+script_dir="$( cd -- "$(dirname "\$0")" >/dev/null 2>&1 ; pwd -P )"
 endsnippet
 
 # if this works, it will be among the most magical things you will ever see (in the next 10 minutes)
