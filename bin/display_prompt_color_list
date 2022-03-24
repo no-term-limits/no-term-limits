@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errexit -o nounset -o pipefail
+
+# HELP: display list of colors supported by terminal with 256 colors
+
+# from https://github.com/romkatv/powerlevel10k/blob/master/README.md#how-do-i-change-prompt-colors
+for i in {0..255}; do
+  print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'}
+done

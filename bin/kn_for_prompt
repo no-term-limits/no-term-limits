@@ -4,6 +4,10 @@ set -eo pipefail
 
 # HELP:
 
+if [[ -n "$TMUX" ]]; then
+  exit
+fi
+
 set +e
 kns=$(kn)
 exitstatus=$?

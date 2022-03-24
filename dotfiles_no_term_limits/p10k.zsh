@@ -30,6 +30,7 @@
 
   # The list of segments shown on the left. Fill it with the most important segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+    no_term_limits_kubecontext
     # os_icon               # os identifier
     dir                     # current directory
     asdf                    # asdf version manager (https://github.com/asdf-vm/asdf)
@@ -71,7 +72,7 @@
     # phpenv                  # php version from phpenv (https://github.com/phpenv/phpenv)
     # scalaenv                # scala version from scalaenv (https://github.com/scalaenv/scalaenv)
     # haskell_stack           # haskell version from stack (https://haskellstack.org/)
-    kubecontext             # current kubernetes context (https://kubernetes.io/)
+    # kubecontext             # current kubernetes context (https://kubernetes.io/)
     terraform               # terraform workspace (https://www.terraform.io)
     aws                     # aws profile (https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
     # aws_eb_env              # aws elastic beanstalk environment (https://aws.amazon.com/elasticbeanstalk/)
@@ -1533,6 +1534,10 @@
   # Type `p10k help segment` for documentation and a more sophisticated example.
   function prompt_example() {
     p10k segment -f 208 -i '*' -t 'hello, %n'
+  }
+
+  function prompt_no_term_limits_kubecontext() {
+    p10k segment -f 159 -i "$(kn_for_prompt)"
   }
 
   # User-defined prompt segments may optionally provide an instant_prompt_* function. Its job
