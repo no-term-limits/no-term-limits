@@ -15,4 +15,6 @@ if [[ -z "$branch" ]]; then
   exit 1
 fi
 
-git ls-remote --exit-code . "origin/${branch}" &>/dev/null
+if ! git ls-remote --exit-code . "origin/${branch}" >/dev/null ; then
+  exit 1
+fi
