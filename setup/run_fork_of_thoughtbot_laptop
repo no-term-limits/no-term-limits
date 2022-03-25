@@ -187,6 +187,34 @@ function install_stern() {
   rm -rf "$tmp_output"
 }
 
+function install_kubectl() {
+  local desired_kubectl_version=''
+  if [[ -n "$NO_TERM_LIMITS_KUBECTL_VERSION" ]]; then
+    desired_kubectl_version="v${NO_TERM_LIMITS_KUBECTL_VERSION}"
+  else
+    desired_kubectl_version=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+  fi
+  local current_version=''
+  if command -v kubectl >/dev/null; then
+    current_version=$(kubectl version --client | perl -p -e 's/.*GitVersion:"(v[^"]+)".*/\1/')
+  fi
+  if [[ "$current_version" != "$desired_kubectl_version" ]]; then
+    local architecture
+    architecture=$(uname -m)
+    if [[ "$architecture" == 'x86_64' ]]; then
+      architecture=amd64
+    fi
+    local os_type='linux'
+    if is_mac ; then
+      os_type='darwin'
+    fi
+    curl -L "https://dl.k8s.io/release/${desired_kubectl_version}/bin/${os_type}/${architecture}/kubectl" -o /tmp/kubectl
+    chmod +x /tmp/kubectl
+    sudo mv /tmp/kubectl /usr/local/bin
+    sudo chown root: /usr/local/bin/kubectl
+  fi
+}
+
 # shellcheck disable=SC1090
 if is_mac ; then
   if [ -d "$HOMEBREW_PREFIX" ]; then
@@ -267,9 +295,6 @@ brew "wget"
 # htop to monitor local processes
 brew "htop"
 
-# kubectl
-brew "kubernetes-cli"
-
 # stern to make tailing kubernetes logs more awesome
 brew "stern"
 
@@ -302,6 +327,8 @@ brew "shellcheck"
 # useful utility
 brew "watch"
 EOF
+
+  install_kubectl
 
   if grep -q "asdf" /tmp/brew_list; then
     echo 'asdf should be installed in ~/.asdf by the thoughtbot laptop setup script, so uninstalling from homebrew'
@@ -357,16 +384,18 @@ else
   else
     # so we can install tmux 3 on ubuntu 18.04
     if [[ "$NO_TERM_LIMITS_INSTALL_TMUX_FROM_SOURCE" != "false" ]]; then
-      sudo apt update && sudo apt install -y libevent-dev libncurses5-dev byacc bison
-      rm -fr /tmp/tmux
-      git clone https://github.com/tmux/tmux.git /tmp/tmux
-      cd /tmp/tmux
-      git checkout 3.0
-      sh autogen.sh
-      ./configure && make
-      sudo make install
-      cd -
-      rm -fr /tmp/tmux
+      if ! command -v tmux >/dev/null || ! grep -Eq 'tmux 3' <<< "$(tmux -V)"; then
+        sudo apt update && sudo apt install -y libevent-dev libncurses5-dev byacc bison
+        rm -fr /tmp/tmux
+        git clone https://github.com/tmux/tmux.git /tmp/tmux
+        cd /tmp/tmux
+        git checkout 3.0
+        sh autogen.sh
+        ./configure && make
+        sudo make install
+        cd -
+        rm -fr /tmp/tmux
+      fi
     fi
     # rely on vim-gtk on ubuntu 18.04
     # additional_packages="$additional_packages vim"
@@ -383,12 +412,12 @@ else
     containerd.io \
     docker-ce \
     docker-ce-cli \
-    kubectl \
     rcm $additional_packages
 
   add_user_to_docker_group
 
   install_stern
+  install_kubectl
 fi
 
 case "$SHELL" in
