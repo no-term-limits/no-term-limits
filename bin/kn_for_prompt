@@ -4,7 +4,8 @@ set -eo pipefail
 
 # HELP:
 
-if [[ -n "$TMUX" ]]; then
+called_from="$1"
+if [[ -n "$TMUX" ]] && [[ "$called_from" == "p10k" ]]; then
   exit
 fi
 

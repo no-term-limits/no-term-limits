@@ -1537,7 +1537,7 @@
   }
 
   function prompt_no_term_limits_kubecontext() {
-    p10k segment -f 159 -i "$(kn_for_prompt)"
+    p10k segment -f 159 -i "$(kn_for_prompt p10k)"
   }
 
   # User-defined prompt segments may optionally provide an instant_prompt_* function. Its job
