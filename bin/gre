@@ -8,4 +8,4 @@ exclusions="--exclude=tags"
 if ! grep -qE '\<logs?\>' <<<"$@" ; then
   exclusions="$exclusions --exclude=*.log"
 fi
-gns $exclusions --exclude-dir={target,coverage,doc,build} ${*}
+gns $exclusions --exclude-dir={target,coverage,doc,build} "$@"
