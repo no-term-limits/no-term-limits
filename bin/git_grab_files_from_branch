@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: if you want the version of a file from a different git branch, use this
+
+branch_to_grab_files_from="$1"
+
+for file in "${@:2}"; do
+  git restore -s "$branch_to_grab_files_from" -- "$file"
+done
