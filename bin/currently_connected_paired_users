@@ -14,5 +14,5 @@ wemux_users_output="$(wemux users 2>&1)"
 wemux_users_output="$(grep -v 'no server running' <<< "$wemux_users_output" || echo '')"
 
 if [[ -n "$wemux_users_output" ]]; then
-  (grep -vE '(error connecting|connected.*:)' <<< "$wemux_users_output" || echo '') | perl -p -e 's/^ +\d+\. (.*)/\1/' | sed -E "/\<$(whoami)\>/d"
+  (grep -vE '(error connecting|connected.*:)' <<< "$wemux_users_output" || echo '') | perl -p -e 's/^ +\d+\. (.*)/\1/' | sed -E "/\<$(whoami)\>/d" | sort | uniq
 fi
