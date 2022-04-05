@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: returns true if app is using a given ruby version
+
+ruby_version=$(ruby_version)
+
+if [[ -z "$ruby_version" ]]; then
+  >&2 echo "ERROR: Cannot find a ruby version"
+  exit 1
+fi
+
+version="$1"
+
+if [[ -z "$version" ]]; then
+  exit 0
+fi
+
+if grep -qE "^$version\>" <<<"$ruby_version" ; then
+  exit 0
+fi
+
+exit 1

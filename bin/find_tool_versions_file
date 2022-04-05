@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: auto_maintain: find_tool_versions_file
+
+language_filter="$1"
+
+if [[ -f .tool-versions ]]; then
+  if [[ -z "$language_filter" ]]; then
+    echo .tool-versions
+    exit 0
+  elif grep -qE "\<$language_filter\>" .tool-versions; then
+    echo .tool-versions
+    exit 0
+  fi
+fi
+
+if [[ -f docker/.tool-versions ]]; then
+  if [[ -z "$language_filter" ]]; then
+    echo docker/.tool-versions
+    exit 0
+  elif grep -qE "\<$language_filter\>" docker/.tool-versions; then
+    echo docker/.tool-versions
+    exit 0
+  fi
+fi
+
+echo ''

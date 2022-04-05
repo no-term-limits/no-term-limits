@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: returns the ruby version from .tool-versions
+
+if [[ -n "$(find_tool_versions_file)" ]] &&  grep -q ruby .tool-versions; then
+  grep -E '^ruby\s' "$(find_tool_versions_file)" | head -n 1 | perl -p -e 's/^ruby\s+//'
+elif [[ -n "$(find_ruby_version_file)" ]]; then
+  cat "$(find_ruby_version_file)"
+fi

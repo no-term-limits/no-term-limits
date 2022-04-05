@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: auto_maintain: find_ruby_version_file
+
+if [[ -f .ruby-version ]]; then
+  echo .ruby-version
+elif [[ -f docker/.ruby-version ]]; then
+  echo docker/.ruby-version
+else
+  echo ''
+fi
