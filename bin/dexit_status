@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: 
+
+for i in `docker ps -a | grep -v "Up " | awk '{print $1}' | grep -v CONTAINER`
+do
+  exit_status=$(docker inspect $i | jq ".[0].State.ExitCode") 
+  if [ -n "$exit_status" ] && [ "$exit_status" != "0" ]
+  then
+    docker ps -a | grep $i | awk -v exit_status=$exit_status '{print $1 "	" exit_status "	" $NF}'
+  fi
+done

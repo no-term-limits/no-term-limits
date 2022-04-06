@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+if [[ -f .ruby-version ]]; then
+  ruby_major_version=$(ruby_version | awk -F '.' '{print $1}')
+
+  if [[ -n "$ruby_major_version" ]]; then
+    if awk -F '.' '$1 < 2{exit 1}' <<< "$ruby_major_version"; then
+      exit 0
+    else
+      exit 1
+    fi
+  fi
+fi
+
+exit 1

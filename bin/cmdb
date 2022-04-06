@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+set -x
+
+# HELP: creates and migrates both the development and test databases for a rails app
+
+clean=false
+if [[ "$1" == "clean" ]]; then
+  clean=true
+  shift
+fi
+
+rollback=false
+if [[ "$1" == "rollback" ]]; then
+  rollback=true
+  shift
+fi
+
+if [[ "$rollback" == "true" ]]; then
+  bundle exec rake db:rollback "$@"
+  RAILS_ENV=test bundle exec rake db:rollback "$@"
+else
+  if [[ "$clean" == "true" ]]; then
+    DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rake db:drop "$@"
+    RAILS_ENV=test bundle exec rake db:drop "$@"
+  fi
+
+  bundle exec rake db:create db:migrate "$@"
+  RAILS_ENV=test bundle exec rake db:create db:migrate "$@"
+fi

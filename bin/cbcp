@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: copy given string to clipboard. uses pbcopy on mac and copyq on linux
+
+if [[ -p /dev/stdin ]] ; then
+  text=$(cat /dev/stdin)
+else
+  text="$*"
+fi
+
+copy_command=""
+post_command=""
+if is_mac ; then
+  copy_command=pbcopy
+elif which copyq >/dev/null 2>&1; then
+  copy_command="copyq add"
+  post_command="copyq select 0"
+fi
+
+if is_mac ; then
+  # pbcopy does not take arguments
+  "${copy_command}" <<< "${text}"
+else
+  eval "${copy_command} '${text}'"
+
+  if [[ -n "$post_command" ]]; then
+    eval "$post_command"
+  fi
+fi

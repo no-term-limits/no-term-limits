@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'yaml'
+require 'json'
+require 'fileutils'
+
+@input_dir = ARGV[0]
+@output_dir = ARGV[1] || "#{@input_dir.to_s.sub(/\/+$/, '')}_json"
+
+def usage
+  "Converts a directory of yaml files to json\n\n" +
+    "usage: bundle exec ruby #{__FILE__} [input_dir] [output_dir]\n" +
+    "\tDefault output_file is: #{@output_file}\n\n"
+end
+
+unless File.directory?(@input_dir.to_s)
+  $stderr.puts "ERROR: invalid directory: #{@input_dir.inspect}"
+  puts usage
+  exit 1
+end
+
+Dir.glob("#{@input_dir}/**/*.yaml") do |file|
+  yaml_contents = YAML::load_file(file)
+  json_contents = JSON.pretty_generate(yaml_contents)
+  new_file = file.sub(/^#{@input_dir}/, @output_dir).sub(/\.yaml$/, '.json')
+  FileUtils.mkdir_p(File.dirname(new_file))
+  File.write(new_file, json_contents)
+end

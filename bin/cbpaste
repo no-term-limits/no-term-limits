@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: paste first entry in clipboard. uses pbcopy on mac and copyq on linux
+
+copy_command=""
+if is_mac ; then
+  copy_command=pbpaste
+elif which copyq >/dev/null 2>&1; then
+  copy_command="copyq select 0 && copyq paste"
+fi
+
+eval "${copy_command}"

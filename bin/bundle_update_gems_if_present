@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: update gems based on argument list
+
+all_gems="$*"
+gem_list=""
+
+for i in $all_gems ; do
+  if grep -qE "^ *gem +['\"]${i}['\"]" Gemfile ; then
+    gem_list="${gem_list} ${i}"
+  elif grep -qE "^ *gem +['\"]rs-${i}['\"]" Gemfile ; then
+    gem_list="${gem_list} rs-${i}"
+  fi
+done
+
+if [[ -n "$gem_list" ]]; then
+  set -x
+  # shellcheck disable=SC2086
+  bundle update ${gem_list}
+fi

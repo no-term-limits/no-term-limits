@@ -130,6 +130,16 @@ then
   compctl -c -f rmc
   compctl -c -f cpc
   compctl -c -f test_command_on_git_repo
+
+  # sets up command tab completion for given tool list
+  for tool in bu ; do
+    eval "
+    function local_${tool}_auto_complete() {
+      reply=(\$(${tool} auto_complete_commands))
+    }
+    compctl -K local_${tool}_auto_complete ${tool}
+    "
+  done
 fi
 
 alias cd..='cd ..'

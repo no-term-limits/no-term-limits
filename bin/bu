@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: shortcut for bundle update
+
+if [[ "$1" == "auto_complete_commands" ]]; then
+  grep -E '^ +[a-zA-Z_-]+ \(' Gemfile.lock | awk '{print $1}' | sort | uniq
+else
+  bundle update $@
+fi
