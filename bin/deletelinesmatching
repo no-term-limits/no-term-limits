@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+for file in $(git grep -El "$1"); do
+  hot_sed -E -i "/$1/d" "$file"
+done

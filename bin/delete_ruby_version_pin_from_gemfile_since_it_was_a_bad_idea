@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: we pin the ruby-version in .tool-versions and the docker base image. that is sufficient.
+
+if [[ -f Gemfile ]]; then
+  hot_sed -E -i "/^ruby ['\"]/d" Gemfile
+fi

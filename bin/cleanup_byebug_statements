@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+for file in $(grep --exclude-dir={.svn*,.git,log} --exclude={Gemfile,Gemfile.lock,test_helper.rb,spec_helper.rb,.gitignore} -Rl byebug); do
+  hot_sed -E -i "/['\" ]byebug['\"]?/d" "$file"
+done

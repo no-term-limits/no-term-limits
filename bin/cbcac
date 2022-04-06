@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: copies the output of cac to the clipboard
+
+cac "$1" | cbcp

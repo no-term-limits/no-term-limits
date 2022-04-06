@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: shortcut for bundle exec
+
+if [ -f "bundle" ]; then
+  ./bundle exec "$@"
+else
+  if [[ -d .git && -d bin ]]; then
+    if [[ ! -d .git/safe ]]; then
+      mkdir -p .git/safe
+    fi
+  fi
+  bundle exec "$@"
+fi
