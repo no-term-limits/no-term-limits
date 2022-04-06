@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+echo 'this will simulate startup editing a ruby file. it may be faster in non-ruby projects'
+
+~/projects/github/vim-profiler/vim-profiler.py vim app.rb
+
+sleep 6
+
+echo
+echo 'now running a different profile and running cat on tmp/vimstartup.log...'
+echo
+
+sleep 2
+
+# rm -f /tmp/vimstartup.log && vim --startuptime /tmp/vimstartup.log && vim /tmp/vimstartup.log
+rm -f /tmp/vimstartup.log && vim --startuptime /tmp/vimstartup.log app.rb # /tmp/vimstartup.log
+
+cat /tmp/vimstartup.log

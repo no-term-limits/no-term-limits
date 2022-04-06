@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+tmux_installation_directory="/usr/local/lib/tmux"
+
+sudo apt update
+sudo apt install -y build-essential autoconf automake pkg-config libevent-dev libncurses5-dev bison byacc
+sudo rm -rf "$tmux_installation_directory"
+sudo git clone https://github.com/tmux/tmux.git "$tmux_installation_directory"
+cd "$tmux_installation_directory"
+sudo git checkout 3.2a
+sudo sh autogen.sh
+sudo ./configure
+sudo make
+sudo make install
+sudo ln -nsf "${tmux_installation_directory}/tmux" /usr/local/bin/tmux

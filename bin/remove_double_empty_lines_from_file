@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: remove double empty lines from the files given as arguments. three consecutive newlines are sometimes undesired.
+
+# https://stackoverflow.com/q/12598916/6090676
+
+if [[ -z "$1" ]]; then
+  >&2 echo 'ERROR: need file arguments'
+  exit 1
+fi
+
+hot_sed -i 'N;/^\n$/D;P;D;' "$@"

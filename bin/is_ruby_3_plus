@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: exits 0 if ruby 3+ app
+
+ruby_version=$(ruby_version)
+
+if [[ -z "$ruby_version"  ]]; then
+  exit 1
+fi
+
+if compare_versions "${ruby_version} < 3"; then
+  exit 1
+else
+  exit 0
+fi

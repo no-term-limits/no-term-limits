@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: installs rubygems version provided if not already installed
+
+desired_rubygems_version="$1"
+
+if [[ -z "$desired_rubygems_version" ]]; then
+  >&2 echo 'ERROR: need a desired rubygems version as the only argument'
+  exit 1
+fi
+
+current_rubygems_version="$(gem -v)"
+if [[ "$current_rubygems_version" != "$desired_rubygems_version" ]]; then
+  echo "Installing rubygems $desired_rubygems_version. Was $current_rubygems_version"
+  gem update --system "$desired_rubygems_version"
+fi

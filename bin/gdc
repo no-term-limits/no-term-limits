@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: git: copy the diff to clipboard
+
+dir="$1"
+if [[ -z "$dir" ]]; then
+  dir='.'
+fi
+
+git --no-pager diff "$dir" | cbcp

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: shortcut for "bundle exec rake"
+
+if [[ -f rake ]]; then
+  eval "./rake $*"
+else
+  eval "bundle exec rake $*"
+fi

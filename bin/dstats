@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+NO_TERM_LIMITS_RUNNING_CONTAINERS_ONLY=true get_container_ids | xargs docker stats

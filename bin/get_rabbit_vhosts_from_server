@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: gets the rabbit vhosts from a given host
+
+host="$1"
+
+if [[ -z "$host" ]]; then
+  >&2 echo "usage: $0 [host]"
+  exit 1
+fi
+
+ssh "$host" "sudo rabbitmqctl list_vhosts | sort | grep -vE '(name|Listing\ vhosts|^/$)'"

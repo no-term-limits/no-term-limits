@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: exits successfully if it is a java app
+
+[[ -f pom.xml ]]

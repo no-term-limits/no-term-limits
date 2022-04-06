@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: 
+
+docker images -a | awk '{print $3}' | grep -v IMAGE

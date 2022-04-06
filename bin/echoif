@@ -1,0 +1,28 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP:
+
+# info on checking for piped input: https://stackoverflow.com/a/30520299
+if [[ -p /dev/stdin ]] ; then
+  list=$(cat /dev/stdin)
+else
+  list=$(eval "$1")
+  shift
+fi
+
+# zsh parameter expansion split on newline to initialize array
+# http://zsh.sourceforge.net/Doc/Release/Expansion.html#Parameter-Expansion-Flags
+list=(${(f)list})
+
+for item in $list; do
+  set +e
+  eval "$@ ${item}"
+  exit_status="$?"
+  set -e
+
+  if [[ "$exit_status" == "0" ]]; then
+    echo "$item"
+  fi
+done

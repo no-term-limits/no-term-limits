@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: get the branches a contain a commit
+
+git branch --contains "$1"

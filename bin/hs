@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: 
+
+results=$(helm status "$@" 2>/dev/null) 
+if [[ "$results" == '' ]]
+then
+  items=$(ADDITIONAL_HGREP_OPTIONS='-a' hgrep "$1") 
+  if [[ "$items" != '' ]]
+  then
+    cnum=1 
+    if [[ -n "$ITEM_NUMBER" ]]
+    then
+      cnum="$ITEM_NUMBER" 
+    fi
+    item=$(head -n"$cnum" <<<"$items" | tail -n1) 
+    helm status "$item"
+  fi
+else
+  echo -e "$results"
+fi

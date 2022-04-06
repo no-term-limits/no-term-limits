@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: 
+
+docker images -a --format "{{.ID}} {{.Repository}} {{.CreatedSince}}" | egrep -v 'minute|second' | awk '{print $1}'

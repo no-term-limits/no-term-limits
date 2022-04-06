@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: run curl with default options to print the HTTP response headers.
+
+curl --silent -o /dev/null -D - "$@"

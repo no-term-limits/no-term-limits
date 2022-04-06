@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: destroys given directory and replaces with another. usage: sync_dir_from src dst
+
+src="$1"
+dst="${*:2}"
+
+function sync() {
+  local_src="$1"
+  local_dst="$2"
+  if [[ -d "$local_src" ]]; then
+    local_src="${local_src}/"
+  fi
+
+  rsync --delete -az "$local_src" "$local_dst"
+}
+
+original_dir="$(pwd)"
+source "$(no_term_limits_common_shell_functions_location)"
+c "$src"
+for i in $dst ; do
+  sync "$(pwd)/$i" "${original_dir}/${i}"
+done
+cd "$original_dir"

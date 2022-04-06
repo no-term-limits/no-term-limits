@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+if [[ -f Gemfile.lock ]]; then
+  if grep -qE ' (goliath|rails \((2\.3|3\.))' Gemfile.lock; then
+    exit 0
+  fi
+fi
+exit 1

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+version="$1"
+operator="$2"
+
+ruby_version=$(ruby_version)
+
+if [[ -z "$ruby_version"  ]]; then
+  exit 1
+fi
+
+if [[ -z "$version" ]]; then
+  exit 0
+fi
+
+if [[ -z "$operator" ]]; then
+  operator='='
+fi
+
+if compare_versions "${ruby_version} ${operator} ${version}"; then
+  exit 0
+else
+  exit 1
+fi

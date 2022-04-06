@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: there is a ruby version and it is less than 2.4
+
+if [[ -f .ruby-version ]]; then
+  compare_versions "$(ruby_version) < 2.4"
+else
+  exit 1
+fi
+

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: disables k8s liveness and readiness probes for a given deployment. ONLY USE IN AN EMERGENCY
+
+deployment=$1
+if [[ -z "$deployment" ]]; then
+  >&2 echo "ERROR: please provide a kubernetes deployment to disable"
+fi
+
+yaml="spec: {template: {spec: {containers: [{name: ${deployment}, readinessProbe: {httpGet: ~, exec: {command: ['true']}}, livenessProbe: {httpGet: ~, exec: {command: ['true']}}}]}}}"
+
+kubectl patch deployment.extensions "$deployment" --type strategic --patch "${yaml}"

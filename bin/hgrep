@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: 
+
+additional_helm_options=${*:2} 
+releases=$(helm list "$additional_helm_options" | grep -E "$1" | awk '{print $1}') 
+awk '{print $1}' <<< "$releases"

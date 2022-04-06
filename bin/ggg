@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: Generates random guid and puts in on clipboard
+
+uuidgen | tr -d '\n' | tr '[A-Z]' '[a-z]' | cbcp && cbpaste && echo

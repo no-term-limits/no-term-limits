@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+def usage
+  "usage: #{File.basename __FILE__} file start_pattern end_pattern"
+end
+
+if ARGV.length < 3
+  warn "ERROR: #{usage}"
+  exit 1
+end
+
+file = ARGV[0]
+start_pattern = ARGV[1]
+end_pattern = ARGV[2]
+
+file_contents = File.readlines(file)
+start_line = file_contents.grep(/#{start_pattern}/)
+start_index = file_contents.index(start_line.first)
+end_line = file_contents[start_index..-1].grep(/#{end_pattern}/)
+end_index = file_contents.index(end_line.first)
+
+if ENV['INCLUDE_DELIMITERS'] == 'true'
+  puts file_contents[start_index..end_index].join
+else
+  puts file_contents[start_index + 1..end_index - 1].join
+end

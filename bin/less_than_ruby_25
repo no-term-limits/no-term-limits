@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP:
+
+if [[ -f .ruby-version ]]; then
+  ruby_major_version=$(ruby_version | awk -F '.' '{print $1}')
+  ruby_minor_version=$(ruby_version | awk -F '.' '{print $2}')
+
+  if [[ -n "$ruby_major_version" ]]; then
+    if [[ "$ruby_major_version" -gt "2" ]]; then
+      exit 1
+    elif [[ "$ruby_major_version" -lt "2" ]]; then
+      exit 0
+    elif [[ "$ruby_minor_version" -lt "5" ]]; then
+      exit 0
+    fi
+  fi
+fi
+
+exit 1

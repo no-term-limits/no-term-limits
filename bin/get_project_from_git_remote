@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: get the git project name from git remote.
+
+git_url=$(git remote -v | head -n 1 | awk '{print $2}')
+basename "$(dirname "$git_url" | awk -F ':' '{print $NF}')"

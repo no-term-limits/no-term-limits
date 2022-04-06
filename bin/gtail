@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
+
+
+tail -f $1 | grep $2 --line-buffered

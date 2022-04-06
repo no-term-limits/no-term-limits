@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: prints the most recent available version of ruby using asdf
+
+asdf list-all ruby | grep -v "[a-z]" | tail -1

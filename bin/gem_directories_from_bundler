@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler/setup'
+
+gem_paths = Gem.loaded_specs.map do |_name, gem_spec|
+  gem_spec.full_gem_path
+end.compact.join(' ')
+
+puts gem_paths

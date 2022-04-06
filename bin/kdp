@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: describe pods
+
+kd pods "$@"

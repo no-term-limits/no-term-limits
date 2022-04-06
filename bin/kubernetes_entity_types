@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: basic kubernetes types that we care about
+
+echo 'cm,cronjob,deploy,daemonset,hpa,pvc,ing,job,po,poddisruptionbudget,prometheusrule,role,rolebinding,rs,secret,serviceaccount,servicemonitors,statefulset,svc'

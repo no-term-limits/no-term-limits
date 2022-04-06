@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: echos the location of common_shell_functions so it can e easily sourced from a script
+
+echo "${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits/dotfiles_no_term_limits/zshrc.local"

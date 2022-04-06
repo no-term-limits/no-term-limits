@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: resume a k8s cronjob
+
+if [[ -z "$1" ]]; then
+  >&2 echo "ERROR: first argument must be app"
+  exit 1
+fi
+
+patch='{"spec": {"suspend": false }}'
+
+kubectl patch cronjob $1 -p "${patch}"

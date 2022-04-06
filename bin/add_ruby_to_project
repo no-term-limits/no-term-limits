@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+set -x
+
+# HELP: adds in tool-versions and ruby version so a project can run with ruby
+
+add_ruby='false'
+if [[ ! -f .tool-versions ]]; then
+  add_ruby='true'
+elif ! grep -q 'ruby' .tool-versions ; then
+  add_ruby='true'
+fi
+
+if [[ -f .ruby-version ]]; then
+  newest_ruby_version=$(cat .ruby-version)
+fi
+
+if [[ "$add_ruby" == "true" ]]; then
+  if [[ -z "$newest_ruby_version" ]]; then
+    newest_ruby_version=$(asdf list-all ruby | grep -v '[a-zA-Z]' | tail -n 1)
+    if [[ -z "$newest_ruby_version" ]]; then
+      >&2 echo "ERROR: could not find newest ruby version"
+      exit 1
+    fi
+    echo -e "$newest_ruby_version" >.ruby-version
+  fi
+
+  ensure_newline_at_end_of_file .tool-versions
+  echo -e "ruby $newest_ruby_version" >>.tool-versions
+fi
+
+asdf install ruby "$newest_ruby_version"
+
+rubygem_source='https://rubygems.org/'
+if [[ -n "$NO_TERM_LIMITS_RUBYGEM_SOURCE" ]]; then
+  rubygem_source="$NO_TERM_LIMITS_RUBYGEM_SOURCE"
+fi
+if [[ ! -f Gemfile ]]; then
+  echo -e "source '${rubygem_source}'" >Gemfile
+fi
+
+if [[ "$NO_TERM_LIMITS_RUN_BUNDLE" != "false" ]]; then
+  bundle
+fi

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: get the git repo name from git remote.
+
+git_url=$(git remote get-url origin)
+basename "$git_url" .git

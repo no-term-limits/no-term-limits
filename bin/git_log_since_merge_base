@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: finds the merge base with main and then print all longs from then until HEAD
+
+branch=$(git_branch)
+
+main_branch_name=main
+if ! has_main_branch; then
+  main_branch_name=master
+fi
+
+common_ancestor_revision=$(git merge-base "$branch" "origin/${main_branch_name}")
+git --no-pager log "${common_ancestor_revision}..HEAD" "$@"

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: popular: describe a kubernetes object
+
+k describe "$@"

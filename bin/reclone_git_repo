@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: reclones a git repo
+
+clone_url=$(git config --get remote.origin.url)
+cur_dir=$(pwd)
+echo "cur: $cur_dir"
+cd ..
+rm -rf "$cur_dir"
+git clone "$clone_url" "$cur_dir"
+cd "$cur_dir"

@@ -1,0 +1,33 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: 
+
+items=$(ADDITIONAL_HGREP_OPTIONS='-a' hgrep "$1" | awk -F ':' '{print $1}' | grep -v ERROR) 
+echo $items
+if [[ -n "$items" ]]
+then
+  should_delete="false" 
+  echo -e "Found:
+$items"
+  if [[ "$FORCE_KDELETE" == "true" ]]
+  then
+    should_delete="true" 
+  else
+    read -q "REPLY?Are you sure you want to delete?: [N/y]"
+    echo
+    if [[ "$REPLY" == "y" ]]
+    then
+      should_delete="true" 
+    fi
+  fi
+  if [[ "$should_delete" == "true" ]]
+  then
+    echo "Deleting..."
+    echo "$items" | xargs helm delete --purge
+  fi
+else
+  echo "Could not find any matching items"
+  return 1
+fi

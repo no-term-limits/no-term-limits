@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: git checkout an existing feature branch
+
+if grep -qE '^feature' <<<"$1"; then
+  git checkout "$1"
+else
+  git checkout "feature/$1"
+fi
