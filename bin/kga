@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: get all
+
+# in terms of the perls at the end:
+# * three newlines anywhere is bad
+# * two newlines at the beginning is bad
+kg --output='' "$(kubernetes_entity_types)" "${@:1}" 2>&1 | perl -pe 's/\n/;/' | perl -pe 's/;NAME/\nNAME/g' | sort | uniq | perl -pe 's/;/\n/g' | perl -pe 's/NAME/\nNAME/g' | perl -0pe "s/\n{3,}/\n\n/g" | perl -0pe "s/^\n{2,}/\n/g"

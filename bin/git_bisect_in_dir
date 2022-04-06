@@ -1,0 +1,39 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: git: runs a git bisect command in current directory with given revision range and command
+
+bad_revision="$1"
+good_revision="$2"
+shift
+shift
+
+if [[ -z "$1" ]]; then
+  >&2 echo "usage: $0 [bad_revision] [good_revision] [command]"
+  exit 1
+fi
+
+if grep -q 'HEAD' <<<"${bad_revision}${good_revision}" ; then
+  >&2 echo "ERROR: revisions must be actual sha1's and not 'HEAD' which is ambiguous"
+  exit 1
+fi
+
+echo 'Ensuring command passes with good revision'
+g co "$good_revision"
+if ! $@; then
+  >&2 echo "ERROR: expected command to work with good revision '$good_revision' but '$@' did not work"
+  exit 1
+fi
+
+echo 'Ensuring command fails with bad revision'
+g co "$bad_revision"
+if $@; then
+  >&2 echo "ERROR: expected command to fail with bad revision '$bad_revision' but '$@' succeeded"
+  exit 1
+fi
+
+git bisect reset
+git bisect start "$bad_revision" "$good_revision"
+git bisect run $@
+git bisect reset

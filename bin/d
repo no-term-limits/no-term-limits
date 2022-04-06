@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-# HELP: docker: short for docker
-
-docker "$@"

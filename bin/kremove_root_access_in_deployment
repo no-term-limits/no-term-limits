@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: deletes securityContext in a given deployment so it defaults to the user specified in the docker image
+
+deployment=$1
+if [[ -z "$deployment" ]]; then
+  >&2 echo "ERROR: please provide a kubernetes deployment to disable"
+fi
+
+yaml="spec: {template: {spec: {securityContext: {runAsUser: null}}}}"
+
+deployment_var=$(sed -E 's/^deployment.*\///' <<<$deployment)
+
+kubectl patch deployment "$deployment_var" --type strategic --patch "${yaml}"

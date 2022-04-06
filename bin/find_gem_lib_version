@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: find the version of a gem using the Gemfile.lock
+
+grep -Eoh "^ {4}$1 \([0-9].*)" Gemfile.lock | sed -E 's/.*\((.*)\).*/\1/'

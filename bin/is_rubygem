@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: if there is a gemspec file, then it assumes it's a ruby gem
+
+# assuming that if there is a gemspec file then this is a gem
+if [[ -n "$(find . -maxdepth 1 -name "*.gemspec")" ]]; then
+  exit 0
+fi
+
+exit 1

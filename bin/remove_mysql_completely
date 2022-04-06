@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# HELP: WARNING: this script is dangerous. it deletes data.
+
+if is_mac; then
+  # https://gist.github.com/vitorbritto/0555879fe4414d18569d
+
+  # once complete, this would be a hot thing to run one of these:
+  # brew install mysql # will give you 5.8/8/whatever they call it these days
+  # brew install mysql@5.7
+
+  # there's no set -e on this script because a lot of things will fail, since it blindly destroys/stops things
+
+  # if it actually tries to stop it, give it time to stop before checking process list in next step
+  if brew services stop mysql; then
+    sleep 10
+  fi
+
+  if brew services stop mysql@5.7; then
+    sleep 10
+  fi
+
+  if pgrep mysql; then
+    echo "ERROR: mysql still found in processlist. kill it:"
+    ps aux | grep mysql
+    exit
+  fi
+
+  brew remove mysql
+  brew remove mariadb
+  brew remove mysql@5.7
+  brew remove mysql-client innotop
+  brew cleanup
+  sudo rm -rf /usr/local/etc/my.cnf
+  sudo rm /usr/local/mysql
+  sudo rm -rf /usr/local/mysql*
+  sudo rm -rf /Library/StartupItems/MySQLCOM
+  sudo rm -rf /Library/PreferencePanes/My*
+  rm -rf ~/Library/PreferencePanes/My*
+  sudo rm -rf /Library/Receipts/mysql*
+  sudo rm -rf /Library/Receipts/MySQL*
+  sudo rm -rf /private/var/db/receipts/*mysql*
+  sudo rm /usr/local/mysql
+  sudo rm -rf /usr/local/var/mysql
+  sudo rm -rf /usr/local/mysql*
+  sudo rm ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
+  sudo rm -rf /Library/StartupItems/MySQLCOM
+  sudo rm -rf /Library/PreferencePanes/My*
+
+  launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
+
+  rm -rf ~/Library/PreferencePanes/My*
+  sudo rm -rf /Library/Receipts/mysql*
+  sudo rm -rf /Library/Receipts/MySQL*
+  sudo rm -rf /private/var/db/receipts/*mysql*
+else
+  # https://askubuntu.com/questions/640899/how-do-i-uninstall-mysql-completely
+  sudo service mysql stop
+  sudo killall -KILL mysql mysqld_safe mysqld
+  sudo apt-get --yes purge mysql*
+  sudo apt-get --yes autoremove --purge
+  sudo apt-get autoclean
+
+  sudo rm -rf /etc/apparmor.d/abstractions/mysql /etc/apparmor.d/cache/usr.sbin.mysqld /etc/mysql /var/lib/mysql /var/log/mysql* /var/log/upstart/mysql.log* /var/run/mysqld
+  sudo updatedb
+fi

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+grep rails ./*/Gemfile | awk -F ':' '{print $1}' | xargs -I {} dirname {} | sort | uniq | sed 's/^\.\///'

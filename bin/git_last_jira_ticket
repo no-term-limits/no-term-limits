@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+git --no-pager log -n5 --pretty=format:"%s" | awk -F ':' '{print $1}' | ( grep -Eo '\b[A-Z]{2,6}\b-[0-9]+' || echo '') | head -n1

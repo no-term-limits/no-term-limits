@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: get list of pods sorted by number of restarts and with rows with no restarts removed
+
+kgp --all-namespaces "$@" | sort -n -k5 | awk '(NR>1) && ($5 > 0 ) '

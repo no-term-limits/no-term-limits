@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: get list of pods not marked ready
+
+kgp --all-namespaces --field-selector='status.phase!=Succeeded' | sort -n -k4 | awk '{split($3, ready, "/"); {if (ready[1] < ready[2] && $5 !~ /s$/) print $0}}'

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: run an existing cronjob one time
+
+original_job=$(sed 's|.*/||' <<<"$1")
+job="$(cut -c 1-45 <<<"$original_job")-manual-$(date +%s)"
+k create job --from="cronjob/${original_job}" "${job}" "${@:2}"
+if [[ "$?" == "0" ]]; then
+  echo "Please delete the job resource ${job} after completion"
+fi

@@ -155,4 +155,8 @@ unbind Space
 bind-key -n C-S-Left swap-window -t -1
 bind-key -n C-S-Right swap-window -t +1
 
+# when using prefix+q, make it last a bit longer in case you want to switch to a specific pane by pressing the key corresponding to its number:
+# https://unix.stackexchange.com/a/136643/456630
+set display-panes-time 4000
+
 if '[ -f ~/.tmux.conf.no_term_limits_overrides ]' 'source ~/.tmux.conf.no_term_limits_overrides'

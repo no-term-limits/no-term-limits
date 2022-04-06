@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: get the list of gem names from a gemfile. defaults to pwd
+
+
+dir="$1"
+if [[ -n "$dir" ]]; then
+  dir="${dir}/"
+fi
+
+grep -Eoh "^[^#]*gem ['\"][-a-z0-9A-Z_]+['\"]" "${dir}Gemfile" | sed -E "s/ *gem [\"'](.*)['\"]/\1/" | sort | uniq

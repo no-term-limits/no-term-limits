@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: checks out the non-main branch that was most recently updated
+
+branch=$(git branches | grep -vE "origin/(master|main|HEAD)" | head -n1 | awk '{print $NF}' | sed 's~origin/~~')
+git checkout "$branch"
