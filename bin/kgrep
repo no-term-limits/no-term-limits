@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s
+
+if [[ -z "$1" ]]; then
+  >&2 echo "ERROR: Pattern must be supplied"
+  exit 1
+fi
+
+kga "${@:2}" | grep "$1"

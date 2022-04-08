@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: exits 0 if rails is found in Gemfile. A version can be passed in as well to check if it is that version
+
+if [[ ! -f Gemfile.lock ]]; then
+  exit 1
+fi
+
+if is_rubygem; then
+  exit 1
+fi
+
+version="$1"
+
+pattern_string=' rails ('
+if [[ -n "$version" ]]; then
+  pattern_string="${pattern_string}${version}"
+fi
+
+if grep -q "$pattern_string" Gemfile.lock; then
+  exit 0
+else
+  exit 1
+fi
