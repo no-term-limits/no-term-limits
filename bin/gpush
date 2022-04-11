@@ -2,6 +2,14 @@
 
 # HELP: popular: shortcut for "git push" while ensuring it pushes to origin with the correct branch
 
+git_remote="$1"
+if [[ -z "$git_remote" ]]; then
+  git_remote=$(git rev-parse --abbrev-ref --symbolic-full-name "HEAD@{u}" | awk -F '/' '{print $1}')
+  if [[ -z "$git_remote" ]]; then
+    git_remote=origin
+  fi
+fi
+
 branchname=$(git symbolic-ref HEAD | cut -d'/' -f3,4)
-echo "git push origin $branchname"
-git push origin $branchname $@
+echo "git push $git_remote $branchname"
+git push $git_remote $branchname $@
