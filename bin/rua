@@ -5,7 +5,7 @@ set -eo pipefail
 # HELP: rubocop --autocorrect
 
 if [[ -f Gemfile ]] && grep -q rubocop Gemfile; then
-  run bundle exec rubocop --auto-correct "$@"
+  bundle exec rubocop --auto-correct "$@"
 else
-  run rubocop --auto-correct "$@"
+  rubocop --auto-correct "$@"
 fi
