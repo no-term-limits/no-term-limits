@@ -1,4 +1,5 @@
-# No Term Limits - [![CI](https://github.com/no-term-limits/no-term-limits/actions/workflows/ci.yml/badge.svg)](https://github.com/no-term-limits/no-term-limits/actions/workflows/ci.yml)
+# No Term Limits - [![ci](https://github.com/no-term-limits/no-term-limits/actions/workflows/ci.yml/badge.svg)](https://github.com/no-term-limits/no-term-limits/actions/workflows/ci.yml) [![Generic badge](https://img.shields.io/badge/built%20with-science-1abc9c.svg)](https://shields.io/)
+
 
 no-term[inal]-limits
 
