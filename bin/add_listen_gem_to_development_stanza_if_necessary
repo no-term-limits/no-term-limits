@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# HELP:
+
+if [[ -f config/environments/development.rb ]]; then
+  if grep -q '^ *config.file_watcher = ActiveSupport::EventedFileUpdateChecker' config/environments/development.rb; then
+    NO_TERM_LIMITS_DESIRED_GEMFILE_STANZA=development add_rubygem_to_app 'listen'
+  fi
+fi

@@ -6,7 +6,7 @@ set -eo pipefail
 
 if [[ -n "$TMUX" ]]; then
   content="$(tmux_status_bar_right)"
-  if [[ "$RS_TMUX_SET_GLOBAL" == "true" ]]; then
+  if [[ "$NO_TERM_LIMITS_TMUX_SET_GLOBAL" == "true" ]]; then
     tmux set -g status-right "$content"
     tmux set -g status-right-length "$(wc -c <<<"$content")"
   else

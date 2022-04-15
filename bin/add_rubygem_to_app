@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+
+trap 'error_handler ${LINENO} $?' ERR
+
+set -o errexit
+set -o errtrace
+set -o pipefail
+
+# HELP: add the specified gem to the current app
+
+gem_name="$1"
+version_number="$2"
+
+if [[ -z "$gem_name" ]]; then
+  >&2 echo "ERROR: a gem must be specified"
+  exit 1
+fi
+
+if [[ -f Gemfile ]]; then
+  if ! grep -q "gem ['\"]$gem_name['\"]" Gemfile; then
+
+    line_to_add="gem '$gem_name'"
+
+    if [[ -n "$version_number" ]]; then
+      line_to_add="${line_to_add}, '${version_number}'"
+    fi
+
+    if [[ "$RUBYGEM_REQUIRE_FALSE" == "true" ]]; then
+      line_to_add="${line_to_add}, require: false"
+    fi
+
+    if [[ -n "$NO_TERM_LIMITS_ADD_COMMENT" ]]; then
+      if ! grep -qE '^ ' <<<"$NO_TERM_LIMITS_ADD_COMMENT" ; then
+        NO_TERM_LIMITS_ADD_COMMENT=" $NO_TERM_LIMITS_ADD_COMMENT"
+      fi
+      line_to_add="${line_to_add}${NO_TERM_LIMITS_ADD_COMMENT}"
+    fi
+
+    ensure_newline_at_end_of_file Gemfile
+    echo "$line_to_add" >>Gemfile
+
+    if [[ -n "$NO_TERM_LIMITS_DESIRED_GEMFILE_STANZA" ]] ; then
+      move_gem_to_stanza "$gem_name" "$NO_TERM_LIMITS_DESIRED_GEMFILE_STANZA"
+    fi
+
+    if [[ "$NO_TERM_LIMITS_DO_NOT_RUN_BUNDLER" != "true" ]]; then
+      if [[ "$NO_TERM_LIMITS_BUNDLE_UPDATE" != "false" ]]; then
+        bundle
+
+        if has_rubygem rubocop; then
+          be rubocop -a Gemfile
+        fi
+      fi
+    fi
+  fi
+fi

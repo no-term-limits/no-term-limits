@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: move_gem_to_stanza [gem_name] [gemfile_stanza]
+
+gem_name="$1"
+gemfile_stanza="$2"
+
+if ! grep -q "$gem_name" Gemfile; then
+  >&2 echo 'ERROR: gem not found in Gemfile'
+  exit 1
+fi
+
+perl -pi -e 's/group :test, :development\b/group :development, :test/' Gemfile
+
+if ! grep -qE '^:' <<< "$gemfile_stanza"; then
+  gemfile_stanza=":${gemfile_stanza}"
+fi
+
+if ! grep -q "$gemfile_stanza" Gemfile; then
+  >&2 echo 'WARNING: gemfile_stanza '$gemfile_stanza' not found in Gemfile. adding'
+  printf "group $gemfile_stanza do\nend\n" >> Gemfile
+  # exit 1
+fi
+
+gem_line=$(grep -ohE "\<gem ['\"]${gem_name}['\"].*" Gemfile)
+hot_sed -E -i "/gem ['\"]${gem_name}['\"]/d" Gemfile
+
+if grep -q "\<gem ['\"]${gem_name}['\"]" Gemfile; then
+  >&2 echo 'ERROR: gem STILL found in Gemfile after deletion'
+  exit 1
+fi
+
+perl -pi -e "s/(group $gemfile_stanza do)/\1\n  ${gem_line}/" Gemfile

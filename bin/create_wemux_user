@@ -62,7 +62,7 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   while read -r ssh_public_key; do
     if [[ -n "$ssh_public_key" ]]; then
       cleaned_key=$(tr '\r' ' ' <<<"$ssh_public_key" | tr '\n' ' ')
-      if [[ "${RS_FORCE_WEMUX:-}" != "false" ]]; then
+      if [[ "${NO_TERM_LIMITS_FORCE_WEMUX:-}" != "false" ]]; then
         echo "command=\". ~/.bashrc; /usr/local/bin/wemux pair\" ${cleaned_key}" >> /tmp/temp_auth_content
       else
         echo "${cleaned_key}" >> /tmp/temp_auth_content
