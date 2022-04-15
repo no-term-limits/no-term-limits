@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP: git: Run a diff for current repo with a given commit or branch in a browser. Can diff with other remotes on github by passing in [github_project_name]:[branch OR commit] as the starting or ending commits.
+
+starting_commit="${1:-}"
+ending_commit="${2:-}"
+
+if [[ -z "$starting_commit" ]]; then
+  starting_commit=$(git_branch | perl -p -e 's/ /%2F/g')
+  ending_commit="master"
+else
+  if [[ -z "$ending_commit" ]]; then
+    if [[ -z "$starting_commit" ]]; then
+      ending_commit="master"
+    else
+      ending_commit="$starting_commit"
+    fi
+    starting_commit=$(git_branch | perl -p -e 's/ /%2F/g')
+  fi
+fi
+
+git_url=$(git_url_of_current_directory)
+if grep -q 'github.com' <<<"$git_url" ; then
+  open_url "${git_url}/compare/${ending_commit}...${starting_commit}"
+else
+  # for bitbucket-server
+  open_url "${git_url}/compare/diff?sourceBranch=${starting_commit}&targetBranch=${ending_commit}"
+fi

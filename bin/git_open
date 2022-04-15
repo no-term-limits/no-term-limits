@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: browse to repo in bitbucket-server
+
+file="$1"
+line_number="$2"
+
+url_path=""
+branch=$(git_branch)
+git_url=$(git_url_of_current_directory)
+
+if grep -q 'github.com' <<<"$git_url" ; then
+  if [[ -n "$file" ]]; then
+    if [[ -d "$file" ]]; then
+      url_path="/tree/${branch}/${file}"
+    else
+      url_path="/blob/${branch}/${file}"
+    fi
+  else
+    url_path="/tree/${branch}"
+  fi
+  if [[ -n "$line_number" ]]; then
+    url_path="${url_path}#L${line_number}"
+  fi
+  set -x
+  url_path="${git_url}${url_path}"
+else
+  # for bitbucket-server
+  if [[ -n "$file" ]]; then
+    url_path="/browse/${file}"
+  fi
+  url_path="${git_url}/${url_path}?at=${branch}"
+  if [[ -n "$line_number" ]]; then
+    url_path="${url_path}#${line_number}"
+  fi
+fi
+
+open_url "${url_path}"

@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: git: popular: finds last stash commit and copies to clipboard
+
+cbcp "$(git_url_for_last_commit)"

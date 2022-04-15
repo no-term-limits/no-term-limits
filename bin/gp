@@ -4,14 +4,7 @@ set -eo pipefail
 
 # HELP: git: popular: git pull ensuring correct branch
 
-git_remote="$1"
-if [[ -z "$git_remote" ]]; then
-  git_remote=$(git rev-parse --abbrev-ref --symbolic-full-name "HEAD@{u}" | awk -F '/' '{print $1}')
-  if [[ -z "$git_remote" ]]; then
-    git_remote=origin
-  fi
-fi
-
+git_remote="$(git_remote "$1")"
 branch_name=$(git symbolic-ref HEAD | cut -d'/' -f3,4)
 git branch --set-upstream-to="${git_remote}/$branch_name" "$branch_name"
 git pull

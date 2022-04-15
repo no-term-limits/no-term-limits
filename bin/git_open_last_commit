@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: git: popular: finds last stash commit hash in log and takes you to that page in a browser
+
+open_url "$(git_url_for_last_commit)"

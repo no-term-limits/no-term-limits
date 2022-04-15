@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+commit_hash=$(git rev-parse --verify HEAD)
+git_url=$(git_url_of_current_directory)
+if grep -q 'github.com' <<<"$git_url" ; then
+  echo "${git_url}/commit/${commit_hash}"
+else
+  echo "${git_url}/commits/${commit_hash}"
+fi

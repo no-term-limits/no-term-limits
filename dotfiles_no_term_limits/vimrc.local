@@ -590,6 +590,16 @@ let g:which_key_map.g.u = 'git undo hunk'
 call which_key#register('<Space>', "g:which_key_map")
 call which_key#register('\', "g:which_key_localleader_map")
 
+function! OpenCurrentCodeLineInBrowser()
+  let line_number=line('.')
+  let file_full_path=bufname("%")
+  execute "! git_open " . file_full_path . " " . line_number
+endfunction
+
+" use calling <cr> twice so it returns back to vim after opening the link
+nnoremap <Leader>rb :call OpenCurrentCodeLineInBrowser()<cr><cr>
+let g:which_key_map.r.b = 'open source file in browser'
+
 " https://stackoverflow.com/questions/14896327/ultisnips-and-youcompleteme
 " so you can hammer "rwb<ctrl>j>" instead of "rwb<tab>", which does not work
 let g:UltiSnipsExpandTrigger="<c-j>"
