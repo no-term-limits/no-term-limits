@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: auto_maintain: if ruby rails 4 plus, sprockets > 4, and ruby > 2.5 then add necessary sprockets
+
+# sprockets 4 requires a manifest.js
+# see: https://github.com/rails/sprockets/blob/dba2802f8d6b9f54e3a057350cadd149316d0da5/UPGRADING.md
+# this is using the more backwards-compatible version of that file, since this
+# is intended to be run on apps that once used sprockets 3.
+if is_rails_4_plus && ! less_than_ruby_25; then
+  if grep -q ' \<sprockets\> (4\.' Gemfile.lock; then
+    if [[ ! -f app/assets/config/manifest.js ]]; then
+      if [[ -f config/application.rb ]]; then
+        # we have seen an app where require sprockets/railtie is commented out, but
+        # assets:precompile is still working
+        if [[ -d app/assets ]] || grep -qE '^require .sprockets/railtie.$' config/application.rb; then
+          mkdir -p app/assets/config
+          echo -e "//= link_tree ../images\n//= link_directory ../javascripts .js\n//= link_directory ../stylesheets .css" >app/assets/config/manifest.js
+        fi
+      fi
+    fi
+  fi
+fi

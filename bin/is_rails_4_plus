@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# HELP: auto_maintain: is_rails_4_plus
+
+if ! is_rails; then
+  exit 1
+fi
+
+if [[ -f Gemfile.lock ]]; then
+  # since this script is called from upgrade_rails_3_2_to_rails_4,
+  # and since we can't run bundle install without pinning sprockets,
+  # rails 4 may not yet be in Gemfile.lock but we may have signaled our
+  # intent by pinning it in Gemfile
+  if grep -qE ' rails \([45678]' Gemfile.lock; then
+    exit 0
+  else
+    grep -qE "gem 'rails', '[45678]" Gemfile
+  fi
+else
+  exit 1
+fi
