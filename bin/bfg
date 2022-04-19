@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: run bfg repository cleaner
+
+bfg_version="1.13.0"
+bfg_symlink_location="/var/tmp/bfg"
+bfg_version_location="${bfg_symlink_location}-${bfg_version}.jar"
+
+if [[ ! -f "$bfg_version_location" ]]; then
+  curl --fail --silent "https://repo1.maven.org/maven2/com/madgag/bfg/${bfg_version}/bfg-${bfg_version}.jar" -o "${bfg_version_location}"
+  ln -s "${bfg_version_location}" "${bfg_symlink_location}"
+fi
+
+java -jar "${bfg_symlink_location}" "$@"

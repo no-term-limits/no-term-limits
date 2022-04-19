@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: git: has_local_git_changes
+
+# using git status instead of git diff-index so we pick up on untracked files as well
+! grep -q 'working tree clean' <<<"$(git status)"

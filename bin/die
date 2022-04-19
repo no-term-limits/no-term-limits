@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: running "die 3000" kills any processes you own with '3000' in the command (like webrick processes you started with ./script/server -p 3000)
+
+echo "killing any processes i own that include: $1"
+# checks for zero length string
+if [ -z "`ps xu | grep "$1" | grep -v grep | grep -v die`" ]; then
+  echo No processes found
+else
+  echo "these processes are getting waxed:"
+  ps xu | grep "$1" | grep -v grep | grep -v die
+  ps xu | grep "$1" | grep -v grep | grep -v die | awk '{ print $2 }' | xargs kill -9
+fi

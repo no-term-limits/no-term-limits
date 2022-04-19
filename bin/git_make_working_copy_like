@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: git: git_make_working_copy_like [branch_or_commit_sha]. update all files in your working copy to look like they did in another branch. git_grab_files_from_branch can grab a subset of files.
+
+branch_to_grab_files_from="$1"
+
+all_files_that_are_different=$(git --no-pager diff --name-only "$branch_to_grab_files_from")
+git_grab_files_from_branch "$branch_to_grab_files_from" $all_files_that_are_different

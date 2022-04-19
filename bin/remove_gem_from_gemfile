@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: removes a gem from a Gemfile
+
+if has_rubygem "$1"; then
+  # delete comments before the gem in question as well
+  # not sure this will support pattern like:
+  #   /^ #/
+  # but it does work with
+  #   /^#/
+  tac Gemfile | hot_sed -E "/gem ['\"]${1}['\"]/,/^([^#]|^$| |\w)/{/(gem ['\"]${1}['\"]|^#)/d}" | tac >Gemfile2
+  mv Gemfile2 Gemfile
+fi

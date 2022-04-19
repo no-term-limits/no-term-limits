@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: has_rubygem [gem_name]
+
+gem_name="$1"
+if [[ -z "$gem_name" ]]; then
+  >&2 echo 'ERROR: need one argument for gem_name'
+  exit 1
+fi
+
+if [[ -f Gemfile.lock ]]; then
+  if ! grep -qE " $gem_name \(" Gemfile.lock; then
+    # check Gemfile in case we are trying to add a new gem
+    grep -qE "^ *gem ['\"]$gem_name['\"]" Gemfile
+  fi
+else
+  exit 1
+fi

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: find files in bundled gems
+
+if [[ -z "$1" ]]; then
+  echo "usage: greb [pattern] options"
+  exit 1
+fi
+
+gems_location=$(gem_directories_from_bundler)
+find $gems_location -name "*$1*" "${@:2}"

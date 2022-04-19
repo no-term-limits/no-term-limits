@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP:
+
+gem_name="$1"
+
+if grep -Eq "^ *gem ['\"]${gem_name}['\"]" Gemfile; then
+  # in case it is not in the Gemfile.lock yet, check the Gemfile
+  # if has_rubygem "$gem_name"; then
+
+  # optionsal 0 to 3 characters of stuff like '<= '
+  (grep -Eoh "^ *gem ['\"]${gem_name}['\"].*['\"](.{0,3}[\.0-9]+)['\"]" Gemfile || echo '') | perl -p -e "s/^ *gem ['\"]${gem_name}['\"].*['\"](.{0,3}[\.0-9]+)['\"]/\1/"
+fi

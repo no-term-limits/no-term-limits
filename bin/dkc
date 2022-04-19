@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: dkc: das keyboard create signal.
+
+# create signal on left and then right pipe.
+# dkc 0,0
+# dkc 23,2
+
+# delete signal on left and then right pipe.
+# dkd 0,0
+# dkd 23,2
+
+key=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+zone_id="$key"
+
+# valid zones ids:
+# KEY_J
+# 2,2
+if ! grep -q '^[0-9]' <<< "$key"; then
+  zone_id="KEY_$key"
+fi
+
+color="$2"
+if [[ -z "$color" ]]; then
+  color="FF0000"
+fi
+BACKEND_URL="http://localhost:27301"
+HEADERS=(-H "Content-Type: application/json")
+URL="$BACKEND_URL/api/1.0/signals"
+
+curl --fail -s "${HEADERS[@]}" -X POST -d  "{
+  \"zoneId\": \"${zone_id}\",
+  \"color\": \"#${color}\",
+  \"effect\": \"SET_COLOR\",
+  \"isMuted\": true,
+  \"pid\": \"DK5QPID\",
+  \"clientName\": \"Shell script\",
+  \"message\": \"ignore_this_message\",
+  \"name\": \"custom_shell_script\"}" $URL > /dev/null

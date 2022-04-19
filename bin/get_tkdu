@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: get_tkdu
+
+curl https://raw.githubusercontent.com/daniel-beck/tkdu/master/tkdu.py -o /tmp/tkdu
+chmod +x /tmp/tkdu
+sudo mv /tmp/tkdu /usr/local/bin/

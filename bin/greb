@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# HELP: grep in all gems mentioned in Gemfile
+
+set -eo pipefail
+
+if [[ -z "$1" ]]; then
+  echo "usage: greb [pattern] options"
+  exit 1
+fi
+
+gem_directories=$(gem_directories_from_bundler)
+gre "$@" $gem_directories

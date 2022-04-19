@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: hot_tac
+
+if [[ -n "$1" ]]
+then
+  perl -e 'print reverse <>' $1
+else
+  perl -e 'print reverse <>'
+fi

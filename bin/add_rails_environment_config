@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: add_rails_environment_config [rails_environment_identifier] "config.something = something"
+
+rails_environment_identifier="$1"
+config_line="$2"
+
+function ensure_newline_at_end_of_file() {
+  hot_sed -i -e '$a\' "$1"
+}
+
+if is_rails_3_plus; then
+
+  file=config/environments/${rails_environment_identifier}.rb
+  spaces=''
+  if [[ "$rails_environment_identifier" == "application" ]]; then
+    file=config/${rails_environment_identifier}.rb
+    spaces='  '
+  fi
+
+  if [[ ! -f "$file" ]]; then
+    >&2 echo "ERROR: $file does not exist"
+    exit 1
+  fi
+
+  if ! grep -qE "^${spaces}end$" "$file"; then
+    ensure_newline_at_end_of_file "$file"
+  fi
+
+  if ! grep -qE "$config_line" "$file" ; then
+    hot_sed -Ei "s/^(${spaces})end$/\n\1  $config_line\n\1end/" "$file"
+  fi
+fi

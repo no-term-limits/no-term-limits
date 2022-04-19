@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: git: has_local_commits_not_in_origin
+
+branchname=$(git symbolic-ref HEAD | cut -d'/' -f3,4)
+output=$(git --no-pager log "origin/${branchname}..${branchname}")
+[[ -n "$output" ]]

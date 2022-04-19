@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: git: gitdeleteremotebranch
+
+branch_to_delete="$1"
+
+if [[ -z "$branch_to_delete" ]]; then
+  >&2 echo 'ERROR: need a branch to delete as an argument'
+  exit 1
+fi
+
+# git push origin :$1
+git push origin --delete "$branch_to_delete"

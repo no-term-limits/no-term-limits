@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+set -x
+
+# HELP: deletes any existing mysql installations (and data). then installs mysql 5.7
+
+if is_mac; then
+  remove_mysql_completely
+  brew install mysql@5.7
+  brew services start mysql@5.7
+  echo 'delete_and_reinstall_mysql finished successfully. launchd has started mysql and it will restart at login'
+fi

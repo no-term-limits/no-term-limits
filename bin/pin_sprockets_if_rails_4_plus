@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: pin sprockets since sprockets 4 requires manual changes
+
+if is_rails_4_plus; then
+  if ! grep -qE "gem ['\"]\<sprockets\>['\"]" Gemfile; then
+    echo "gem 'sprockets', '<4'" >>Gemfile
+  fi
+fi

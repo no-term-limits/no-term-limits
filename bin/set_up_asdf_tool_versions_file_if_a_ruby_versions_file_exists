@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: set_up_asdf_tool_versions_file_if_a_ruby_versions_file_exists
+
+if [[ -f .ruby-version ]]
+then
+  if [[ ! -f .tool-versions ]]
+  then
+    echo "adding .tool-versions file with stuff from .ruby-version file (this is for the asdf version manager)"
+    echo "ruby $(cat .ruby-version)" > .tool-versions
+  fi
+fi

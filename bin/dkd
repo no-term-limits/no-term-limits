@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: dkd: das keyboard delete signal.
+
+key=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+
+zone_id="$key"
+
+if ! grep -q '^[0-9]' <<< "$key"; then
+  zone_id="KEY_$key"
+fi
+BACKEND_URL="http://localhost:27301"
+HEADERS=(-H "Content-Type: application/json")
+PID="DK5QPID"
+URL="$BACKEND_URL/api/1.0/signals/pid/$PID/zoneId/$zone_id"
+
+zone=$(curl -s "${HEADERS[@]}" -X GET $URL)
+if grep -q 'not found' <<< "$zone"; then
+  echo "$zone"
+else
+  id=$(jq .id <<< "$zone")
+
+  BACKEND_URL="http://localhost:27301"
+  HEADERS=(-H "Content-Type: application/json")
+  URL="$BACKEND_URL/api/1.0/signals/$id"
+
+  curl --fail -s "${HEADERS[@]}" -X DELETE $URL > /dev/null
+fi
