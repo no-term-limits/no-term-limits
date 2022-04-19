@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: destroys given directory and replaces with another. usage: sync_dir_from src dst
 
-src="$1"
+src="${1:-}"
 dst="${*:2}"
 
 function sync() {

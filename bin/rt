@@ -23,7 +23,7 @@ if [[ -z "$test_dirs" ]]; then
   done
 fi
 
-if [[ -z "$RT_OUTPUT_BASE_DIR" ]]; then
+if [[ -z "${RT_OUTPUT_BASE_DIR:-}" ]]; then
   RT_OUTPUT_BASE_DIR=/var/tmp
 fi
 

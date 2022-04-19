@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: Uses either say or espeak to synthesis speech on given text
 
-if [[ -n "$2" ]]; then
+if [[ -n "${2:-}" ]]; then
   >&2 echo "ERROR: espeak only works with one arg so quote full text arg like: $(basename "$0") 'hello world'"
   exit 1
 fi

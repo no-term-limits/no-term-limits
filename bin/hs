@@ -16,7 +16,7 @@ then
   if [[ "$items" != '' ]]
   then
     cnum=1 
-    if [[ -n "$ITEM_NUMBER" ]]
+    if [[ -n "${ITEM_NUMBER:-}" ]]
     then
       cnum="$ITEM_NUMBER" 
     fi

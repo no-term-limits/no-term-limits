@@ -9,8 +9,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: browse to repo in bitbucket-server
 
-file="$1"
-line_number="$2"
+file="${1:-}"
+line_number="${2:-}"
 
 url_path=""
 branch=$(git_branch)

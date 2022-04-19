@@ -9,8 +9,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: move_gem_to_stanza [gem_name] [gemfile_stanza]
 
-gem_name="$1"
-gemfile_stanza="$2"
+gem_name="${1:-}"
+gemfile_stanza="${2:-}"
 
 if ! grep -q "$gem_name" Gemfile; then
   >&2 echo 'ERROR: gem not found in Gemfile'

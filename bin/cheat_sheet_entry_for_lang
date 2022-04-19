@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP:
 
-lang="$1"
+lang="${1:-}"
 
 if [[ -z "$lang" ]]; then
   >&2 echo "ERROR: need one arg, lang"

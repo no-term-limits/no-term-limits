@@ -9,9 +9,9 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: compares 2 given version numbers with each other. Example: if compare_versions '1 < 2'; then; echo yes, one is less than two; fi
 
-first_version="$1"
-operator="$2"
-second_version="$3"
+first_version="${1:-}"
+operator="${2:-}"
+second_version="${3:-}"
 
 if [[ -z "$second_version" ]]; then
   full_arg_string=$1

@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-expected_dotfiles_file=$1
+expected_dotfiles_file="${1:-}"
 
 if [[ -z "$expected_dotfiles_file" ]]; then
   >&2 echo "ERROR: usage: $(basename $0) [expected_dotfiles_file]"

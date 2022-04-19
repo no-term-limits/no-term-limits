@@ -11,7 +11,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # https://stackoverflow.com/q/12598916/6090676
 
-if [[ -z "$1" ]]; then
+if [[ -z "${1:-}" ]]; then
   >&2 echo 'ERROR: need file arguments'
   exit 1
 fi

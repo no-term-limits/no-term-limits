@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: copy an existing command to a new file
 
-if [[ -z "$2" ]]; then
+if [[ -z "${2:-}" ]]; then
   >&2 echo 'ERROR: Please provide both a source command and a new command name'
   exit 1
 fi

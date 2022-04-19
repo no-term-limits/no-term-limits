@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: kubernetes/k8s
 
-if [[ -z "$1" ]]; then
+if [[ -z "${1:-}" ]]; then
   >&2 echo "ERROR: Pattern must be supplied"
   exit 1
 fi

@@ -38,7 +38,7 @@ fi
 asdf install ruby "$newest_ruby_version"
 
 rubygem_source='https://rubygems.org/'
-if [[ -n "$NO_TERM_LIMITS_RUBYGEM_SOURCE" ]]; then
+if [[ -n "${NO_TERM_LIMITS_RUBYGEM_SOURCE:-}" ]]; then
   rubygem_source="$NO_TERM_LIMITS_RUBYGEM_SOURCE"
 fi
 if [[ ! -f Gemfile ]]; then

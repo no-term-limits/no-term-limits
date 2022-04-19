@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: installs rubygems version provided if not already installed
 
-desired_rubygems_version="$1"
+desired_rubygems_version="${1:-}"
 
 if [[ -z "$desired_rubygems_version" ]]; then
   >&2 echo 'ERROR: need a desired rubygems version as the only argument'

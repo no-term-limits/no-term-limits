@@ -10,7 +10,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: get the list of gem names from a gemfile. defaults to pwd
 
 
-dir="$1"
+dir="${1:-}"
 if [[ -n "$dir" ]]; then
   dir="${dir}/"
 fi

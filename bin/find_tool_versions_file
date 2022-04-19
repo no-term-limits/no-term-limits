@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: auto_maintain: find_tool_versions_file
 
-language_filter="$1"
+language_filter="${1:-}"
 
 if [[ -f .tool-versions ]]; then
   if [[ -z "$language_filter" ]]; then

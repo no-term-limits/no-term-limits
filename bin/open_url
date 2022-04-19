@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: open a url in a web browser
 
-if [[ -n "$2" ]]; then
+if [[ -n "${2:-}" ]]; then
   if which chromium-browser >/dev/null 2>&1; then
     chromium-browser "$@"
   else
