@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: remove_sprockets_from_rails_app
+
+if is_rails; then
+  if [[ -f config/environments/development.rb ]]; then
+    hot_sed -i '/Debug mode disables concatenation and preprocessing of assets./d' ./config/environments/development.rb
+    hot_sed -i '/This option may cause significant delays in view rendering with a large/d' ./config/environments/development.rb
+    hot_sed -i '/number of complex assets\./d' ./config/environments/development.rb
+    hot_sed -i '/config\.assets\.debug = true/d' ./config/environments/development.rb
+
+    hot_sed -i '/Suppress logger output for asset requests\./d' ./config/environments/development.rb
+    hot_sed -i '/config\.assets\.quiet = true/d' ./config/environments/development.rb
+  fi
+
+  if [[ -f config/environments/production.rb ]]; then
+    hot_sed -i '/Compress JavaScripts and CSS./d' ./config/environments/production.rb
+    hot_sed -i '/config.assets.js_compressor = :uglifier/d' ./config/environments/production.rb
+    hot_sed -i '/config.assets.css_compressor = :sass/d' ./config/environments/production.rb
+
+    hot_sed -i '/Do not fallback to assets pipeline if a precompiled asset is missed./d' ./config/environments/production.rb
+    hot_sed -i '/config.assets.compile = false/d' ./config/environments/production.rb
+
+    hot_sed -Ei '/.config.assets.precompile. and .config.assets.version. have moved to config\/initializers\/assets\.rb/d' ./config/environments/production.rb
+  fi
+
+  if [[ -f config/application.rb ]]; then
+    hot_sed -Ei '/require .sprockets/railtie./d' config/application.rb
+  fi
+
+  for gem_name in sprockets turbolinks mini_racer bootstrap-sass sass-rails bootstrap-generators sass bootstrap jquery-rails uglifier coffee-rails; do
+    remove_gem_from_gemfile "$gem_name"
+  done
+
+  if [[ -f config/initializers/assets.rb ]]; then
+    git rm config/initializers/assets.rb
+  fi
+fi
+
+if ! is_rails 6; then
+  if ! grep -q 'nodejs' .tool-versions; then
+    echo 'adding nodejs to .tool-versions'
+    echo 'nodejs 14.17.0' >> .tool-versions
+  fi
+  asdf plugin-update nodejs
+  asdf install
+  npm install -g yarn
+
+  >&2 echo 'WARNING: this script, remove_sprockets_from_rails_app, has not been tested in rails 6 and has barely barely been tested in rails 6'
+  >&2 echo 'NOTE: you may not want webpack if you are not running a javascript-heavy app. sprockets may suffice.'
+  bundle exec rails webpacker:install
+  yarn add postcss-cssnext
+fi
