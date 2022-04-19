@@ -9,4 +9,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: return good exit status if the current box matches darwin in the uname
 
-uname -a | grep -qi darwin
+if uname -a | grep -qi darwin ; then
+  exit 0
+fi
+
+exit 1
