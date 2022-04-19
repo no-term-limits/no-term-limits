@@ -14,11 +14,11 @@ if grep -qE '^\-\<h\>$' <<<"$@" ; then
   exit 0
 fi
 
-new_command="$1"
-command_contents="$2"
-command_help="$3"
+new_command="${1:-}"
+command_contents="${2:-}"
+command_help="${3:-}"
 
-if [[ -z "$COMMAND_DESTINATION_REPO" ]]; then
+if [[ -z "${COMMAND_DESTINATION_REPO:-}" ]]; then
   new_command_location="$(dirname "$0")/${new_command}"
 else
   new_command_location="${COMMAND_DESTINATION_REPO}/${new_command}"

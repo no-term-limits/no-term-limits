@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+script_file="${1:-}"
+
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [script_file]"
+  exit 1
+fi
+
+# update like: var=$1 to var="${1:-}"
+perl -pi -e "s/^(\w+=)['\"]?\\\$(\d+)['\"]?/\1\"\\\${\2:-}\"/" "$script_file"
+
+# update like:
+#   [[ -n  "$VAR" ]]
+# to
+#   [[ -n "${VAR:-}" ]]
+perl -pi -e "s/(\[\[ -[nz] \"\\\$)(\w+)(\")/\1\{\2:-}\3/" "$script_file"
