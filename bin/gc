@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
 
 commit_message="$*"
 
-if [[ -z "$NO_TERM_LIMITS_RUN_GIT_ADD" ]]; then
+if [[ -z "${NO_TERM_LIMITS_RUN_GIT_ADD:-}" ]]; then
   NO_TERM_LIMITS_RUN_GIT_ADD=all
 fi
 

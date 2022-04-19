@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: assemble a pairing command and copy to clipboard. Attempts to use the hostname as the ssh target and will fall back to ip if it can't be resoved. Set NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX if hostname can be used but a hostname suffix is required.
 

@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: echos the location of common_shell_functions so it can e easily sourced from a script
 
