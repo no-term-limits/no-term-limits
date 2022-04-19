@@ -9,4 +9,4 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: kubernetes/k8s: popular: short for kubectl
 
-kubectl "$@"
+exec kubectl "$@"
