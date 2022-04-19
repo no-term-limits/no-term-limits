@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: echos the git url of the current repo
 
-git_remote="$(git_remote "$1")"
+git_remote="$(git_remote "${1:-}")"
 url=$(git config --get "remote.${git_remote}.url" | perl -p -e 's/.*@//' | perl -p -e 's/\.git$//' | tr ':' '/' | perl -p -e 's|///|://|')
 
 if ! grep -q 'github.com' <<<"$url" ; then

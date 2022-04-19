@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: append_text_to_top_of_file
+
+text_to_append="$1"
+file_to_append_to="$2"
+echo -n "$text_to_append" | cat - "$file_to_append_to" > temp && /bin/mv temp "$file_to_append_to"

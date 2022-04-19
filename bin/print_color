@@ -13,7 +13,7 @@ color="${1:-}"
 prepend_string="${2:-}"
 append_string="${3:-}"
 
-if [[ "$TURN_OFF_OUTPUT_COLOR" == "true" ]]; then
+if [[ "${TURN_OFF_OUTPUT_COLOR:-}" == "true" ]]; then
   red=''
   green=''
   blue=''

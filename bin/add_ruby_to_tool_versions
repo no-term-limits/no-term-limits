@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain:
+
+ruby_version_file=$(find_ruby_version_file)
+if [[ -z "$ruby_version_file" ]]; then
+  exit 0
+fi
+
+tool_versions_file=$(find_tool_versions_file ruby)
+if [[ -n "$tool_versions_file" ]] && grep -q ruby "$tool_versions_file" ; then
+  exit 0
+fi
+
+if [[ -z "$tool_versions_file" ]]; then
+  tool_versions_file="$(dirname "$ruby_version_file")/.tool-versions"
+fi
+
+echo "ruby $(ruby_version)" >>"$tool_versions_file"

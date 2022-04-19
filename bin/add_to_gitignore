@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: add_to_gitignore
+
+thing_to_add="$1" 
+echo "adding ${thing_to_add} to .gitignore"
+if [ -n "$(tail -c 1 .gitignore)" ]
+then
+  thing_to_add="
+${thing_to_add}" 
+fi
+echo "${thing_to_add}" >> .gitignore
