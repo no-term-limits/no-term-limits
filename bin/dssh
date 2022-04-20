@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: docker: alias for container which ssh's into a container
+
+command_name="$2"
+if [[ -z "$command_name" ]]; then
+  command_name=bash
+fi
+
+dgrep_handler "$1" "docker exec -it \"\$container_id\" /bin/sh -c \"export TERM=xterm; exec ${command_name}\""

@@ -1,0 +1,34 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s
+
+items=$(ks "$@" --no-headers | awk '{print $1}' | grep -vE "^Error$")
+
+if [[ -n "$items" ]]; then
+  should_delete="false"
+  echo -e "Found:\n$items"
+
+  if [[ "$NO_TERM_LIMITS_K8S_FORCE_KDELETE" == "true" ]]; then
+    should_delete="true"
+  else
+    read -q "REPLY?Are you sure you want to delete?: [N/y]"
+    echo
+    if [[ "$REPLY" == "y" ]]; then
+      should_delete="true"
+    fi
+  fi
+
+  if [[ "$should_delete" == "true" ]]; then
+    echo "Deleting..."
+    if [[ -n "$NO_TERM_LIMITS_K8S_KDELETE_NAMESPACE" ]]; then
+      echo "$items" | xargs kubectl delete -n $NO_TERM_LIMITS_K8S_KDELETE_NAMESPACE
+    else
+      echo "$items" | xargs kubectl delete
+    fi
+  fi
+else
+  echo "Could not find any matching items"
+  return 1
+fi

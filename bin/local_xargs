@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: runs xargs with the -r option unless running on Darwin
+
+os_type=$(uname -s)
+if [ "$os_type" == 'Darwin' ]
+then
+  xargs $@
+else
+  xargs -r $@
+fi

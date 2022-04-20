@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: docker: dgrep then run command on matching entries
+
+if [[ -z "$NO_TERM_LIMITS_DGREP_COMMAND" ]]; then
+  NO_TERM_LIMITS_DGREP_COMMAND=dgrep
+fi
+
+set +e
+container_id=$(eval "$NO_TERM_LIMITS_DGREP_COMMAND" "$1")
+dgrep_status="$?"
+set -e
+
+if [ "$dgrep_status" == "0" ]; then
+  eval "${@:2}"
+else
+  >&2 echo "$container_id"
+  exit 1
+fi

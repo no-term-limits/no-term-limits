@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# HELP: docker: rm_all
+
+rm_containers
+rm_images
+rm_volumes

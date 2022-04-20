@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s: given a deployment, this prints out status from relevant pods. Will work with a given app name as well as long as it is not a blue/green deployment
+
+deployment="$1"
+deployment_name="$(sed -e "s/.*\///" <<< "$deployment")"
+
+name_label_selector='app.kubernetes.io/name'
+if [[ -n "${NO_TERM_LIMITS_K8S_NAME_LABEL_SELECTOR:-}" ]]; then
+  name_label_selector="$NO_TERM_LIMITS_K8S_NAME_LABEL_SELECTOR"
+fi
+
+items=$(kubectl get deployment,statefulset -l "${name_label_selector}=${deployment_name}" -o json)
+if [[ "$(jq '.items | length' <<<"$items")" -gt 0 ]]; then
+  items=$( jq '.items[0]' <<<"$items")
+else
+  items=$(kubectl get "$deployment" -o json)
+fi
+selectors=$(jq -r '.spec.selector.matchLabels | keys[] as $k | "\($k)=\(.[$k])"' <<<"$items" | perl -p -e 's/\n/,/g' | perl -p -e 's/,$//')
+
+function get_stats() {
+  pods=$(kubectl get pods -l "$selectors" -o wide | grep -v cluster-create)
+
+  statuses_we_do_not_care_about="Running|Terminating"
+  not_running_pod=$( ( grep -vE "(NAME|${statuses_we_do_not_care_about})" <<<"$pods" || echo) | head -n1 | awk '{print $1}')
+  if [[ -n "$not_running_pod" ]]; then
+    events=$(kubectl describe pods "$not_running_pod" | sed -n '/^Events/,$p')
+  fi
+
+  logs=""
+  statuses_we_should_never_get="CrashLoopBackOff|Completed|Error"
+  crash_loop_backoff=$( ( grep -E "(${statuses_we_should_never_get})" <<<"$pods" || echo) | head -n1 | awk '{print $1}')
+  if [[ -n "$crash_loop_backoff" ]]; then
+    logs=$(kubectl logs "$crash_loop_backoff" -c "$deployment_name")
+  fi
+
+  clear
+  echo "$pods"
+  echo
+
+  if [[ -n "$events" ]]; then
+    if ! grep  -qE '^EVENTS:' <<<"$events" ; then
+      events="EVENTS: from ${not_running_pod}\n${events}"
+    fi
+    echo -e "$events"
+    echo
+  fi
+
+  if [[ -n "$logs" ]]; then
+    if ! grep  -qE '^LOGS:' <<<"$logs"; then
+      logs="LOGS: from ${crash_loop_backoff}\n${logs}"
+    fi
+    echo -e "$logs"
+  fi
+
+  sleep 1
+
+}
+
+while true; do
+  get_stats
+done

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s: inspect a kubernetes object
+
+results_initial=$(kg "$1" -o json "${@:2}" 2>/dev/null || echo "error") 
+results=$(sed 's/\n/\\n/g' <<<"$results_initial") 
+if [[ "$results" == "error" ]]
+then
+  kgrep_run_for_single_item "$1" kg -o json "\$item" "${@:2}"
+else
+  echo "$results"
+fi

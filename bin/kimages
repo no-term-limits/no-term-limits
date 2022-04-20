@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: get the current docker images being used in pods
+
+for pod in $(kgp_grep "$1" | awk '{print $1}'); do
+  echo "$(print_color blue)${pod}$(print_color end):"
+  images=$(ki "pod/$pod" -o json | jq -r ".spec.containers | map(.image) | .[]" | sort | uniq)
+  for image in "$images"; do
+    echo "	$(sed "s/:/:$(print_color green '\')/" <<<"$image")$(print_color end)"
+  done
+done

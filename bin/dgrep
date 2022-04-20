@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: docker: grep docker items
+
+query="$1"
+additional_docker_options=${*:2}
+
+# docker ps gives '"docker ps" accepts no arguments.' error when trying 'docker ps ""'
+# so do not surround variable in quotes in case it is blank
+# shellcheck disable=SC2086
+tmp_containers=$(docker ps $additional_docker_options | grep "$query")
+
+if [ "$(wc -l <<<"$tmp_containers")" -gt 1 ]; then
+  found_containers=$(awk '{print $1 " " $NF}' <<<"$tmp_containers")
+
+  if [[ -n "$NO_TERM_LIMITS_LESS_RELEVANT_DOCKER_CONTAINER_REGEX" ]]; then
+    found_containers=$(grep -vE "$NO_TERM_LIMITS_LESS_RELEVANT_DOCKER_CONTAINER_REGEX" <<<"$found_containers")
+  fi
+
+  if [ "$(wc -l <<<"$found_containers")" -gt 1 ]; then
+    >&2 echo -e "ERROR: Found multiple containers:\n$found_containers"
+    exit 1
+  else
+    awk '{print $1}' <<< "$found_containers"
+  fi
+else
+  awk '{print $1}' <<< "$tmp_containers"
+fi

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s
+
+query="$1"
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [query]"
+  exit 1
+fi
+
+# assumes pattern is full pod id
+if grep -q '.*\/.*' <<<"$query"; then
+  pod_id_only=$(awk -F '/' '{print $NF}' <<<"$query")
+  kgp "${@:2}" | grep "${pod_id_only}"
+else
+  name_label_selector='app.kubernetes.io/name'
+  if [[ -n "${NO_TERM_LIMITS_K8S_NAME_LABEL_SELECTOR:-}" ]]; then
+    name_label_selector="$NO_TERM_LIMITS_K8S_NAME_LABEL_SELECTOR"
+  fi
+
+  label_selector="${name_label_selector}=${query}"
+  if [[ -n "$NO_TERM_LIMITS_K8S_SELECTOR" ]]; then
+    label_selector=",${NO_TERM_LIMITS_K8S_SELECTOR}"
+  fi
+
+  selector_string="${label_selector}"
+  pods=$( (kgp --no-headers -l "$selector_string" "${@:2}" | awk '{print $1}') || echo '')
+  if [[ -z "$pods" ]]; then
+    >&2 echo -e "Could not find pods with selector '${selector_string}'. Grepping for pods with '${query}'\n"
+    kgp "${@:2}" | grep "${query}"
+  else
+    echo "$pods"
+  fi
+fi

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: metahelpcommands: docker: search / list docker commands
+
+# most of the docker functions, including dhelp, are actually defined in "${RS_PROJECTS_DIR}/chefprod/rs-product-docker/files/default/profile.d/docker.sh"
+
+ntlhelp 'docker:' "$@"

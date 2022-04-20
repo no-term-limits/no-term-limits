@@ -9,4 +9,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: Made to work similarly to rak but better since it's grep
 
-grep --color -RE --line-number --exclude-dir={.svn*,.git} "${@}"
+if ! grep --color -RE --line-number --exclude-dir={.svn*,.git} "${@}" ; then
+  exit 1
+fi

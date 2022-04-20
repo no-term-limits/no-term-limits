@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s: popular: tail the logs of a pod
+
+if type stern > /dev/null 2>&1
+then
+  pod_query=$(sed -E 's/^pod\///' <<<"$1")
+  stern --since '2m' "$pod_query" "${@:2}"
+else
+  NO_TERM_LIMITS_KGREP_COMMAND=kgp_grep kgrep_run_for_single_item "$1" k logs -f "\$item" "${@:2}"
+fi

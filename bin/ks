@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s: popular: get all kubernetes objects for a specified app
+
+label_selector="$1"
+if [[ -n "$NO_TERM_LIMITS_K8S_SELECTOR" ]]; then
+  label_selector="${label_selector},${NO_TERM_LIMITS_K8S_SELECTOR}"
+fi
+
+selector_string="app=${query}${label_selector}"
+
+set +e
+results=$(kga -l "$selector_string" "${@:2}")
+set -e
+
+results_without_errors=$(grep -vE "^Error" <<<"$results" || echo '')
+
+if grep -q "No resources found" <<< "$results_without_errors" || [[ "$results_without_errors" == "" ]]; then
+  selector_string="app.kubernetes.io/name=${query}${label_selector}"
+  set +e
+  results=$(kga -l "$selector_string" "${@:2}")
+  set -e
+  results_without_errors=$(grep -vE "^Error" <<<"$results" || echo '')
+fi
+
+if [[ "$RS_K8S_EXACT_APP_MATCH_ONLY" != "true" ]] && grep -q "No resources found" <<< "$results_without_errors" || [[ "$results_without_errors" == "" ]]; then
+  >&2 echo -e "Could not find resources with selector '${selector_string}'. Grepping all resources for '${1}'\n"
+  kgrep "$@"
+else
+  echo "$results_without_errors"
+fi

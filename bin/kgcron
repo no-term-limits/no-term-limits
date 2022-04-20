@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+set -eo pipefail
+
+# HELP: kubernetes/k8s: display k8s cronjob entities for a given app
+
+if [[ -z "$1" ]]; then
+  >&2 echo "ERROR: first argument must be app"
+  exit 1
+fi
+
+NO_TERM_LIMITS_K8S_SELECTOR=deploymentType=cronJob ks "$1" "${@:2}"

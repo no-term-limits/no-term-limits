@@ -5,13 +5,8 @@ function error_handler() {
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
-set -o errtrace -o errexit -o nounset -o pipefail
+set -o errtrace -o errexit -o pipefail
 
 # HELP: kubernetes/k8s
 
-if [[ -z "${1:-}" ]]; then
-  >&2 echo "ERROR: Pattern must be supplied"
-  exit 1
-fi
-
-kga "${@:2}" | grep "$1" || echo ''
+NO_TERM_LIMITS_KGREP_COMMAND=kgp_grep exec kgrep_run_for_single_item "$1" k exec -it "\$item" -- "${@:2}"

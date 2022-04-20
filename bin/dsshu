@@ -7,11 +7,14 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: kubernetes/k8s
+# HELP: docker: dsshu
 
-if [[ -z "${1:-}" ]]; then
-  >&2 echo "ERROR: Pattern must be supplied"
+pattern="${1:-}"
+docker_user="${2:-}"
+if [[ -z "${2:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [pattern] [docker_user]"
   exit 1
 fi
 
-kga "${@:2}" | grep "$1" || echo ''
+id=$(dgrep "$pattern")
+docker exec -i -u "$docker_user" -t "$id" bash

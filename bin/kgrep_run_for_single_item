@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s
+
+kgrep_cmd="kgrep"
+if [[ -n "$NO_TERM_LIMITS_KGREP_COMMAND" ]]; then
+  kgrep_cmd="$NO_TERM_LIMITS_KGREP_COMMAND"
+fi
+
+items=$("$kgrep_cmd" "$1" | grep -vE '\<Terminating\>' | awk '{print $1}')
+
+if [[ -n "$items" ]]; then
+  cnum=1
+  if [[ -n "$NO_TERM_LIMITS_K8S_ITEM_NUMBER" ]]; then
+    cnum="$NO_TERM_LIMITS_K8S_ITEM_NUMBER"
+  fi
+
+  item=$(head -n"$cnum" <<<"$items" | tail -n1)
+  echo -e "Found $(wc -l <<<"$items") items:
+$items"
+  echo -e "
+Using $item"
+  if eval "${@:2}" ; then
+    exit 0
+  else
+    exit 1
+  fi
+else
+  echo "Could not find any matching items"
+  exit 1
+fi

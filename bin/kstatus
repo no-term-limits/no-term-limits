@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s: get the rollout status of a deployment
+
+NO_TERM_LIMITS_KGREP_COMMAND=kgd_grep kgrep_run_for_single_item "$1" k rollout status "\$item" "${@:2}"

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: kubernetes/k8s: popular: kssh ego to get inside the first ego app-server container in the current namespace
+
+cmd=bash
+if [[ -n "${*:3}" ]]; then
+  cmd="${*:3}"
+fi
+NO_TERM_LIMITS_K8S_SELECTOR="deploymentType=app-server" NO_TERM_LIMITS_K8S_ITEM_NUMBER="$2" exec kexec "$1" "$cmd"
