@@ -28,8 +28,10 @@ fi
 
 git_url=$(git_url_of_current_directory)
 if grep -q 'github.com' <<<"$git_url" ; then
-  open_url "${git_url}/compare/${ending_commit}...${starting_commit}"
+  url_to_open="${git_url}/compare/${ending_commit}...${starting_commit}"
 else
   # for bitbucket-server
-  open_url "${git_url}/compare/diff?sourceBranch=${starting_commit}&targetBranch=${ending_commit}"
+  url_to_open="${git_url}/compare/diff?sourceBranch=${starting_commit}&targetBranch=${ending_commit}"
 fi
+echo "opening $url_to_open"
+open_url "$url_to_open"

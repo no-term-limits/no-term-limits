@@ -9,4 +9,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: returns true if options "-h" OR "--help" were passed in as args. Use like: help_option_passed_in_command_arg "$@"
 
-grep -qE '(\-\-\<help\>|\-\<h\>)' <<<"$@"
+if ! grep -qE '(\-\-\<help\>|\-\<h\>)' <<<"$@" ; then
+  exit 1
+fi
