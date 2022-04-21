@@ -9,4 +9,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: check to see if a main branch already exists for current directory
 
-has_git_branch main
+if ! has_git_branch main; then
+  exit 1
+fi
