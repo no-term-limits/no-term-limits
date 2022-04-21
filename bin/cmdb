@@ -10,14 +10,15 @@ set -x
 
 # HELP: creates and migrates both the development and test databases for a rails app
 
+arg="${1:-}"
 clean=false
-if [[ "$1" == "clean" ]]; then
+if [[ "$arg" == "clean" ]]; then
   clean=true
   shift
 fi
 
 rollback=false
-if [[ "$1" == "rollback" ]]; then
+if [[ "$arg" == "rollback" ]]; then
   rollback=true
   shift
 fi

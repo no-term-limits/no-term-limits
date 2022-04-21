@@ -27,7 +27,7 @@ else
 
   label_selector="${name_label_selector}=${query}"
   if [[ -n "$NO_TERM_LIMITS_K8S_SELECTOR" ]]; then
-    label_selector=",${NO_TERM_LIMITS_K8S_SELECTOR}"
+    label_selector="${label_selector},${NO_TERM_LIMITS_K8S_SELECTOR}"
   fi
 
   selector_string="${label_selector}"
