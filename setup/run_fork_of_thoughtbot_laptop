@@ -4,7 +4,7 @@
 # this file is basically the above, but with some search and replaces that we performed on it.
 
 function error_handler() {
-  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 

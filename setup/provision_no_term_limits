@@ -11,7 +11,7 @@ function cleanup() {
 function error_handler() {
   # make sure we remove this file if something goes wrong
   cleanup
-  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 
