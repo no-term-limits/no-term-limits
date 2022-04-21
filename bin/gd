@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
-  exit "$2"
+  # code 141 is expected when exiting from no-pager
+  if [[ "$2" != "141" ]]; then
+    >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+    exit "$2"
+  fi
 }
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail

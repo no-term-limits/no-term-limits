@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 function error_handler() {
-  echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
