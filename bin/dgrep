@@ -24,12 +24,11 @@ if [ "$(wc -l <<<"$tmp_containers")" -gt 1 ]; then
     found_containers=$(grep -vE "$NO_TERM_LIMITS_LESS_RELEVANT_DOCKER_CONTAINER_REGEX" <<<"$found_containers")
   fi
 
-  if [ "$(wc -l <<<"$found_containers")" -gt 1 ]; then
-    >&2 echo -e "ERROR: Found multiple containers:\n$found_containers"
-    exit 1
-  else
-    awk '{print $1}' <<< "$found_containers"
-  fi
+  found_container=$(head -n1 <<<"$found_containers" | tail -n1)
+  >&2 echo -e "Found $(wc -l <<<"$found_containers") containers:\n$found_containers"
+  >&2 echo -e "\nUsing $found_container"
+
+  awk '{print $1}' <<< "$found_container"
 else
   awk '{print $1}' <<< "$tmp_containers"
 fi
