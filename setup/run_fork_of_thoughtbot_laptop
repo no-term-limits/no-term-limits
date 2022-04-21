@@ -241,7 +241,15 @@ if is_mac ; then
   fi
 
   echo "Updating Homebrew formulae ..."
-  brew update --force # https://github.com/Homebrew/brew/issues/1151
+  # https://github.com/Homebrew/brew/issues/1151
+  if ! brew update --force ; then
+    >&2 echo "ERROR: Failed to run brew update. Could be from outdated casks:"
+    brew outdated
+    echo 'trying again'
+    brew update --force
+    echo 'succeeded when trying again'
+  fi
+
   brew bundle --file=- <<EOF
 tap "thoughtbot/formulae"
 tap "homebrew/services"

@@ -25,6 +25,11 @@ if [[ "${#operator}" -gt "1" ]]; then
   exit 1
 fi
 
+if ! -qE '^\d' <<<"$first_version" ; then
+  >&2 echo "usage: $(basename "$0") [first_version] [operator] [second_version]"
+  exit 1
+fi
+
 # The following tests should pass
 # Pass: '1 = 1'
 # Pass: '2.1 < 2.2'
