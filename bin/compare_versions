@@ -46,7 +46,7 @@ fi
 # FAIL: Expected '>', Actual '=', Arg1 '1', Arg2 '1'
 
 function compare() {
-  if [[ $1 == $2 ]]; then
+  if [[ "$1" == "$2" ]]; then
     echo -n 0
     return 0
   fi
@@ -60,7 +60,7 @@ function compare() {
   done
 
   for ((i=0; i<${#ver1[@]}; i++)); do
-    if [[ -z ${ver2[i]} ]]; then
+    if [[ -z ${ver2[i]:-} ]]; then
       # fill empty fields in ver2 with zeros
       ver2[i]=0
     fi
@@ -83,8 +83,8 @@ function check_result() {
     '2') op='<';;
   esac
 
-  if [[ $op != $operator ]]; then
-    if [[ "$VERBOSE_DEBUG" == "true" ]]; then
+  if [[ "$op" != "$operator" ]]; then
+    if [[ "${VERBOSE_DEBUG:-}" == "true" ]]; then
       >&2 echo "FAIL: Expected '$operator', Actual '$op', Result '$1', Arg1 '$first_version', Arg2 '$second_version'"
     fi
     exit 1

@@ -18,7 +18,9 @@ fi
 if [[ -f Gemfile.lock ]]; then
   if ! grep -qE " $gem_name \(" Gemfile.lock; then
     # check Gemfile in case we are trying to add a new gem
-    grep -qE "^ *gem ['\"]$gem_name['\"]" Gemfile
+    if ! grep -qE "^ *gem ['\"]$gem_name['\"]" Gemfile ; then
+      exit 1
+    fi
   fi
 else
   exit 1

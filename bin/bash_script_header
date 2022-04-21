@@ -11,7 +11,7 @@ set -Eeuo pipefail
 
 echo -e "#!/usr/bin/env bash\n"
 echo -e 'function error_handler() {'
-echo -e "  echo \"Exited with BAD EXIT CODE '\${2}' in \${0} script at line: \${1}.\""
+echo -e "  >&2 echo \"Exited with BAD EXIT CODE '\${2}' in \${0} script at line: \${1}.\""
 echo -e '  exit "$2"'
 echo -e '}'
 echo -e "trap 'error_handler \${LINENO} \$?' ERR"
