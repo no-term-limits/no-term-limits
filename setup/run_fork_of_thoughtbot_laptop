@@ -239,16 +239,17 @@ if is_mac ; then
     echo "Uninstalling old Homebrew-Cask ..."
     brew uninstall --force brew-cask
   fi
+  echo "BREW LIST"
+  brew list
+  #
+  # if brew list | grep -Fq git; then
+  #   echo "Uninstalling old Homebrew-Cask ..."
+  #   brew uninstall --force brew-cask
+  # fi
 
   echo "Updating Homebrew formulae ..."
   # https://github.com/Homebrew/brew/issues/1151
-  if ! brew update --force ; then
-    >&2 echo "ERROR: Failed to run brew update. Could be from outdated casks:"
-    brew outdated
-    echo 'trying again'
-    brew update --force
-    echo 'succeeded when trying again'
-  fi
+  brew update --force
 
   brew bundle --file=- <<EOF
 tap "thoughtbot/formulae"
@@ -257,7 +258,7 @@ tap "universal-ctags/universal-ctags"
 
 # Unix
 brew "universal-ctags", args: ["HEAD"]
-brew "git"
+brew "git@2.35.1"
 brew "openssl"
 
 # rcm for rcup, etc.
@@ -396,12 +397,12 @@ else
         sudo apt update && sudo apt install -y libevent-dev libncurses5-dev byacc bison
         rm -fr /tmp/tmux
         git clone https://github.com/tmux/tmux.git /tmp/tmux
-        cd /tmp/tmux
+        pushd /tmp/tmux
         git checkout 3.0
         sh autogen.sh
         ./configure && make
         sudo make install
-        cd -
+        popd
         rm -fr /tmp/tmux
       fi
     fi
