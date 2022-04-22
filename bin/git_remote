@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 git_remote="${1:-}"
 if [[ -z "$git_remote" ]]; then
-  git_remote=$(git rev-parse --abbrev-ref --symbolic-full-name "HEAD@{u}" | awk -F '/' '{print $1}')
+  git_remote=$(git rev-parse --abbrev-ref --symbolic-full-name "HEAD@{u}" | awk -F '/' '{print $1}' || echo '')
   if [[ -z "$git_remote" ]]; then
     git_remote=origin
   fi

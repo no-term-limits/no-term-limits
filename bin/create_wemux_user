@@ -30,7 +30,9 @@ function create_pair_user() {
       sudo chown "$(echo $USER):staff" /tmp/wemux-wemux
     fi
   else
-    sudo useradd --create-home "$pair_user"
+    if ! id -u "$pair_user" >/dev/null ; then
+      sudo useradd --create-home "$pair_user"
+    fi
   fi
   sudo mkdir -p "$pair_user_dir/.ssh"
 
