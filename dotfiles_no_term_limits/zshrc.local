@@ -52,6 +52,13 @@ export NO_TERM_LIMITS_CURRENT_SHELL
 if ! is_mac; then
   export DISPLAY=:0
   alias ls='ls --color'
+else
+  if [[ -f /usr/local/bin/brew ]]; then
+    export PATH="/usr/local/bin:$PATH"
+    eval "$(/usr/local/bin/brew shellenv)"
+  else
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
 fi
 
 # don't throw duplicate commands, plain ls's, fg's, bg's or exit's into the command history

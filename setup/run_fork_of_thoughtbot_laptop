@@ -229,10 +229,16 @@ if is_mac ; then
 
   if ! command -v brew >/dev/null; then
     echo "Installing Homebrew ..."
-    /bin/bash -c \
+    NONINTERACTIVE=1 /bin/bash -c \
       "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  fi
 
+  # regardless of whether or not we just installed brew, add brew stuff to the PATH
+  # in case we do not yet do so via dotfiles since it's too early in the setup process.
+  if [[ -f /usr/local/bin/brew ]]; then
     export PATH="/usr/local/bin:$PATH"
+  else
+    export PATH="/opt/homebrew/bin:$PATH"
   fi
 
   if brew list | grep -Fq brew-cask; then
@@ -258,7 +264,8 @@ tap "universal-ctags/universal-ctags"
 
 # Unix
 brew "universal-ctags", args: ["HEAD"]
-brew "git@2.35.1"
+# brew "git@2.35.1"
+brew "git"
 brew "openssl"
 
 # rcm for rcup, etc.

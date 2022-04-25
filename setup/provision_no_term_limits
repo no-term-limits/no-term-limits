@@ -161,7 +161,7 @@ function run_rcup() {
   if [[ "$NO_TERM_LIMITS_RCUP_FORCE" == "true" ]]; then
     rcup -f -q
   else
-    ./setup/check_for_dotfiles_that_will_be_overwritten
+    "${no_term_limits_directory}/setup/check_for_dotfiles_that_will_be_overwritten"
     rcup
   fi
 }
@@ -210,6 +210,14 @@ fi
 
 if [[ "$NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT" != "false" ]]; then
   "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
+fi
+
+if is_mac ; then
+  if [[ -f /usr/local/bin/brew ]]; then
+    export PATH="/usr/local/bin:$PATH"
+  else
+    export PATH="/opt/homebrew/bin:$PATH"
+  fi
 fi
 
 assert_asdf_is_installed_and_loaded
