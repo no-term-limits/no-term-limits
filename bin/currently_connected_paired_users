@@ -9,10 +9,12 @@ set -Eeuo pipefail
 
 # HELP: shows list of users that are currently connected to your wemux session via ssh (see start_pairing)
 
-# get STDERR so we can filter out the message we don't care about: no server running on /tmp/wemux-wemux
-wemux_users_output="$(wemux users 2>&1)"
-wemux_users_output="$(grep -v 'no server running' <<< "$wemux_users_output" || echo '')"
+if command -v wemux >/dev/null ; then
+  # get STDERR so we can filter out the message we don't care about: no server running on /tmp/wemux-wemux
+  wemux_users_output="$(wemux users 2>&1)"
+  wemux_users_output="$(grep -v 'no server running' <<< "$wemux_users_output" || echo '')"
 
-if [[ -n "$wemux_users_output" ]]; then
-  (grep -vE '(error connecting|connected.*:)' <<< "$wemux_users_output" || echo '') | perl -p -e 's/^ +\d+\. (.*)/\1/' | hot_sed -E "/\<$(whoami)\>/d" | sort | uniq
+  if [[ -n "$wemux_users_output" ]]; then
+    (grep -vE '(error connecting|connected.*:)' <<< "$wemux_users_output" || echo '') | perl -p -e 's/^ +\d+\. (.*)/\1/' | hot_sed -E "/\<$(whoami)\>/d" | sort | uniq
+  fi
 fi
