@@ -25,6 +25,7 @@ If you aren't super attached to your current dotfiles, and you are aware that it
 ## Help and Search
 
 `ntlhelp` can be used to search for commands. Run without arguments for details.
+Run with arguments to filter by one or more keywords (all must appear).
 
 ## TMUX
 
@@ -43,3 +44,22 @@ Common shortcuts:
   * `shift-<left-arrow>` - resize current pane left (directional arrows to resize in other directions)
   * `<Leader>{` - swap current pane with the one to the left
   * `<Leader>}` - swap current pane with the one to the right
+
+## Vim
+
+**Note**: We override <Leader> from \ to a single space.
+
+Common shortcuts:
+  * `<Leader>` - open vim-which-key, which shows all leader shortcuts
+  * `<Leader>g` - show [g]it-related shortcuts
+  * `<Leader>gu` - [g]it [u]ndo hunk. For a file versioned by git, remove the
+    working copy change (could be multiple lines) near the cursor.
+  * `<Leader>l` - show [l]anguage server protocol (lsp) related shortcuts
+  * `<Leader>li` - [l]sp [i]nstall. Install the the language server for the
+    current filetype.
+  * `<Leader>ld` - [l]sp go to [d]efinition. Goes to the definition of the term
+    under the cursor.
+  * `ctrl-h` - move focus to the pane to the left (hjkl for any direction like you would expect in vim)
+  * `<Leader>rg` - [r]un [g]uid generator. Generates a guid and inserts it into
+    your buffer.
+  * `<Leader>rt` - [r]un nearest [t]est

@@ -26,11 +26,11 @@ fi
 cd "$(dirname "${new_command_location}")/../"
 
 function run() {
-  if [[ "$FORCE_CREATION" == "true" ]] || grep -q 'COMMAND_NOT_FOUND' <<<"$(cac "$new_command" 2>&1 || echo '')"; then
+  if [[ "${FORCE_CREATION:-}" == "true" ]] || grep -q 'COMMAND_NOT_FOUND' <<<"$(cac "$new_command" 2>&1 || echo '')"; then
     bash_script_header >"$new_command_location"
     echo -e "# HELP: ${command_help}\n\n${command_contents}" >>"$new_command_location"
     chmod +x "$new_command_location"
-    if [[ "$NON_INTERACTIVE" != "true" ]]; then
+    if [[ "${NON_INTERACTIVE:-}" != "true" ]]; then
       vim "+normal G^" "$new_command_location"
     fi
   else
