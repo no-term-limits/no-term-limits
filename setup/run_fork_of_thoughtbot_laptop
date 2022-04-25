@@ -253,6 +253,13 @@ if is_mac ; then
   #   brew uninstall --force brew-cask
   # fi
 
+  git_version_qualifier=''
+  echo "GITHUB_ACTIONS debug: $GITHUB_ACTIONS"
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    # apparently they install this specific version of git via homebrew, so we would need to force link to change it. just comply in CI.
+    git_version_qualifier="@2.35.1"
+  fi
+
   echo "Updating Homebrew formulae ..."
   # https://github.com/Homebrew/brew/issues/1151
   brew update --force
@@ -264,8 +271,7 @@ tap "universal-ctags/universal-ctags"
 
 # Unix
 brew "universal-ctags", args: ["HEAD"]
-# brew "git@2.35.1"
-brew "git"
+brew "git${git_version_qualifier}"
 brew "openssl"
 
 # rcm for rcup, etc.
