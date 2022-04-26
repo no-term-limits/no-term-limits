@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP:
 
-if [[ "$GET_ALL_DOCKER_IMAGE_TAGS_FOR_DELETION" == "true" ]]; then
+if [[ "${GET_ALL_DOCKER_IMAGE_TAGS_FOR_DELETION:-}" == "true" ]]; then
   docker images --format "{{.Repository}}:{{.Tag}} {{.CreatedSince}}" | grep -v '<none>' | awk '{print $1}'
 else
   docker images --format "{{.Repository}}:{{.Tag}} {{.CreatedSince}}" | egrep -v 'minute|second' | grep -v '<none>' | awk '{print $1}'
