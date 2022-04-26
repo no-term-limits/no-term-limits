@@ -31,7 +31,7 @@ Run with arguments to filter by one or more keywords (all must appear).
 
 Based on https://github.com/gpakosz/.tmux
 
-**Note**: We override <Leader> from ctrl-b to ctrl-s.
+**Note**: We override `<Leader>` from `ctrl-b` to `ctrl-s`.
 
 Common shortcuts:
   * `<Leader>\` - split pane vertically (same key as vertical bar, `|`, but you don't have to hold down shift)
@@ -47,7 +47,7 @@ Common shortcuts:
 
 ## Vim
 
-**Note**: We override <Leader> from \ to a single space.
+**Note**: We override `<Leader>` from `\` to a single space.
 
 Common shortcuts:
   * `<Leader>` - open vim-which-key, which shows all leader shortcuts
@@ -55,7 +55,7 @@ Common shortcuts:
   * `<Leader>gu` - [g]it [u]ndo hunk. For a file versioned by git, remove the
     working copy change (could be multiple lines) near the cursor.
   * `<Leader>l` - show [l]anguage server protocol (lsp) related shortcuts
-  * `<Leader>li` - [l]sp [i]nstall. Install the the language server for the
+  * `<Leader>li` - [l]sp [i]nstall. Install the language server for the
     current filetype.
   * `<Leader>ld` - [l]sp go to [d]efinition. Goes to the definition of the term
     under the cursor.

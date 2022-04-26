@@ -22,8 +22,8 @@ function install_wemux() {
       # not allowed
       # sudo chown "$(whoami)" "$wemux_base_installation_directory"
       sudo mkdir -p "$wemux_installation_lib_directory"
-      sudo chown "$(whoami)" "$wemux_installation_lib_directory"
     fi
+    sudo chown "$(whoami)" "$wemux_installation_lib_directory"
     git clone https://github.com/zolrath/wemux.git "$wemux_installation_lib_directory/wemux"
     sudo ln -s "${wemux_installation_lib_directory}/wemux/wemux" ${wemux_base_installation_directory}/bin/wemux
     sudo mkdir -p ${wemux_base_installation_directory}/etc
