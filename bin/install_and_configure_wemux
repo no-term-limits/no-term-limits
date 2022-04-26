@@ -9,9 +9,10 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 wemux_base_installation_directory="/usr/local"
 
-if is_m1_mac; then
-  wemux_base_installation_directory="/opt/homebrew"
-fi
+# not needed. installing to /usr/local is fine for a non-homebrew thing.
+# if is_m1_mac; then
+#   wemux_base_installation_directory="/opt/homebrew"
+# fi
 
 wemux_installation_lib_directory="${wemux_base_installation_directory}/lib"
 
