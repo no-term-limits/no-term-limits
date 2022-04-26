@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: is_m1_mac
+
+if is_mac; then
+  if [[ $(uname -p) == 'arm' ]]; then
+    # if is_mac and uname -p says arm, then it's an m1 mac
+    exit 0
+  fi
+fi
+
+exit 1
