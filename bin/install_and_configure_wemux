@@ -9,20 +9,21 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 wemux_base_installation_directory="/usr/local"
 
-# if is_m1_mac; then
-#   wemux_base_installation_directory="/opt/homebrew/"
-# fi
+if is_m1_mac; then
+  wemux_base_installation_directory="/opt/homebrew"
+fi
 
 wemux_installation_lib_directory="${wemux_base_installation_directory}/lib"
 
 function install_wemux() {
   if ! command -v wemux ; then
     if [[ ! -d "$wemux_installation_lib_directory" ]]; then
-      # on apple silicon, homebrew never chowns this for us, so do it ourselves
-      sudo chown -R "$(whoami)" "$wemux_base_installation_directory"
-      mkdir -p "$wemux_installation_lib_directory"
+      # not allowed
+      # sudo chown "$(whoami)" "$wemux_base_installation_directory"
+      sudo mkdir -p "$wemux_installation_lib_directory"
+      sudo chown "$(whoami)" "$wemux_installation_lib_directory"
     fi
-    sudo git clone https://github.com/zolrath/wemux.git "$wemux_installation_lib_directory/wemux"
+    git clone https://github.com/zolrath/wemux.git "$wemux_installation_lib_directory/wemux"
     sudo ln -s "${wemux_installation_lib_directory}/wemux/wemux" ${wemux_base_installation_directory}/bin/wemux
     sudo mkdir -p ${wemux_base_installation_directory}/etc
     # the env var USER is blank at this point on ubuntu at least so using whoami
