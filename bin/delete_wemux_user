@@ -59,10 +59,10 @@ function delete_stuff() {
       sudo userdel --remove "$wemux_pair_user"
     fi
   fi
-  if [[ -d "$pair_user_dir" ]]; then
-    echo "deleting $wemux_pair_user user home directory"
-    sudo rm -rf "$pair_user_dir"
-  fi
+  # if [[ -d "$pair_user_dir" ]]; then
+  #   echo "deleting $wemux_pair_user user home directory"
+  #   sudo rm -rf "$pair_user_dir"
+  # fi
 }
 
 function wemux_kick_pair_user() {
