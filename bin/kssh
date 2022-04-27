@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o pipefail
 
-# HELP: kubernetes/k8s: popular: kssh ego to get inside the first ego app-server container in the current namespace
+# HELP: kubernetes/k8s: popular: kssh todo-app to get inside the first todo-app app-server container in the current namespace
 
 cmd=bash
 if [[ -n "${*:3}" ]]; then

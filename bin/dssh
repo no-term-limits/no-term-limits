@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o pipefail
 
-# HELP: docker: alias for container which ssh's into a container
+# HELP: docker: popular: "ssh" into a running docker container
 
 command_name="$2"
 if [[ -z "$command_name" ]]; then

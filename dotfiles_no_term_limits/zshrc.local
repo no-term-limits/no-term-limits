@@ -68,7 +68,7 @@ export LESS='--RAW-CONTROL-CHARS --force' # make less keep it more real with col
 
 #### CD commands (cannot be programs, since they need to set the $PWD scope)
 
-# HELP c: cd (almost) anywhere, from anywhere. For example, type "c ego" or even partial directory names like "c bib"
+# HELP c: cd (almost) anywhere, from anywhere. For example, type "c githu<TAB>", "c no-term-limits" or even partial directory names like "c no-term"
 function c() {
   if [[ -d "${NO_TERM_LIMITS_PROJECTS_DIR}/$1" ]]; then
     dir="${NO_TERM_LIMITS_PROJECTS_DIR}/$1"

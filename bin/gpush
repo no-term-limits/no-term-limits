@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# HELP: popular: shortcut for "git push" while ensuring it pushes to origin with the correct branch
+# HELP: git: popular: shortcut for "git push" while ensuring it pushes to origin with the correct branch
 
 git_remote="$(git_remote)"
 branchname=$(git symbolic-ref HEAD | cut -d'/' -f3,4)

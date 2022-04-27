@@ -7,6 +7,6 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: popular: finds last stash commit hash in log and takes you to that page in a browser
+# HELP: git: popular: finds last commit hash in log and takes you to that page in a browser
 
 open_url "$(git_url_for_last_commit)"

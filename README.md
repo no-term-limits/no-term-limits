@@ -63,3 +63,29 @@ Common shortcuts:
   * `<Leader>rg` - [r]un [g]uid generator. Generates a guid and inserts it into
     your buffer.
   * `<Leader>rt` - [r]un nearest [t]est
+
+## Shell (zsh is highly supported)
+
+    > phelp
+    These functions are defined in: /Users/burnettk/projects/github/no-term-limits/dotfiles_no_term_limits/zshrc.local
+
+      c..............cd (almost) anywhere, from anywhere. For example, type "c githu<TAB>", "c no-term-limits" or even partial directory names like "c no-term"
+      ra.............reloads the local shell files
+
+
+    Commands in /Users/burnettk/projects/github/no-term-limits/bin:
+
+    dssh ........................................................................... docker: popular: "ssh" into a running docker container
+    gc ............................................................................. git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
+    git_copy_last_commit ........................................................... git: popular: finds last commit and copies to clipboard
+    git_open_last_commit ........................................................... git: popular: finds last commit hash in log and takes you to that page in a browser
+    gitc ........................................................................... git: popular: reset local repo or a given directory, removing all local changes
+    gp ............................................................................. git: popular: git pull ensuring correct branch
+    gpush .......................................................................... git: popular: shortcut for "git push" while ensuring it pushes to origin with the correct branch
+    gr ............................................................................. git: popular: checks out main branch and runs git pull
+    k .............................................................................. kubernetes/k8s: popular: short for kubectl
+    kd ............................................................................. kubernetes/k8s: popular: describe a kubernetes object
+    khelp .......................................................................... metahelpcommands: kubernetes/k8s: popular: search / list kubernetes commands
+    ks ............................................................................. kubernetes/k8s: popular: get all kubernetes objects for a specified app
+    kssh ........................................................................... kubernetes/k8s: popular: kssh todo-app to get inside the first todo-app app-server container in the current namespace
+    ktail .......................................................................... kubernetes/k8s: popular: tail the logs of a pod

@@ -3,7 +3,7 @@
 set -e
 
 # meta (c)hange directory to project
-# Usage: c ego
+# Usage: c my-app
 # or: c pl<tab> # to autocomplete stuff in the ~/projects directory
 startdir=$1
 curdir=$2
