@@ -35,7 +35,7 @@ function install_wemux() {
 
 function configure_wemux_to_allow_for_starting_sessions() {
   if [[ -f ${wemux_base_installation_directory}/etc/wemux.conf ]]; then
-    perl -pi -e "s/^(## example: )?host_list=\(.*/host_list=($USER)/g" ${wemux_base_installation_directory}/etc/wemux.conf
+    perl -pi -e "s/^(## example: )?host_list=\(.*/host_list=($(whoami))/g" ${wemux_base_installation_directory}/etc/wemux.conf
   fi
 }
 
