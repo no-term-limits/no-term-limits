@@ -9,4 +9,5 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: kubernetes/k8s: basic kubernetes types that we care about
 
-echo 'cm,cronjob,deploy,daemonset,hpa,pvc,ing,job,po,poddisruptionbudget,prometheusrule,role,rolebinding,rs,secret,serviceaccount,servicemonitors,statefulset,svc'
+# does not include secrets because that entity type is often restricted and we don't want lack of access to break commands.
+echo 'cm,cronjob,deploy,daemonset,hpa,pvc,ing,job,po,poddisruptionbudget,prometheusrule,role,rolebinding,rs,serviceaccount,servicemonitors,statefulset,svc'
