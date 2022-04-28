@@ -14,11 +14,19 @@ ending_commit="${2:-}"
 
 if [[ -z "$starting_commit" ]]; then
   starting_commit=$(git_branch | perl -p -e 's/ /%2F/g')
-  ending_commit="master"
+  if has_main_branch; then
+    ending_commit="main"
+  else
+    ending_commit="master"
+  fi
 else
   if [[ -z "$ending_commit" ]]; then
     if [[ -z "$starting_commit" ]]; then
-      ending_commit="master"
+      if has_main_branch; then
+        ending_commit="main"
+      else
+        ending_commit="master"
+      fi
     else
       ending_commit="$starting_commit"
     fi
