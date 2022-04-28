@@ -29,12 +29,11 @@ if grep -q 'github.com' <<<"$git_url" ; then
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#L${line_number}"
   fi
-  set -x
   url_path="${git_url}${url_path}"
 else
   # for bitbucket-server
   if [[ -n "$file" ]]; then
-    url_path="/browse/${file}"
+    url_path="browse/${file}"
   fi
   url_path="${git_url}/${url_path}?at=${branch}"
   if [[ -n "$line_number" ]]; then

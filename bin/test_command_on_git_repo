@@ -15,7 +15,7 @@ git merge --abort 2>/dev/null || true
 echo "$@"
 eval "$@"
 
-if [[ "$SKIP_GIT_DIFF" != 'true' ]]; then
+if [[ "${SKIP_GIT_DIFF:-}" != 'true' ]]; then
   results=$(gd)
   if [[ "$(wc -l <<<"$results")" -lt 100 ]]; then
     colordiff <<<"$results"
