@@ -50,7 +50,11 @@ export NO_TERM_LIMITS_CURRENT_SHELL
 # in order to properly copy to system clipboard in vim
 #   https://askubuntu.com/a/1132882
 if ! is_mac; then
-  export DISPLAY=:0
+  # setting the display breaks login for ubuntu 22.04
+  # we may need another way to properly copy to the clipboard
+  if is_ubuntu 22.04 '<' ; then
+    export DISPLAY=:0
+  fi
   alias ls='ls --color'
 else
   if [[ -f /usr/local/bin/brew ]]; then

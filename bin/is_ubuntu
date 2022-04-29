@@ -18,7 +18,9 @@ if uname -a | grep -qiE "\<(debian|ubuntu)\>"; then
       operator="="
     fi
     ubuntu_version="$(lsb_release -sr)"
-    compare_versions "${ubuntu_version} ${operator} ${version}"
+    if ! compare_versions "${ubuntu_version} ${operator} ${version}" ; then
+      exit 1
+    fi
   else
     exit 0
   fi
