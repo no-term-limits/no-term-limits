@@ -27,6 +27,25 @@ If you aren't super attached to your current dotfiles, and you are aware that it
 `ntlhelp` can be used to search for commands. Run without arguments for details.
 Run with arguments to filter by one or more keywords (all must appear).
 
+This command relies on the commands having a line starting with `# HELP:`. This
+line contains the contents that will be printed by ntlhelp when a command is
+found.
+
+## Creating new commands
+
+Ideally commands are created with `crc` so that the command header and HELP line are added to the command.
+
+The HELP line is needed for ntlhelp. See the "HELP and Search" section for more info.
+
+### Common Command Header
+
+The common command header we use forces commands to fail if any line exits badly
+and traps these errors so we can print out the command name and line number on
+which it failed. This makes debugging issues way easier. We prefer all commands
+to have this header.
+
+To add the header to an existing script, open the command in vim: `edc [command_name]` and type `h c-j` and it will add the header.
+
 ## TMUX
 
 Based on https://github.com/gpakosz/.tmux
