@@ -107,4 +107,4 @@ and traps these errors so we can print out the command name and line number on
 which it failed. This makes debugging issues way easier. We prefer all commands
 to have this header.
 
-To add the header to an existing script, open the command in vim: `edc [command_name]` and type `h c-j` and it will add the header.
+To add the header to an existing script, open the command in vim: `edc [command_name]` and type `h ctrl-j` and it will add the header.
