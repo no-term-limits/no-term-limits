@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+
+trap 'error_handler ${LINENO} $?' ERR
+
+set -o errexit
+set -o errtrace
+set -o pipefail
+
+# HELP: auto_maintain: pin_rainbow_if_less_than_ruby_2_3
+
+if is_ruby '2.3' '<' ; then
+  if has_rubygem rubocop; then
+    if has_rubygem rainbow; then
+      NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_INSERT_AFTER_GEM=rubocop NO_TERM_LIMITS_ADD_COMMENT=' # unpin: ruby 2.3+' change_pinned_gem_version rainbow '< 3.1'
+    fi
+  fi
+fi

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: refactorplrails
+
+originalSnakeCased=`echo "$1" | perl -pe "s/-/_/g"`
+newSnakeCased=`echo "$2" | perl -pe "s/-/_/g"`
+if [[ "$1" != "$originalSnakeCased" ]]; then
+  for file in `find . | grep $1 | egrep -v "coverage|node_modules|.bower|bower_componets"`; do
+    newfile=`echo $file | sed -e "s/$1/$2/g"`
+    echo running: git mv $file $newfile
+    git mv $file $newfile
+  done
+fi
+for file in `find . | grep $originalSnakeCased | egrep -v "coverage|node_modules|.bower|bower_componets" | grep -v "/$originalSnakeCased/"`
+do
+  newfile=`echo $file | sed -e "s/$originalSnakeCased/$newSnakeCased/g"`
+  echo running: git mv $file $newfile
+  git mv $file $newfile
+done
+originalClass=`echo "$1" | perl -pe "s/-([a-z])/\u\1/g" | perl -pe "s/^(.)/\u\1/g"`
+newClass=`echo "$2" | perl -pe "s/-([a-z])/\u\1/g" | perl -pe "s/^(.)/\u\1/g"`
+if [[ "$1" != "$originalSnakeCased" ]]; then
+  echo "running gitsr $1 $2"
+  gitsr $1 $2
+fi
+echo "running gitsr $originalClass $newClass"
+gitsr $originalClass $newClass
+echo "running gitsr $originalSnakeCased $newSnakeCased"
+gitsr $originalSnakeCased $newSnakeCased

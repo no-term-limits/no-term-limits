@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: pin globalid if less than ruby 2.5 since globalid now requires ruby 2.5
+
+current_ruby_version="$(ruby_version)"
+if [[ -n "$current_ruby_version" ]]; then
+  if has_rubygem parallel; then
+    if compare_versions "$current_ruby_version > 2.4.0"; then
+      if compare_versions "$current_ruby_version < 2.5"; then
+        NO_TERM_LIMITS_UPDATE_ONLY=true NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_ADD_COMMENT=' # unpin: when ruby > 2.5.0' change_pinned_gem_version parallel '< 1.21'
+      else
+        remove_gem_from_gemfile parallel
+      fi
+    elif compare_versions "$current_ruby_version > 2.2.0"; then
+      NO_TERM_LIMITS_UPDATE_ONLY=true NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_ADD_COMMENT=' # unpin: when ruby > 2.4.0' change_pinned_gem_version parallel '< 1.20'
+    fi
+  fi
+fi

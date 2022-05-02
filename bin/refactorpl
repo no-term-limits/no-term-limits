@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e
+
+# HELP: search and replace of file names and file contents
+
+#find . -type d | fgrep -v .svn | sed -e "s|^|rename -n 's/$1/$2/' |" -e 's|$|/*|' | bash 2>&1 | sed -e 's|^|svn mv |' -e 's| renamed as||' -e 's| would be renamed to||'
+if [[ -z "$1" || -z "$2" ]]; then
+  echo Specify both name to change and name to change to
+  kill -INT $$
+fi
+for file in `find . | grep $1.js | egrep -v "coverage|node_modules|.bower|bower_componets"`; do
+  newfile=`echo $file | sed -e "s/$1.js/$2.js/g"`;
+  echo running: git mv $file $newfile
+  git mv $file $newfile
+done
+
+originalDirectiveName=`echo "$1" | perl -pe "s/-([a-z])/\u\1/g"`
+newDirectiveName=`echo "$originalDirectiveName" | perl -pe "s/^(.)/rs\u\1/g"`
+
+gitsr $originalDirectiveName $newDirectiveName
+gitsr $1 $2

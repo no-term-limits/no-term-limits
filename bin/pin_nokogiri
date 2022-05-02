@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+
+trap 'error_handler ${LINENO} $?' ERR
+
+set -o errexit
+set -o errtrace
+set -o pipefail
+
+# HELP: auto_maintain: pin nokogiri and nokogiri dependencies as required by different ruby versions
+
+if has_rubygem nokogiri ; then
+  # mini_portile2 and racc are required by nokogiri
+  if is_ruby '2.3' '<'; then
+    NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_ADD_COMMENT='# unpin when ruby 2.3+' change_pinned_gem_version mini_portile2 '< 2.5'
+    NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_ADD_COMMENT='# unpin when ruby 2.3+' change_pinned_gem_version nokogiri '< 1.10.8'
+  elif is_ruby '2.5' '<'; then
+    NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_ADD_COMMENT='# unpin when ruby 2.5+' change_pinned_gem_version racc '< 1.6'
+    NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_ADD_COMMENT='# unpin when ruby 2.5+' change_pinned_gem_version nokogiri '< 1.11'
+  elif is_ruby '2.6' '<'; then
+    NO_TERM_LIMITS_BUNDLE_UPDATE=false NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_ADD_COMMENT='# unpin when ruby 2.6+' change_pinned_gem_version nokogiri '< 1.13'
+  fi
+fi
