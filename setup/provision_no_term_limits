@@ -259,6 +259,17 @@ if command -v compaudit; then
   compaudit | xargs chmod g-w
 fi
 
+if is_mac ; then
+  mkdir -p "${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+  cd "${NO_TERM_LIMITS_PROJECTS_DIR}/github"
+
+  if [[ ! -d "computer-setup" ]]; then
+    git clone "https://github.com/burnettk/computer-setup.git"
+    cd computer-setup
+    ./go
+  fi
+fi
+
 cleanup
 
 cd "$initial_directory"
