@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: change_pinned_gem_version [GEM_NAME] [PREVIOUS_GEM_VERSION] [NEW_GEM_VERSION]. PREVIOUS_GEM_VERSION is optional.
+
+if [[ ! -f .tool-versions ]]; then
+  exit 0
+fi
+
+if ! grep -qE '^ruby' .tool-versions; then
+  exit 0
+fi
+
+gem_name="$1"
+
+if [[ -z "$gem_name" ]]; then
+  >&2 rshelp change_pinned_gem_version
+  exit 1
+fi
+
+had_gem="false"
+if has_rubygem "$gem_name"; then
+  had_gem="true"
+fi
+
+if [[ "$NO_TERM_LIMITS_UPDATE_ONLY" == "true" ]]; then
+  if [[ "$had_gem" == "false" ]]; then
+    exit 0
+  fi
+fi
+
+if [[ -z "$2" ]] && [[ -z "$3" ]]; then
+  >&2 rshelp change_pinned_gem_version
+  exit 1
+fi
+
+if [[ -z "$3" ]]; then
+  new_gem_version="$2"
+else
+  previous_gem_version="$2"
+  new_gem_version="$3"
+fi
+
+if [[ -z "$new_gem_version" ]]; then
+  >&2 rshelp change_pinned_gem_version
+  exit 1
+fi
+
+if [[ "$had_gem" == "true" ]] ; then
+  current_gem_version="$(current_pinned_gem_version "${gem_name}")"
+
+  if [[ "$current_gem_version" == "$new_gem_version" ]]; then
+    exit 0
+  fi
+
+  if [[ -n "$previous_gem_version" ]] && [[ -n "$current_gem_version" ]]; then
+    if [[ "$previous_gem_version" != "$current_gem_version" ]]; then
+      >&2 echo "ERROR: the previous version passed in ($previous_gem_version) does not match the current pinned version ($current_gem_version) for gem $gem_name"
+      exit 1
+    fi
+  fi
+
+  if [[ -z "$previous_gem_version" ]]; then
+    previous_gem_version="$current_gem_version"
+  fi
+fi
+
+
+matching_line_before="$(grep -E "gem ['\"]${gem_name}['\"]" Gemfile || echo '')"
+if [[ -n "$previous_gem_version" ]]; then
+  if [[ "$previous_gem_version" == "$new_gem_version" ]]; then
+    exit 0
+  fi
+  matching_line_before_with_version="$(grep -E "gem ['\"]${gem_name}['\"], ['\"]${previous_gem_version}['\"]" Gemfile || echo '')"
+fi
+
+if [[ -n "$matching_line_before_with_version" ]]; then
+  if [[ "$NO_TERM_LIMITS_DELETE_COMMENT" == "true" ]]; then
+    perl -pi -e "s/gem +['\"]${gem_name}['\"], ['\"]${previous_gem_version}['\"]([^#]*)(\#.*)?/gem '${gem_name}', '${new_gem_version}'\1/" Gemfile
+    perl -pi -e "s/ +$//" Gemfile
+  else
+    hot_sed -i -E "s/gem +['\"]${gem_name}['\"], ['\"]${previous_gem_version}['\"]/gem '$gem_name', '$new_gem_version'/" Gemfile
+  fi
+elif [[ -n "$matching_line_before" ]]; then
+  # the gem was in the Gemfile, but it was not previously pinned
+  if [[ "$NO_TERM_LIMITS_DELETE_COMMENT" == "true" ]]; then
+    perl -pi -e "s/gem +['\"]${gem_name}['\"]([^#]*)(\#.*)?/gem '${gem_name}', '${new_gem_version}'\1/" Gemfile
+    perl -pi -e "s/ +$//" Gemfile
+  else
+    hot_sed -i -E "s/gem +['\"]${gem_name}['\"]/gem '$gem_name', '$new_gem_version'/" Gemfile
+  fi
+else
+  # the gem did not previously appear in the Gemfile
+  new_gem_contents="gem '${gem_name}', '${new_gem_version}'"
+  if [[ -n "$NO_TERM_LIMITS_INSERT_AFTER_GEM" ]]; then
+    if grep -Eq "gem ['\"]\<${NO_TERM_LIMITS_INSERT_AFTER_GEM}\>['\"]" Gemfile; then
+      perl -pi -e "s/^(\s+)?(gem ['\"]${NO_TERM_LIMITS_INSERT_AFTER_GEM}['\"].*)/\1\2\n\1${new_gem_contents}/g" Gemfile
+    else
+      >&2 echo "ERROR: the NO_TERM_LIMITS_INSERT_AFTER_GEM gem ($NO_TERM_LIMITS_INSERT_AFTER_GEM) did not exist in the Gemfile"
+      exit 1
+    fi
+  else
+    echo "$new_gem_contents" >> Gemfile
+  fi
+fi
+
+matching_line_after="$(grep -E "gem ['\"]${gem_name}['\"], ['\"]${new_gem_version}['\"]" Gemfile || echo '')"
+if [[ -n "$matching_line_after" ]]; then
+  matching_line_before_without_comments=$(echo "$matching_line_before_with_version" | perl -p -e "s/gem +['\"]${gem_name}['\"], ['\"]${previous_gem_version}['\"]([^#]*)(\#.*)?/gem '${gem_name}', '${previous_gem_version}'\1/" | perl -p -e "s/ +$//")
+  if [[ -n "$NO_TERM_LIMITS_ADD_COMMENT" ]]; then
+    if ! grep -qE '^ ' <<<"$NO_TERM_LIMITS_ADD_COMMENT" ; then
+      NO_TERM_LIMITS_ADD_COMMENT=" $NO_TERM_LIMITS_ADD_COMMENT"
+    fi
+    perl -pi -e "s/(gem +['\"]${gem_name}['\"].*)/\1${NO_TERM_LIMITS_ADD_COMMENT}/" Gemfile
+  fi
+  if [[ "$matching_line_before_without_comments" != "$matching_line_after" ]]; then
+    if [[ "$NO_TERM_LIMITS_BUNDLE_UPDATE" != "false" ]]; then
+      if [[ "$had_gem" == "true" ]]; then
+        bundle update "$gem_name"
+      else
+        bundle
+      fi
+    fi
+    # this output may be used in other scripts
+    if [[ -n "$previous_gem_version" ]]; then
+      echo "updated $gem_name gem version from $previous_gem_version to $new_gem_version"
+    else
+      echo "added pin for $gem_name to gem version $new_gem_version"
+    fi
+  fi
+fi

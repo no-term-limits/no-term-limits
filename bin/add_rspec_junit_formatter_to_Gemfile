@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: add_rspec_junit_formatter_to_Gemfile
+
+if [[ -f .rspec ]]
+then
+  if grep -q JunitFormatter .rspec
+  then
+    if ! grep -q rspec_junit_formatter Gemfile
+    then
+      echo "adding rspec_junit_formatter to Gemfile"
+      perl -pi -e '$_ .= qq(  gem "rspec_junit_formatter"
+) if /group :test do/' Gemfile
+      if ls -d .git > /dev/null 2>&1
+      then
+        gitsr 'gem "rspec_junit_formatter"' "gem 'rspec_junit_formatter'"
+      fi
+    fi
+  fi
+fi

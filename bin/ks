@@ -30,7 +30,7 @@ if grep -q "No resources found" <<< "$results_without_errors" || [[ "$results_wi
   results_without_errors=$(grep -vE "^Error" <<<"$results" || echo '')
 fi
 
-if [[ "$RS_K8S_EXACT_APP_MATCH_ONLY" != "true" ]] && grep -q "No resources found" <<< "$results_without_errors" || [[ "$results_without_errors" == "" ]]; then
+if [[ "$NO_TERM_LIMITS_K8S_EXACT_APP_MATCH_ONLY" != "true" ]] && grep -q "No resources found" <<< "$results_without_errors" || [[ "$results_without_errors" == "" ]]; then
   >&2 echo -e "Could not find resources with selector '${selector_string}'. Grepping all resources for '${1}'\n"
   kgrep "$@"
 else

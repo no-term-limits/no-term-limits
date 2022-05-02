@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: modernize
+
+if is_rails; then
+  current_version=$(find_gem_lib_version rails)
+  if [[ -z "$current_version" ]]; then
+    >&2 echo 'ERROR: Could not find the current version of rails'
+    exit 1
+  fi
+
+  version_to_pin_to="$current_version"
+
+  # Should match versions like: 1.2.3.
+  # Extra dot means there are 4 or more digits
+  if grep -Eq '^([0-9]+\.){3}'<<<"$current_version"; then
+    three_segment_version_number=$(perl -p -e 's/^(\d+(\.\d+){2}).*/\1/' <<<"$current_version")
+    version_to_pin_to="$three_segment_version_number"
+  fi
+
+  NO_TERM_LIMITS_BUNDLE_UPDATE=false change_pinned_gem_version 'rails' "~> $version_to_pin_to"
+fi

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+set -x
+
+# HELP: auto_maintain: gitsr
+
+if type setopt > /dev/null 2>&1; then
+  setopt SH_WORD_SPLIT
+fi
+
+old=$1
+new=$2
+file=""
+files=$( (grep "$old" . -lRE --exclude-dir='vendor' --exclude-dir='.svn' --exclude-dir='.git' --exclude-dir='log' --exclude-dir='node_modules' --exclude-dir='target' --exclude-dir=doc --exclude-dir=manifests --exclude-dir=coverage || echo '') | uniq)
+
+old=$(echo $old | sed -E 's/\(/\(/g' | sed -E 's/\)/\)/g')
+while read -r file; do
+  perl -pi -e "s,$old,$new,g" "$file"
+done <<<"$files"
+
+file_count=$(wc -l <<< "$files")
+if [[ "$file_count" != 0 ]]; then
+  echo $files
+fi

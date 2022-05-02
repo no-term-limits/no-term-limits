@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: add_puma_worker_killer_gem
+
+if [[ -f Gemfile ]]; then
+  # make sure it's in production only stanza
+  if has_rubygem_in_group puma production ; then
+    if ! grep -q 'puma_worker_killer' Gemfile; then
+      hot_sed -i -e "s/^\(\s\+\)gem.*puma.*/\1gem 'puma_worker_killer'/g" Gemfile
+      pin_nio4r_to_appropriate_version
+    fi
+  fi
+fi

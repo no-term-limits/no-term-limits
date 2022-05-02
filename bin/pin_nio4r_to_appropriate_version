@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+set -x
+
+# HELP: auto_maintain: pin nio4r
+
+if less_than_ruby_2_4 && ! less_than_ruby_2_3; then
+  insert_after_gem=''
+  if has_rubygem puma_worker_killer ; then
+    insert_after_gem=puma_worker_killer
+  elif has_rubygem puma; then
+    insert_after_gem=puma
+  fi
+
+  if [[ -n "$insert_after_gem" ]]; then
+    NO_TERM_LIMITS_DELETE_COMMENT=true NO_TERM_LIMITS_INSERT_AFTER_GEM="$insert_after_gem" NO_TERM_LIMITS_ADD_COMMENT=' # unpin: ruby >= 2.4' change_pinned_gem_version nio4r '< 2.5'
+  fi
+fi

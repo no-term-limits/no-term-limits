@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: auto_maintain: add_puma_gem
+
+if [[ -f Gemfile ]]; then
+  if ! has_rubygem 'puma'; then
+    if less_than_ruby_2_2; then
+      NO_TERM_LIMITS_ADD_COMMENT='# unpin: ruby 2.2+' add_rubygem_to_app 'puma' '~> 3.11.4'
+    else
+      add_rubygem_to_app 'puma'
+    fi
+
+    move_gem_to_stanza 'puma' 'development'
+    pin_nio4r_to_appropriate_version
+
+    if has_rubygem rubocop; then
+      be rubocop -a Gemfile
+    fi
+  fi
+fi

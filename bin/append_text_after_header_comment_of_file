@@ -1,0 +1,13 @@
+#!/usr/bin/awk
+
+# before the first record (line), set 'inserted' to zero
+BEGIN {inserted = 0}
+
+# If inserted > 0, print the record and go to the next
+inserted { print $0 ; next }
+
+# If still processing comments/empty lines, print them an get the next record
+/^#|^[\t ]*$/ { print $0 ; next }
+
+# If not processing empties/comments any more, insert some lines, set 'inserted', and go on
+{ print text_to_insert ; inserted = 1 ; print $0 }
