@@ -9,6 +9,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 github_dir="${NO_TERM_LIMITS_PROJECTS_DIR}/github"
 user_and_repo_name="${1:-}"
+clone_type="${2:-}"
+
 if [[ -z "$user_and_repo_name" ]]; then
   >&2 echo "ERROR: need user_and_repo_name argument"
   exit 1
@@ -17,5 +19,12 @@ fi
 repo_dir="${github_dir}/${user_and_repo_name}"
 if [[ ! -d "$repo_dir" ]]; then
   mkdir -p "$github_dir"
-  git clone https://github.com/${user_and_repo_name}.git "$repo_dir"
+  if [[ -z "$clone_type" ]] || [[ "$clone_type" == "http" ]]; then
+    git clone https://github.com/${user_and_repo_name}.git "$repo_dir"
+  elif [[ "$clone_type" == "ssh" ]]; then
+    git clone "git@github.com:${user_and_repo_name}.git" "$repo_dir"
+  else
+    >&2 echo "ERROR: bad clone_type: ${clone_type}"
+    exit 1
+  fi
 fi
