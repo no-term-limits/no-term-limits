@@ -372,6 +372,7 @@ else
     imagemagick \
     jq \
     language-pack-en \
+    libbz2-dev \
     libcurl4-openssl-dev \
     libfcgi \
     libfcgi-dev \
