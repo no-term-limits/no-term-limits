@@ -1,0 +1,186 @@
+#!/bin/zsh
+
+set -e
+
+# HELP: wrapper around tmux. Run "t -h" for details
+
+script_file="$0"
+
+function _current_pane_number() {
+  tmux display -pt "${TMUX_PANE:?}" '#{pane_index}'
+}
+
+function _pane_height() {
+  tmux display -pt "$1" '#{pane_height}'
+}
+
+function _pane_width() {
+  tmux display -pt "$1" '#{pane_width}'
+}
+
+function _get_total_height() {
+  tmux display-message -p "#{window_height}"
+}
+
+function _get_pane_ids() {
+  tmux list-panes | awk -F ':' '{print $1}'
+}
+
+function clear_all_panes() {
+  send_keys_to_all_panes 'C-c'
+  send_keys_to_all_panes 'tmux clear-history' Enter
+  send_keys_to_all_panes clear Enter
+}
+
+function toggle_mouse() {
+  old=$(tmux show -v mouse)
+  new=""
+
+  if [ "$old" = "on" ]; then
+    new="off"
+  else
+    new="on"
+  fi
+
+  tmux set mouse "$new"
+  tmux_set_status_bar_right
+}
+
+function send_keys_to_all_panes() {
+  current_pane=$(_current_pane_number)
+  other_panes=$(_get_pane_ids | grep -v "$current_pane")
+  while read -r pane ; do
+    tmux send-keys -t "$pane" "$@"
+  done <<<"$other_panes"
+
+  # never send ctrl+c to the current pane, because usually you are running the
+  # main script from that pane and you want that script to finish
+  if [[ "$@" != "C-c" ]]; then
+    tmux send-keys -t "$current_pane" "$@"
+  fi
+}
+
+# TKO
+function ko() {
+  # kill all but pane 1
+  # tmux kill-pane -a -t 1
+
+  # kill all but current pane
+  tmux kill-pane -a
+}
+
+function layout_6_panes() {
+  tmux split-window -t 1 -v -p 40
+  tmux split-window -t 2 -h -p 33
+  tmux split-window -t 2 -h -p 50
+  tmux split-window -t 1 -h -p 30
+  tmux split-window -t 1 -h -p 40
+  tmux select-pane -t 1
+  sleep 1
+  clear_all_panes
+}
+
+function layout_5_panes() {
+  tmux split-window -t 1 -v -p 40
+  tmux split-window -t 2 -h -p 33
+  tmux split-window -t 2 -h -p 50
+  tmux split-window -t 1 -h -p 30
+  tmux select-pane -t 1
+  sleep 1
+  clear_all_panes
+}
+
+function reset_5_panes() {
+  tmux select-layout even-vertical
+  tmux move-pane -s 4 -t 3 -h -p 66
+  tmux move-pane -s 5 -t 4 -h -p 50
+  tmux move-pane -s 2 -t 1 -h -p 30
+
+  total_height=$(_get_total_height)
+  split_height=${$((total_height * 0.6))%.*}
+  tmux resize-pane -t 1 -y "$split_height"
+  tmux select-pane -t 1
+}
+
+function 3() {
+  layout_3_panes
+}
+
+function layout_3_panes() {
+  tmux split-window -t 1 -v -p 40
+  tmux split-window -t 2 -h -p 50
+  tmux select-pane -t 1
+  sleep 1
+  clear_all_panes
+}
+
+function reset_3_panes() {
+  tmux select-layout even-vertical
+  tmux move-pane -s 3 -t 2 -h -p 50
+
+  total_height=$(_get_total_height)
+  split_height=${$((total_height * 0.6))%.*}
+  tmux resize-pane -t 1 -y "$split_height"
+  tmux select-pane -t 1
+}
+
+function 3() {
+  layout_3_panes
+}
+
+function 4() {
+  layout_4_panes
+}
+
+function 5() {
+  layout_5_panes
+}
+
+function 6() {
+  layout_6_panes
+}
+
+function layout_4_panes() {
+  original_pane="$(_current_pane_number)"
+  tmux split-window -t "$original_pane" -v -p 50
+
+  # doesn't work. doesn't get new pane number, but still returns original pane number, i guess because of where the original script is run from
+  # which is super confusing, because if you run these commands manually everything works perfectly and new_pane_below is one greater than original_pane
+  # new_pane_below="$(_current_pane_number)"
+
+  new_pane_below=$(( $original_pane + 1 ))
+  tmux split-window -t "$new_pane_below" -h -p 50
+  tmux split-window -t "$original_pane" -h -p 50
+  tmux select-pane -t "$original_pane"
+
+  # not sure why we need this.
+  sleep 1
+  clear_all_panes
+}
+
+function _local_commands() {
+  grep -E '^function ' "$script_file" | awk '{print $2}' | awk -F '(' '{print $1}' | sort
+}
+
+function auto_complete_commands() {
+  _local_commands
+  tmux list-commands
+}
+
+function help() {
+  echo 'This is the no-term-limits tmux wrapper program. Either specify native tmux commands or choose from:'
+  echo "\t$(_local_commands | grep -Ev '^\s*[0-9]+\s*$' | grep -Ev '^_' | perl -p -e 's/\n/\n\t/')"
+
+  echo 'Use "man tmux" or "t list-commands" for more information on tmux'
+  exit 0
+}
+
+if [[ -z "$@" ]]; then
+  tat
+elif [[ "$1" == "-h" ]]; then
+  help
+elif grep -qE "\<$1\>" <<<"$(_local_commands)" 2>/dev/null ; then
+  eval "$@"
+else
+  tmux "$@"
+fi
