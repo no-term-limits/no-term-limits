@@ -54,6 +54,8 @@ if ! is_mac; then
   # we may need another way to properly copy to the clipboard
   if is_ubuntu 22.04 '<' ; then
     export DISPLAY=:0
+  else
+    export DISPLAY=:1
   fi
   alias ls='ls --color'
 else
