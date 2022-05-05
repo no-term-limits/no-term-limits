@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: checks if git repo has local changes
+
+git_repo="${1:-}"
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [git_repo]"
+  exit 1
+fi
+
+cd "$git_repo"
+
+if [[ -d .git ]]; then
+  # running git status before the status checks since that seems to help with false positives
+  git status >/dev/null 2>&1
+  # if there aren't any logs then there haven't been any commits and history shouldn't be checked
+  if git --no-pager log >/dev/null 2>&1 ; then
+    # modified files exits 1 while unmodified exits 0
+    # FIXME: this line has a bug where it sometimes has false positives. not sure why
+    if ! git diff-index --quiet HEAD -- ; then
+      exit 1
+    elif git status | grep -q Untracked ; then
+      exit 1
+    fi
+  fi
+fi

@@ -14,7 +14,7 @@ if [[ -n "${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX:-}" ]]; then
   domain="${domain}.${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX}"
 fi
 ssh_target="$domain"
-ip_from_ifconfig=$(ifconfig | grep netmask | grep "inet 10" | awk '{print $2}' | head -n 1)
+ip_from_ifconfig=$(ifconfig | grep netmask | grep "inet 192" | awk '{print $2}' | head -n 1)
 ip_from_domain=$(dig +short "$domain")
 if [[ "$ip_from_ifconfig" != "$ip_from_domain" ]]; then
   ssh_target="$ip_from_ifconfig"

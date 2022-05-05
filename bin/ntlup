@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: update no-term-limits and related projects
+
+function git_pull_repo() {
+  local git_repo="$1"
+  if [[ -d "$git_repo" ]]; then
+    pushd "$git_repo" >/dev/null
+    echo "$git_repo"
+    git pull
+    echo
+    popd >/dev/null
+  fi
+}
+
+git_pull_repo "$(no_term_limits_location)"
+git_pull_repo "${HOME}/dotfiles"
+git_pull_repo "${NO_TERM_LIMITS_PROJECTS_DIR}/github/computer-setup"

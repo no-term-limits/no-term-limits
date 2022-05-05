@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: finds all repos that currently have changes in them using git status under $NO_TERM_LIMITS_PROJECTS_DIR
+
+if ! command -v parallel >/dev/null 2>&1; then
+  >&2 echo "ERROR: need the command parallel"
+  exit 1
+fi
+
+git_repos=$(gclonedrepos)
+
+if [[ -z "$git_repos" ]]; then
+  >&2 echo "ERROR: Could not find any git repos to check in ${NO_TERM_LIMITS_PROJECTS_DIR}"
+  exit 1
+fi
+
+function check_if_repo_is_clean() {
+  app_path="$1"
+  if ! git_repo_status "$app_path" ; then
+    echo "$app_path"
+  fi
+}
+export -f check_if_repo_is_clean
+parallel check_if_repo_is_clean ::: "$git_repos"
