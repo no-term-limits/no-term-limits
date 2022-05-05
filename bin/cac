@@ -10,14 +10,14 @@ source "${HOME}/.zshrc.local"
 
 location=$(which "$command" || echo 'COMMAND_NOT_FOUND')
 
-if ! grep -qE "(\/projects\/|aliased)" <<<"$location" ; then
+if ! grep -qE "(\/projects\/|aliased|.bin)" <<<"$location" ; then
   if grep -q 'COMMAND_NOT_FOUND' <<<"${location}" || [[ "$(wc -l <<<"${location}")" -lt "2" ]]; then
     >&2 echo "ERROR: '${command}' is not a local command. Found in '${location}'"
     exit 1
   fi
 fi
 
-if grep -qE "\/projects\/" <<<"$location" ; then
+if grep -qE "\/(projects|.bin)\/" <<<"$location" ; then
   if command -v bat >/dev/null ; then
     bat "$location"
   elif command -v vimcat >/dev/null ; then
