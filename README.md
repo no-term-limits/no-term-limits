@@ -100,11 +100,22 @@ Ideally commands are created with `crc` so that the command header and HELP line
 
 The HELP line is needed for ntlhelp. See the "HELP and Search" section for more info.
 
-### Common Command Header
+### Common bash command header
 
-The common command header we use forces commands to fail if any line exits badly
+````
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+````
+
+The common header we use forces bash scripts to fail if any line exits badly
 and traps these errors so we can print out the command name and line number on
 which it failed. This makes debugging issues way easier. We prefer all commands
 to have this header.
 
-To add the header to an existing script, open the command in vim: `edc [command_name]` and type `h ctrl-j` and it will add the header.
+To add the header to an existing script, open the command in vim: `edc [command_name]`, type `h ctrl-j` and it will add the header.
