@@ -9,8 +9,12 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: check if given element is in given array
 
-match="$1"
+value="$1"
 shift
 
-for e; do [[ "$e" == "$match" ]] && exit 0; done
+for element ; do
+  [[ "$element" == "$value" ]]
+  exit 0
+done
+
 exit 1
