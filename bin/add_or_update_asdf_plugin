@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: add_or_update_asdf_plugin by name and optional url
+
+name="${1:-}"
+url="${2:-}"
+
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [name] [url - optional]"
+  exit 1
+fi
+
+if ! asdf plugin-list | grep -Fq "$name"; then
+  if [[ -n "$url" ]]; then
+    asdf plugin-add "$name" "$url"
+  else
+    asdf plugin-add "$name"
+  fi
+else
+  asdf plugin-update "$name"
+fi
