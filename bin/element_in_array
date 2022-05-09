@@ -13,8 +13,9 @@ value="$1"
 shift
 
 for element ; do
-  [[ "$element" == "$value" ]]
-  exit 0
+  if [[ "$element" == "$value" ]] ; then
+    exit 0
+  fi
 done
 
 exit 1
