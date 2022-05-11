@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# this program is likely invoked via a line like this in dotfiles_no_term_limits/vimrc.local or other vim config file:
+#
+# autocmd BufWritePost * cal Run_run_in_tmux_pane_ProgramInTmuxPane()
+
+file_that_may_be_present="$1"
+file_that_was_changed="$2"
+
+function run_on_file() {
+  file_that_may_be_present="$1"
+  file_that_was_changed="$2"
+
+  if [[ -f "$file_that_may_be_present" ]]; then
+    if [[ -x "$file_that_may_be_present" ]]; then
+      "${file_that_may_be_present}" "$file_that_was_changed"
+    else
+      zsh "$file_that_may_be_present" "$file_that_was_changed"
+    fi
+    count=$((count + 1))
+  fi
+}
+
+count=0
+
+if [[ -n "$file_that_may_be_present" ]]; then
+  run_on_file "$file_that_may_be_present" "$file_that_was_changed"
+else
+  for file_that_may_be_present in t t_left t_bottom; do
+    run_on_file "$file_that_may_be_present" "$file_that_was_changed"
+  done
+fi

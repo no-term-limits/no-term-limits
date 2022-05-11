@@ -214,12 +214,24 @@ fun! Should_execute_t_file(t_file_to_use)
   return 0
 endfun
 
+" this is pretty intense. it's meant to help speed up a workflow. so first
+" make sure you are running vim inside tmux all day every day.
+" i assume i lost most everyone.
+" then split your tmux window into multiple panes. maybe like 4 panes
+" split in quadrants. open vim in maybe the bottom left pane (anywhere but
+" bottom right). make sure your working directory in the bottom left pane
+" (vim) is the same as that in the bottom right (where you should have an
+" empty shell). Now create a file in the working directory called t. Put any
+" shell command in there that you want. When you save any file in vim, that
+" command the "t file" will be run in the bottom right tmux pane. It's not
+" perfect, but it's pretty magical for certain workflows, like editing code in
+" one pane and running it automatically in another.
 fun! Run_run_in_tmux_pane_ProgramInTmuxPane() "{{{
   let file_that_was_changed = '<afile>'
   " if you have a file called "t", it will run to the right, since t is short and right is best!
   if Should_execute_t_file('t')
-      execute 'silent !tmux send-keys -t bottom-right "run_in_tmux_pane ' . getcwd() . '/t '. file_that_was_changed . '" Enter'
-      redraw!
+    execute 'silent !tmux send-keys -t bottom-right "run_in_tmux_pane ' . getcwd() . '/t '. file_that_was_changed . '" Enter'
+    redraw!
   endif
   if Should_execute_t_file('t_right')
     execute 'silent !tmux send-keys -t bottom-right "run_in_tmux_pane ' . getcwd() . '/t_right '. file_that_was_changed . '" Enter'
