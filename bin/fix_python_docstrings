@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: finds the python files in a given dir and updates the docstrings to adhere to pep8 standards
+
+dir="${1:-}"
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [dir]"
+  exit 1
+fi
+
+python_files=$(find "$dir" -type f -name "*.py")
+
+if [[ -z "$python_files" ]]; then
+  >&2 echo "ERROR: Could not find any python files in '$dir'"
+  exit 1
+fi
+
+for python_file in $python_files ; do
+  perl -pi -e 's/(\w) ?"""$/\1."""/' "$python_file"
+  perl -pi -e 's/^( *""") ?([a-z])/\1\u\2/' "$python_file"
+
+  # remove newlines after docstring for method definitions
+  # Example:
+  #   def method():
+  #       """The stuffs."""
+  #
+  #       code...
+  #
+  # Becomes:
+  #   def method():
+  #       """The stuffs."""
+  #       code...
+  perl -pi -0 -e 's/\b(def[^\n]+\n)( +"""[^"]+"""\n)( *\n)/\1\2/g' "$python_file"
+
+  # add docstring to method definition missing one
+  # Example:
+  #   def method():
+  #       code...
+  #
+  # Becomes:
+  #   def method():
+  #       """Method."""
+  #       code...
+  perl -pi -0 -e 's/\n( *)(def )([^(]+)([^)]+\):\n)( *\w)/\n\1\2\3\4\1    """\u\3."""\n\5/' "$python_file"
+done
