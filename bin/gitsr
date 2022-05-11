@@ -6,7 +6,6 @@ function error_handler() {
 }
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o pipefail
-set -x
 
 # HELP: auto_maintain: gitsr
 
