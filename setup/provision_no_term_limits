@@ -241,7 +241,9 @@ if [ ! -d "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting" ]; the
 fi
 
 if [[ "$NO_TERM_LIMITS_RUN_RCUP" != "false" ]]; then
-  export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
+  if [[ -z "${RCRC:-}" ]]; then
+    export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
+  fi
   run_rcup
 fi
 
