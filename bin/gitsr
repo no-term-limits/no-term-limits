@@ -18,10 +18,12 @@ new=$2
 file=""
 files=$( (grep "$old" . -lRE --exclude-dir='vendor' --exclude-dir='.svn' --exclude-dir='.git' --exclude-dir='log' --exclude-dir='node_modules' --exclude-dir='target' --exclude-dir=doc --exclude-dir=manifests --exclude-dir=coverage || echo '') | uniq)
 
-old=$(echo $old | sed -E 's/\(/\(/g' | sed -E 's/\)/\)/g')
-while read -r file; do
-  perl -pi -e "s,$old,$new,g" "$file"
-done <<<"$files"
+if [[ -n "$files" ]]; then
+  old=$(echo $old | sed -E 's/\(/\(/g' | sed -E 's/\)/\)/g')
+  while read -r file; do
+    perl -pi -e "s,$old,$new,g" "$file"
+  done <<<"$files"
+fi
 
 file_count=$(wc -l <<< "$files")
 if [[ "$file_count" != 0 ]]; then

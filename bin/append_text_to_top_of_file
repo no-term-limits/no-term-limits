@@ -11,4 +11,4 @@ set -o errtrace -o errexit -o pipefail
 
 text_to_append="$1"
 file_to_append_to="$2"
-echo -n "$text_to_append" | cat - "$file_to_append_to" > temp && /bin/mv temp "$file_to_append_to"
+echo -ne "$text_to_append" | cat - "$file_to_append_to" > temp && /bin/mv temp "$file_to_append_to"
