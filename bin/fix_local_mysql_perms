@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o pipefail
+
+# HELP: fixes the local mysql root permissions. Only tested with ubuntu.
+
+# if it's installed via the mysql-server package, it might have this issue. the docker container is always set up with the right permissions, i hope.
+if grep -q mysql-server <<<"$(dpkg -l)"; then
+  sudo mysql -u root -e "USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE User='root'; UPDATE mysql.user SET authentication_string='', plugin='mysql_native_password' WHERE User='root' AND Host='%'; FLUSH PRIVILEGES;"
+  sudo service mysql restart
+fi
