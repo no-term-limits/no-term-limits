@@ -519,11 +519,11 @@ endfunction
 "initialize the generateUUID function here and map it to a local command
 noremap <Leader>rg :call GenerateUUID()<CR>
 
-" added by vim-rubocop plugin, so just documenting here. can be switched off by user with: let g:vimrubocop_keymap = 0
-let g:which_key_map.r = {
-      \ 'name' : '+run' ,
-      \ 'c' : [':call ReindexCtags()<cr>'     , 'run ctags'],
-      \ }
+" Ignores stuff in ~/dotfiles/vim/plugin/ctags.vim
+nmap <leader>rc :!ctags -R --exclude=.mypy_cache --exclude=.nox<cr>
+let g:which_key_map.r = { 'name' : '+run' }
+let g:which_key_map.r.c = 'run ctags'
+
 nnoremap <leader>rj :JenkinsValidateJenkinsFile<cr>
 let g:which_key_map.r.j = 'run Jenkinsfile lint'
 nnoremap <leader>rr :!open_url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"<cr>
@@ -537,6 +537,7 @@ let g:which_key_map.r.g = 'run guid generator'
 nnoremap <leader>jj :JenkinsValidateJenkinsFile<cr>
 let g:which_key_map.j = { 'name' : '+jenkins deprecated by +run' }
 
+" added by vim-rubocop plugin, so just documenting here. can be switched off by user with: let g:vimrubocop_keymap = 0
 let g:which_key_map.r.u = 'run rubocop'
 
 " actually creating these mappings in which-key results in mappings that don't
@@ -584,6 +585,8 @@ nnoremap <leader>gs :G<cr>
 " mapping idea.
 nnoremap <leader>gf :diffget //2<cr>
 nnoremap <leader>gj :diffget //3<cr>
+
+" let g:python3_host_prog = "/Users/kevin/python3_neovim_virtual_env/bin/python"
 
 " vim-gitgutter
 let g:gitgutter_map_keys = 0

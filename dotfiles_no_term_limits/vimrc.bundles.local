@@ -42,7 +42,14 @@ Plug 'rhysd/vim-lsp-ale'
 " we want to install the plugin regardless of vim or nvim, and then only
 " *load* it as appropriate
 Plug 'neovim/nvim-lspconfig', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'nvim-lua/completion-nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+" Plug 'nvim-lua/completion-nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'hrsh7th/cmp-nvim-lsp', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'hrsh7th/cmp-buffer', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'hrsh7th/cmp-path', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'hrsh7th/cmp-cmdline', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'hrsh7th/nvim-cmp', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+" possible ale replacement
+" Plug 'jose-elias-alvarez/null-ls.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 
 " this is mostly for vimcat, which is used by cac ("CAt Command)
 Plug 'rkitover/vimpager'
