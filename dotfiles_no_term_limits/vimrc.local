@@ -422,7 +422,7 @@ let g:CheatSheetDoNotMap=1
 " https://github.com/dense-analysis/ale/issues/1810#issuecomment-419708225
 let g:which_key_map.c = {
       \ 'name' : '+cheat.sheet' ,
-      \ 'c' : ['CheatSheetQueryToBuffer()'     , 'query cheat.sheet for current line'],
+      \ 'c' : ['CheatSheetQueryToBuffer()'     , 'query cheat.sheet for current language'],
       \ 'e' : [':CheatError'     , 'look up Error from syntastic and maybe someday ale'],
       \ 'w' : [':call CheatSheetEntryToBuffer()'     , 'get cheat.sheet entry for current Word'],
       \ 'r' : [':call CheatSheetSelectEntryFromRosettaCode()'     , 'select rosetta code cheat.sheet entry'],
