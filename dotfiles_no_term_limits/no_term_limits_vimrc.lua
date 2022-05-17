@@ -83,6 +83,17 @@
     vim.g["python3_host_prog"] = python3_program
   end
 
+  -- disable ale augroup from thoughtbot/dotfiles
+  vim.api.nvim_exec([[
+    autocmd! ale
+  ]], false)
+
+  require("trouble").setup {
+    -- your configuration comes here
+    -- or leave it empty to use the default settings
+    -- refer to the configuration section below
+  }
+
 -- local nvim_lsp = require('lspconfig')
 --
 -- local on_attach = function(client, bufnr)
