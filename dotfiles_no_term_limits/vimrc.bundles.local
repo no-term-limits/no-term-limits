@@ -52,7 +52,7 @@ Plug 'hrsh7th/nvim-cmp', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 " possible ale replacement: https://github.com/jose-elias-alvarez/null-ls.nvim
 Plug 'jose-elias-alvarez/null-ls.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 
-# related to null-ls
+" related to null-ls
 Plug 'kyazdani42/nvim-web-devicons', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 Plug 'folke/trouble.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 
