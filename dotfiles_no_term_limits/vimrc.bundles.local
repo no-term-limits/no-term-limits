@@ -48,8 +48,13 @@ Plug 'hrsh7th/cmp-buffer', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 Plug 'hrsh7th/cmp-path', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 Plug 'hrsh7th/cmp-cmdline', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 Plug 'hrsh7th/nvim-cmp', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-" possible ale replacement
-" Plug 'jose-elias-alvarez/null-ls.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+
+" possible ale replacement: https://github.com/jose-elias-alvarez/null-ls.nvim
+Plug 'jose-elias-alvarez/null-ls.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+
+# related to null-ls
+Plug 'kyazdani42/nvim-web-devicons', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+Plug 'folke/trouble.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
 
 " this is mostly for vimcat, which is used by cac ("CAt Command)
 Plug 'rkitover/vimpager'
