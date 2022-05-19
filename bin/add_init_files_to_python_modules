@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: looks for modules in current directory and adds init files if they are missing
+# modified from https://github.com/tiny-pilot/tinypilot/blob/master/dev-scripts/check-for-init-py-files
+
+while read -r directory; do
+  expected_init_file="${directory}/__init__.py"
+  if [[ ! -f "${expected_init_file}" ]]; then
+    echo '"""__init__."""' >"$expected_init_file"
+  fi
+done < <(
+  find . \
+    -mindepth 2 \
+    -type f \
+    -name '*.py' \
+    -not -path "./venv/*" \
+    -not -path "./.git/*" \
+    -not -path "./docs/*" \
+    -exec dirname {} \; \
+    | sort --unique
+)
