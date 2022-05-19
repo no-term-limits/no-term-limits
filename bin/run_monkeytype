@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  if [[ -n "$module" ]]; then
+    >&2 echo "Failed on module: $module"
+  fi
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: run monkeytype and apply using pytest. Additional args are passed into pytest
+
+if ! command -v poetry >/dev/null ; then
+  >&2 echo "ERROR: Cannot find command poetry. That must be installed using pip like 'pip install poetry'"
+  exit 1
+fi
+
+
+if ! has_python_package MonkeyType ; then
+  poetry add MonkeyType --dev
+fi
+
+rm -rf monkeytype.sqlite3
+poetry run monkeytype run -m pytest "$@"
+modules=$(poetry run monkeytype list-modules)
+if [[ -z "$modules" ]]; then
+  >&2 echo "ERROR: Could not find any modules. Exiting..."
+  exit 1
+fi
+
+for module in $modules; do
+  poetry run monkeytype -v apply "$module"
+done
