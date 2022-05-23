@@ -245,20 +245,22 @@ if is_mac ; then
     echo "Uninstalling old Homebrew-Cask ..."
     brew uninstall --force brew-cask
   fi
+
   echo "BREW LIST"
   brew list
+
   #
   # if brew list | grep -Fq git; then
   #   echo "Uninstalling old Homebrew-Cask ..."
   #   brew uninstall --force brew-cask
   # fi
 
-  git_version_qualifier=''
-  echo "GITHUB_ACTIONS debug: $GITHUB_ACTIONS"
-  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-    # apparently they install this specific version of git via homebrew, so we would need to force link to change it. just comply in CI.
-    git_version_qualifier="@2.35.1"
-  fi
+  # git_version_qualifier=''
+  # echo "GITHUB_ACTIONS debug: $GITHUB_ACTIONS"
+  # if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  #   # apparently they install this specific version of git via homebrew, so we would need to force link to change it. just comply in CI.
+  #   git_version_qualifier="@2.35.1"
+  # fi
 
   echo "Updating Homebrew formulae ..."
   # https://github.com/Homebrew/brew/issues/1151
