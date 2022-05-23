@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: finds the python files in a given dir and updates the docstrings to adhere to pep8 standards
+# HELP: python: finds the python files in a given dir and updates the docstrings to adhere to pep8 standards
 
 dir="${1:-}"
 if [[ -z "${1:-}" ]]; then

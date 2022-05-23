@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: looks for modules in current directory and adds init files if they are missing
+# HELP: python: looks for modules in current directory and adds init files if they are missing
 # modified from https://github.com/tiny-pilot/tinypilot/blob/master/dev-scripts/check-for-init-py-files
 
 while read -r directory; do

@@ -10,7 +10,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: run monkeytype and apply using pytest. Additional args are passed into pytest
+# HELP: python: run monkeytype and apply using pytest. Additional args are passed into pytest
 
 if ! command -v poetry >/dev/null ; then
   >&2 echo "ERROR: Cannot find command poetry. That must be installed using pip like 'pip install poetry'"

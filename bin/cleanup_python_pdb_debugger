@@ -7,6 +7,8 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
+# HELP: python: removes usages of pdb from python code
+
 for file in $(grep --exclude-dir={.svn*,.git,log} --exclude={.gitignore,.nox,__pycache__} -Rl pdb.set_trace); do
   hot_sed -E -i "/['\" ]pdb.set_trace['\"]?/d" "$file"
 done

@@ -7,6 +7,6 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP:
+# HELP: python: run mypy with poetry
 
 MYPYPATH=$PWD/src poetry run mypy .
