@@ -9,4 +9,4 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: python: run mypy with poetry
 
-MYPYPATH=$PWD/src poetry run mypy .
+MYPYPATH=$PWD/src poetry run mypy src tests docs/conf.py
