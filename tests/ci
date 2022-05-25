@@ -13,4 +13,4 @@ export NO_TERM_LIMITS_RCUP_FORCE=true
 
 ./setup/provision_no_term_limits
 ./setup/check_dotfiles setup/expected_dotfiles.txt
-./tests/run_ci_tests
+./setup/run_ci_tests

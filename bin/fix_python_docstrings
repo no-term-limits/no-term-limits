@@ -22,18 +22,20 @@ if [[ -z "$python_files" ]]; then
   exit 1
 fi
 
-if ! command -v autoflake >/dev/null ; then
-  pip install autoflake
-  asdf reshim python
-fi
+if [[ "${NO_TERM_LIMITS_RUN_PYTHON_FIXES:-}" != "false" ]]; then
+  if ! command -v autoflake >/dev/null ; then
+    pip install autoflake
+    asdf reshim python
+  fi
 
-if ! command -v autopep8 >/dev/null ; then
-  pip install autopep8
-  asdf reshim python
-fi
+  if ! command -v autopep8 >/dev/null ; then
+    pip install autopep8
+    asdf reshim python
+  fi
 
-autoflake --in-place --remove-all-unused-imports --remove-unused-variables --remove-duplicate-keys --expand-star-imports $python_files
-autopep8 --in-place $python_files
+  autoflake --in-place --remove-all-unused-imports --remove-unused-variables --remove-duplicate-keys --expand-star-imports $python_files
+  autopep8 --in-place $python_files
+fi
 
 for python_file in $python_files ; do
   perl -pi -e 's/(\w) ?"""$/\1."""/' "$python_file"
@@ -62,11 +64,19 @@ for python_file in $python_files ; do
   #
   #       code...
   #
+  # OR:
+  #   def method():
+  #       # comment
+  #
+  # OR:
+  #   def method(var: type):
+  #       code...
+  #
   # Becomes:
   #   def method():
   #       """Method."""
   #       code...
-  perl -pi -0 -e 's/\n( *)(def )([^(]+)([^:]+:\n)(( *\w)| *\n)/\n\1\2\3\4\1    """\u\3."""\n\6/g' "$python_file"
+  perl -pi -0 -e 's/\n( *)(def )([^(]+)(\([^)]*\):\n)(( *\w| *#)| *\n)/\n\1\2\3\4\1    """\u\3."""\n\6/g' "$python_file"
   perl -pi -0 -e 's/\n( *)(class )(\w+)([^:]*:\n)(( *\w)| *\n)/\n\1\2\3\4\1    """\u\3."""\n\5/g' "$python_file"
 
   first_line=$(head -n1 "$python_file")

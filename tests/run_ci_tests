@@ -9,9 +9,18 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 export PATH="${script_dir}/../bin:$PATH"
+export NO_TERM_LIMITS_TESTS_DIR="$script_dir"
 
 has_git_branch main
 if has_git_branch NOT_A_BRANCH_EVER ; then
   >&2 echo "ERROR: NOT_A_BRANCH_EVER does not exist but has_git_branch thinks it does"
   exit 1
+fi
+
+test_files=$(find "${script_dir}/unit" -name "*.sh")
+if [[ -n "$test_files" ]]; then
+  while read -r test_file; do
+    echo "Running $test_file"
+    "$test_file"
+  done <<<"$test_files"
 fi

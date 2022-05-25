@@ -27,7 +27,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: provision
-        run: ./setup/ci
+        run: ./tests/ci
   build_mac:
     # if: ${{ false }}  # disable for now
     # The type of runner that the job will run on
@@ -40,4 +40,4 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: provision
-        run: ./setup/ci
+        run: ./tests/ci
