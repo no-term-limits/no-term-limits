@@ -67,6 +67,8 @@ Plug 'stsewd/fzf-checkout.vim'
 
 Plug 'hashivim/vim-terraform'
 
+Plug 'Yggdroot/indentLine', { 'for': 'python' }
+
 if !empty($NO_TERM_LIMITS_PROJECTS_DIR)
   Plug $NO_TERM_LIMITS_PROJECTS_DIR . '/github/no-term-limits/vim_plugins/no-term-limits-snippets'
 endif
