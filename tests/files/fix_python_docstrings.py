@@ -17,3 +17,6 @@ class ClassA(object):
     
     def method_e(string: str="Hello"):
         print(string)
+
+    def method_f(string: str="Hello") -> str:
+        print(string)

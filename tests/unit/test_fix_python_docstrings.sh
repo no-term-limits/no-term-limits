@@ -26,7 +26,7 @@ function run_grep() {
 run_grep 'ClassA'
 run_grep 'fix_python_docstrings'
 
-for test_num in a b c d e ; do
+for test_num in a b c d e f ; do
   run_grep "Method_${test_num}"
 done
 
