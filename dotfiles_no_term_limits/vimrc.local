@@ -411,6 +411,7 @@ let g:which_key_map.t = {
       \ 'name' : '+toggle' ,
       \ 'a' : [':ALEToggle'     , 'toggle ale linting on/off'],
       \ 'h' : [':set hlsearch!' , 'toggle highlighted search'],
+      \ 'i' : [':IndentLinesToggle' , 'toggle IndentLines'],
       \ 'l' : [':set list!'     , 'toggle list mode'],
       \ 'p' : [':set paste!'    , 'toggle paste mode'],
       \ }

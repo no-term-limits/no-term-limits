@@ -9,4 +9,6 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: grev
 
-gre --exclude-dir={vendor*,node_modules} "$@"
+if ! gre --exclude-dir={vendor*,node_modules} "$@" ; then
+  exit 1
+fi
