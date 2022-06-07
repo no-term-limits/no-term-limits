@@ -207,9 +207,13 @@
   ##################################[ dir: current directory ]##################################
   # Default current directory color.
   typeset -g POWERLEVEL9K_DIR_FOREGROUND=31
-  # If directory is too long, shorten some of its segments to the shortest possible unique
-  # prefix. The shortened directory can be tab-completed to the original.
-  typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
+  if [[ -n "$POWERLEVEL9K_SHORTEN_STRATEGY" ]] ; then
+    typeset -g POWERLEVEL9K_SHORTEN_STRATEGY="$POWERLEVEL9K_SHORTEN_STRATEGY"
+  else
+    # If directory is too long, shorten some of its segments to the shortest possible unique
+    # prefix. The shortened directory can be tab-completed to the original.
+    typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
+  fi
   # Replace removed segment suffixes with this symbol.
   typeset -g POWERLEVEL9K_SHORTEN_DELIMITER=
   # Color of the shortened directory segments.
