@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: python: run mypy with poetry
+
+set -x
+# import_lines_to_ignore_a="$(run_mypy_with_poetry | grep -B1 'found module but no type hints or library stubs' | grep -v 'found module but no type hints or library stubs' | grep -Ev '^--$')"
+# echo "import_lines_to_ignore_a: ${import_lines_to_ignore_a}"
+import_lines_to_ignore="$(run_mypy_with_poetry | grep -B1 'found module but no type hints or library stubs' | grep 'error: Skipping analyzing')"
+
+for import_line_to_ignore in $import_lines_to_ignore; do
+  echo "line: $import_line_to_ignore"
+done
