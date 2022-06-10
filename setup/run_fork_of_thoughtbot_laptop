@@ -215,6 +215,16 @@ function install_kubectl() {
   fi
 }
 
+function install_github_cli() {
+  local tmp_output="/tmp/gh_$(date +%s)"
+  mkdir -p "$tmp_output"
+  pushd "$tmp_output"
+  curl -L --fail "https://github.com/cli/cli/releases/download/v2.12.1/gh_2.12.1_linux_amd64.deb" -o "${tmp_output}/gh_2.12.1_linux_amd64.deb"
+  sudo dpkg -i gh_2.12.1_linux_amd64.deb
+  popd
+  rm -rf "$tmp_output"
+}
+
 # shellcheck disable=SC1090
 if is_mac ; then
   if [ -d "$HOMEBREW_PREFIX" ]; then
@@ -443,6 +453,7 @@ else
 
   install_stern
   install_kubectl
+  install_github_cli
 fi
 
 case "$SHELL" in
