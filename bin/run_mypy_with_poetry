@@ -9,4 +9,9 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: python: run mypy with poetry
 
-MYPYPATH=$PWD/src poetry run mypy src tests docs/conf.py
+args=()
+if [[ "${MYPY_PRETTY:-}" == "false" ]]; then
+  args+=(--no-pretty)
+fi
+
+MYPYPATH=$PWD/src poetry run mypy src tests docs/conf.py "${args[@]}"

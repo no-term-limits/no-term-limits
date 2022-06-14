@@ -1,0 +1,104 @@
+" vim: filetype=help foldmethod=marker foldmarker=<<<,>>> tw=78 ts=8 sw=8 sts=8 noet list modifiable noreadonly
+
+*wax.txt*	For Vim version 7.3	Last change: look in git, dude 
+
+Wax. Some notes about vim usage.			*wax*
+
+1. Meta info						|wax-meta|
+2. Movement						|wax-movement|
+3. Fun Party Tricks					|wax-partytricks|
+4. Folding						|wax-folding|
+5. Editing other files					|wax-editingotherfiles|
+6. vim-rails plugin					|wax-vimrailsplugin|
+7. vim-ruby						|wax-vimruby|
+8. Tabularize						|wax-tabularize|
+9. Surround						|wax-surround|
+10. Miscellaneous					|wax-miscellaneous|
+
+==============================================================================
+1. Meta info						*wax-meta*
+
+You need the noreadonly and modifiable keywords in the vim modeline above if
+you want to modify this puppy. Help files are by default regarded as readonly
+and nomodifiable files by vim.
+
+==============================================================================
+2. Movement						*wax-movement*
+
+See also vim help for |movement| 
+|H|: go to head of window
+|M|: go to middle of window
+|L|: go to last of window
+|CTRL-U| - Page up half a screen
+|CTRL-D| - Page down half a screen
+'' : Go back to the line where the cursor was previously 
+`` : Go back to the exact character where the cursor was previously 
+z{Enter}: redraw page with current line at the top
+z-: redraw page with current line at the bottom
+
+==============================================================================
+3. Fun Party Tricks					*wax-partytricks*
+
+|:bufdo| - awesome
+|i_CTRL-X_CTRL-L| - insert matching line
+|i_CTRL-X_CTRL-F| - complete a local file path
+|CTRL-A| - increment the number under the cursor by one. |CTRL-X|decrements.
+|:wall| - write (save) all buffers
+:g/useless/d - global delete of all lines matching useless
+:g/something/s/blah/hot/g - seach for blah and replace it with hot, only on lines matching something.
+:v/useful/d - inverse global delete (all lines NOT matching useful)
+|gc|: do last visual selection again
+ci" : change the stuff inside the [next] double-quoted string (works anywhere on the line)
+|q:|: bring up graphical command history
+|:v| : inverse global command
+:help 12.4 : to reverse all lines in a file or in a selection. wheeeeeeeeee!
+
+==============================================================================
+4. Folding						*wax-folding*
+
+:set foldmethod=indent
+zm - fold more
+zr - fold reduce
+
+==============================================================================
+5. Editing other files					*wax-editingotherfiles*
+
+|:Sex| : split window with file you choose from file explorer
+|:Vex| : same as above, but with vertical split
+|:e.| : open file explorer in root of project
+
+==============================================================================
+6. vim-rails plugin					*wax-vimrailsplugin*
+
+|:Rake| : runs all tests in file
+|:.Rake| : runs focused unit test (runs the test your cursor is on)
+
+==============================================================================
+7. vim-ruby						*wax-vimruby*
+
+(make sure :help version shows +ruby or this won't work)
+|i_CTRL-X_CTRL-O| If in a ruby file, and your cursor is sitting after 
+                  the double quote of a string,
+                  this will show you the list of string methods!
+
+==============================================================================
+8. Tabularize						*wax-tabularize*
+
+:Tab /, : this would make lines into a tabular format, splitting on commas,
+:Tab /,/r0 : ...and with things right-aligned with no space before them
+
+
+==============================================================================
+9. Surround						*wax-surround*
+
+ysiw" : You surround inner word [with] doublequote
+==============================================================================
+10. Miscellaneous					*wax-miscellaneous*
+
+|c_CTRL-R| : ctrl+r+" pastes the default buffer (") into the command prompt
+window
+D : delete to end of line
+J : join current line and next line together
+CTRL-o : jump back to the previous (older) location
+CTRL-i : (or Tab) jump forward to the next (newer) location
+:jumps : inspect which lines (in which files) you can jump to (> is current)

@@ -32,29 +32,59 @@ Plug 'liuchengxu/vim-which-key'
 " See http://cht.sh/ and the plugin page for more features.
 Plug 'dbeniamine/cheat.sh-vim'
 
-" language server protocol for letting vim communicate with a server that knows
+" null-ls is a possible ale replacement: https://github.com/jose-elias-alvarez/null-ls.nvim
+" kyazdani42/nvim-web-devicons is related to null-ls
+let g:neovim_plugins_ftw = [
+  \'neovim/nvim-lspconfig',
+  \'hrsh7th/cmp-nvim-lsp',
+  \'hrsh7th/cmp-nvim-lsp',
+  \'hrsh7th/cmp-buffer',
+  \'hrsh7th/cmp-path',
+  \'hrsh7th/cmp-cmdline',
+  \'hrsh7th/nvim-cmp',
+  \'jose-elias-alvarez/null-ls.nvim',
+  \'nvim-lua/plenary.nvim',
+  \'kyazdani42/nvim-web-devicons',
+  \'folke/trouble.nvim',
+  \'mfussenegger/nvim-lint',
+\]
+for neovim_plugin_to_plug in g:neovim_plugins_ftw
+  " CommandThatNeverFires actually never fires.
+  " Instead, we load each of the plugins in g:neovim_plugins_ftw
+  " in no_term_limits_vimrc.lua with plug#load.
+  " This works well, since we can avoid them in normal vim and load them
+  " in neovim, and we can still always register them in this file,
+  " so they don't get uninstalled when we run rcup (PlugInstall).
+  " we want to install the plugin regardless of vim or nvim, and then only
+  " *load* it as appropriate.
+  Plug neovim_plugin_to_plug , { 'on': 'CommandThatNeverFires' }
+endfor
+
+let g:standard_vim_plugins_ftw = [
+  \'dense-analysis/ale',
+  \'prabirshrestha/vim-lsp',
+  \'mattn/vim-lsp-settings',
+  \'rhysd/vim-lsp-ale',
+\]
+
+" ale linters that were enabled in normal vim
+" flake8', 'mypy', 'pylint', 'pyright
+" all python ale linters: Available Linters: ['bandit', 'cspell', 'flake8', 'flakehell', 'jedils', 'mypy', 'prospector', 'pycodestyle', 'pydocstyle', 'pyflakes', 'pylama', 'pylint', 'pylsp', 'pyre', 'pyright', 'unimport', 'vulture']
+
+" vim-lsp is a language server protocol implementation letting normal vim (non-neovim) communicate with a server that knows
 " all about how the current language works.
-Plug 'prabirshrestha/vim-lsp'
-Plug 'mattn/vim-lsp-settings'
 " vim-lsp-ale is a bridge plugin to solve the problem when using both ALE and vim-lsp. With the plugin, diagnostics are provided by vim-lsp and ALE can handle all the errors. Please see https://github.com/rhysd/vim-lsp-ale/blob/master/doc/vim-lsp-ale.txt for more details.
-Plug 'rhysd/vim-lsp-ale'
-
-" we want to install the plugin regardless of vim or nvim, and then only
-" *load* it as appropriate
-Plug 'neovim/nvim-lspconfig', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-" Plug 'nvim-lua/completion-nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'hrsh7th/cmp-nvim-lsp', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'hrsh7th/cmp-buffer', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'hrsh7th/cmp-path', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'hrsh7th/cmp-cmdline', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'hrsh7th/nvim-cmp', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-
-" possible ale replacement: https://github.com/jose-elias-alvarez/null-ls.nvim
-Plug 'jose-elias-alvarez/null-ls.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-
-" related to null-ls
-Plug 'kyazdani42/nvim-web-devicons', { 'on': 'TellVimPlugThatWeAreInNeovim' }
-Plug 'folke/trouble.nvim', { 'on': 'TellVimPlugThatWeAreInNeovim' }
+for standard_vim_plugin_to_plug in g:standard_vim_plugins_ftw
+  " CommandThatNeverFires actually never fires.
+  " Instead, we load each of the plugins in g:neovim_plugins_ftw
+  " in no_term_limits_vimrc.lua with plug#load.
+  " This works well, since we can avoid them in normal vim and load them
+  " in neovim, and we can still always register them in this file,
+  " so they don't get uninstalled when we run rcup (PlugInstall).
+  " we want to install the plugin regardless of vim or nvim, and then only
+  " *load* it as appropriate.
+  Plug standard_vim_plugin_to_plug , { 'on': 'CommandThatNeverFires' }
+endfor
 
 " this is mostly for vimcat, which is used by cac ("CAt Command)
 Plug 'rkitover/vimpager'
@@ -67,11 +97,15 @@ Plug 'stsewd/fzf-checkout.vim'
 
 Plug 'hashivim/vim-terraform'
 
+" vertical lines to show indentation level. really nice for python.
+" right now it takes affect for all files the first time you edit a
+" python file. we could change it to a buffer-specific toggle-on thing.
 Plug 'Yggdroot/indentLine', { 'for': 'python' }
 Plug 'Glench/Vim-Jinja2-Syntax'
 
 if !empty($NO_TERM_LIMITS_PROJECTS_DIR)
   Plug $NO_TERM_LIMITS_PROJECTS_DIR . '/github/no-term-limits/vim_plugins/no-term-limits-snippets'
+  Plug $NO_TERM_LIMITS_PROJECTS_DIR . '/github/no-term-limits/vim_plugins/our-vim-doc-page'
 endif
 
 if filereadable(expand("~/.vimrc.bundles.no_term_limits_overrides"))

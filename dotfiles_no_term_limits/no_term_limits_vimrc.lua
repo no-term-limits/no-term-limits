@@ -1,3 +1,9 @@
+for _, neovim_plugin_to_load in pairs(vim.g["neovim_plugins_ftw"]) do
+  -- neovim/nvim-lspconfig becomes nvim-lspconfig
+  repo_without_org = neovim_plugin_to_load:match("/(.*)")
+  vim.call('plug#load', repo_without_org)
+end
+
   local cmp = require'cmp'
 
   cmp.setup({
@@ -73,10 +79,11 @@
     if f~=nil then io.close(f) return true else return false end
   end
 
-  python2_program = os.getenv("HOME") .. "/python2_neovim_virtual_env/bin/python"
-  if file_exists(python2_program) then
-    vim.g["python_host_prog"] = python2_program
-  end
+  -- we don't seem to need python 2 any longer
+  -- python2_program = os.getenv("HOME") .. "/python2_neovim_virtual_env/bin/python"
+  -- if file_exists(python2_program) then
+  --   vim.g["python_host_prog"] = python2_program
+  -- end
 
   python3_program = os.getenv("HOME") .. "/python3_neovim_virtual_env/bin/python"
   if file_exists(python3_program) then
@@ -86,13 +93,52 @@
   -- disable ale augroup from thoughtbot/dotfiles
   vim.api.nvim_exec([[
     autocmd! ale
+
+    " mfussenegger/nvim-lint config
+    " NOTE: you have to actually save the file j
+    " au BufWritePost <buffer> lua require('lint').try_lint()
   ]], false)
 
-  require("trouble").setup {
-    -- your configuration comes here
-    -- or leave it empty to use the default settings
-    -- refer to the configuration section below
-  }
+  -- mfussenegger/nvim-lint config. mypy and pylint didn't work, and i'm pretty sure they didn't work in ale either, which nvim-lint was an attempt to replace.
+  -- null-ls is an alternative solution for diagnostics / ale-like behavior
+  -- require('lint').linters_by_ft = {
+  --   -- " flake8', 'mypy', 'pylint', 'pyright'
+  --   python = {'flake8',}
+  -- }
+
+  local null_ls = require("null-ls")
+
+  local sources = {
+        null_ls.builtins.diagnostics.shellcheck,
+
+        null_ls.builtins.formatting.stylua,
+        null_ls.builtins.diagnostics.eslint,
+
+        -- python
+        null_ls.builtins.diagnostics.flake8,
+        null_ls.builtins.diagnostics.pydocstyle,
+
+        -- these do not understand imports of stuff installed via poetry, so they have a bunch of false positives
+        -- null_ls.builtins.diagnostics.mypy,
+        -- null_ls.builtins.diagnostics.pylint,
+        --
+        -- run <leader>lf to format the current file
+        null_ls.builtins.formatting.autopep8,
+        null_ls.builtins.formatting.black,
+        null_ls.builtins.formatting.reorder_python_imports,
+
+        null_ls.builtins.completion.spell,
+    }
+
+null_ls.setup({
+    sources = sources,
+})
+
+  -- require("trouble").setup {
+  --   -- your configuration comes here
+  --   -- or leave it empty to use the default settings
+  --   -- refer to the configuration section below
+  -- }
 
 -- local nvim_lsp = require('lspconfig')
 --

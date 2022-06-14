@@ -587,8 +587,6 @@ nnoremap <leader>gs :G<cr>
 nnoremap <leader>gf :diffget //2<cr>
 nnoremap <leader>gj :diffget //3<cr>
 
-" let g:python3_host_prog = "/Users/kevin/python3_neovim_virtual_env/bin/python"
-
 " vim-gitgutter
 let g:gitgutter_map_keys = 0
 
@@ -637,6 +635,20 @@ function! RunMakeAndMaybeOpenQuickfixWindow()
   endif
   redraw!
 endfunction
+
+" run :make in a python file to do mypy
+autocmd Filetype python set makeprg=MYPYPATH=$PWD/src\ poetry\ run\ mypy\ src\ tests\ docs/conf.py\ --no-pretty\ --no-color-output
+" if there are issues, open quickfix window. close with :cclose. next issue with :cnext.
+autocmd QuickFixCmdPost [^l]* cwindow
+
+" quickfix shortcuts
+" ma for make. mm since it's the most important so make it easy to type. mc for make close. mo for make open.
+" Linting your code, the vanilla way: https://gist.github.com/romainl/ce55ce6fdc1659c5fbc0f4224fd6ad29
+autocmd FileType python nmap <leader>mm  :cnext<CR>
+autocmd FileType python nmap <leader>mp  :cprevious<CR>
+autocmd FileType python nmap <leader>ma  :make<CR>
+autocmd FileType python nmap <leader>mc  :cclose<CR>
+autocmd FileType python nmap <leader>mo  :cclose<CR>
 
 " run :make to compile a java class
 autocmd Filetype java set makeprg=javac\ %
@@ -747,3 +759,14 @@ func! SnippetAddUsageLineToBashScript()
   " call append(line('.'), lines)
   return join(lines, "\n")
 endfunc
+
+if has('nvim')
+  nnoremap <leader>lf :lua vim.lsp.buf.formatting()<cr>
+  let g:which_key_map.l.f = 'lsp format file'
+else
+  for standard_vim_plugin_to_plug in g:standard_vim_plugins_ftw
+    " prabirshrestha/vim-lsp becomes vim-lsp
+    let repo_without_org = substitute(standard_vim_plugin_to_plug, '.\{-}/', "", "")
+    call plug#load(repo_without_org)
+  endfor
+endif
