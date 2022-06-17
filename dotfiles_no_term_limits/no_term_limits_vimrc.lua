@@ -116,7 +116,7 @@ end
 
         -- python
         null_ls.builtins.diagnostics.flake8,
-        null_ls.builtins.diagnostics.pydocstyle,
+        -- null_ls.builtins.diagnostics.pydocstyle,
 
         -- these do not understand imports of stuff installed via poetry, so they have a bunch of false positives
         -- null_ls.builtins.diagnostics.mypy,
