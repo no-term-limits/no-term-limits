@@ -7,18 +7,18 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: python: finds the python files in a given dir and updates the docstrings to adhere to pep8 standards
+# HELP: python: finds the python files in a given dirs and updates the docstrings to adhere to pep8 standards
 
-dir="${1:-}"
+dirs="${*}"
 if [[ -z "${1:-}" ]]; then
-  >&2 echo "usage: $(basename "$0") [dir]"
+  >&2 echo "usage: $(basename "$0") [dir1] [dir2] [...]"
   exit 1
 fi
 
-python_files=$(find "$dir" -type f -name "*.py")
+python_files=$(find $dirs -type f -name "*.py")
 
 if [[ -z "$python_files" ]]; then
-  >&2 echo "ERROR: Could not find any python files in '$dir'"
+  >&2 echo "ERROR: Could not find any python files in '$dirs'"
   exit 1
 fi
 
