@@ -763,6 +763,9 @@ endfunc
 if has('nvim')
   nnoremap <leader>lf :lua vim.lsp.buf.formatting()<cr>
   let g:which_key_map.l.f = 'lsp format file'
+
+  nnoremap <leader>ld :lua vim.lsp.buf.definition()<cr>
+  let g:which_key_map.l.d = 'lsp definition'
 else
   for standard_vim_plugin_to_plug in g:standard_vim_plugins_ftw
     " prabirshrestha/vim-lsp becomes vim-lsp

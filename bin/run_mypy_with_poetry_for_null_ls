@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  # jamming this output to STDERR causes an error in the neovim null-ls plugin:
+  # [WARN  Fri Jun 17 22:09:06 2022] ...evin/.vim/bundle/null-ls.nvim/lua/null-ls/generators.lua:78: failed to run generator: ...e/null-ls.nvim/lua/null-ls/helpers/generator_factory.lua:232: error in generator output: Exited with BAD EXIT CODE '1' in $HOME/projects/github/no-term-limits/bin/run_mypy_with_poetry_for_null_ls script at line: 21.
+
+  # >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: python: run mypy with poetry
+
+args=()
+if [[ "${MYPY_PRETTY:-}" == "false" ]]; then
+  args+=(--no-pretty)
+fi
+
+# debug:
+# echo "$@" > /tmp/hey
+MYPYPATH=$PWD/src poetry run mypy "${args[@]}" "$@"

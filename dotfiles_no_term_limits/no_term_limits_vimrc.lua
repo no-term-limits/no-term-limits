@@ -118,8 +118,11 @@ end
         null_ls.builtins.diagnostics.flake8,
         -- null_ls.builtins.diagnostics.pydocstyle,
 
-        -- these do not understand imports of stuff installed via poetry, so they have a bunch of false positives
-        -- null_ls.builtins.diagnostics.mypy,
+        -- these did not understand imports of stuff installed via poetry (before run_mypy_with_poetry_for_null_ls), so they had a bunch of false positives
+        -- still haven't fixed pylint
+        null_ls.builtins.diagnostics.mypy.with({
+          command = "run_mypy_with_poetry_for_null_ls",
+        }),
         -- null_ls.builtins.diagnostics.pylint,
         --
         -- run <leader>lf to format the current file
