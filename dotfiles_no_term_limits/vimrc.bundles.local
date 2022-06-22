@@ -34,9 +34,9 @@ Plug 'dbeniamine/cheat.sh-vim'
 
 " null-ls is a possible ale replacement: https://github.com/jose-elias-alvarez/null-ls.nvim
 " kyazdani42/nvim-web-devicons is related to null-ls
+"  \'folke/trouble.nvim',
 let g:neovim_plugins_ftw = [
   \'neovim/nvim-lspconfig',
-  \'hrsh7th/cmp-nvim-lsp',
   \'hrsh7th/cmp-nvim-lsp',
   \'hrsh7th/cmp-buffer',
   \'hrsh7th/cmp-path',
@@ -45,7 +45,6 @@ let g:neovim_plugins_ftw = [
   \'jose-elias-alvarez/null-ls.nvim',
   \'nvim-lua/plenary.nvim',
   \'kyazdani42/nvim-web-devicons',
-  \'folke/trouble.nvim',
   \'mfussenegger/nvim-lint',
 \]
 for neovim_plugin_to_plug in g:neovim_plugins_ftw
