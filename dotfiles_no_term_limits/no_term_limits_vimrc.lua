@@ -28,8 +28,8 @@ cmp.setup({
     ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
   }),
   sources = cmp.config.sources({
-    { name = 'nvim_lsp' },
     { name = 'ultisnips' }, -- For ultisnips users.
+    { name = 'nvim_lsp' },
     { name = 'buffer' }, -- For autocompleting stuff from the current buffer
     { name = 'path' }, -- nvim-cmp source for filesystem paths.
   }, {
