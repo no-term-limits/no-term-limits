@@ -9,4 +9,5 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: python: runs pre-commit with poetry
 
+fix_python_docstrings src/ tests/
 poetry run pre-commit run --verbose --all-files
