@@ -483,14 +483,6 @@ endfun
 
 autocmd BufRead,BufNewFile */_cheat map <buffer> gf :call <SID>GfForCheatShBufferInCaseStackoverflowLink()<cr>
 
-let g:which_key_map.l = { 'name' : '+language server protocol (lsp)' }
-nnoremap <leader>li :LspInstallServer<cr>
-let g:which_key_map.l.s = 'install lsp server'
-nnoremap <leader>ld :LspDefinition<cr>
-let g:which_key_map.l.s = 'lsp definition'
-nnoremap <leader>ls :LspStatus<cr>
-let g:which_key_map.l.s = 'lsp status'
-
 " this is broken after :LspInstallServer typeprof:
 " BUNDLE_GEMFILE=~/.local/share/vim-lsp-settings/servers/typeprof/Gemfile bundle exec ruby ~/.local/share/vim-lsp-settings/servers/typeprof/exe/typeprof certain-files.rb
 let g:lsp_settings = {
@@ -760,13 +752,24 @@ func! SnippetAddUsageLineToBashScript()
   return join(lines, "\n")
 endfunc
 
+let g:which_key_map.l = { 'name' : '+language server protocol (lsp)' }
 if has('nvim')
   nnoremap <leader>lf :lua vim.lsp.buf.formatting()<cr>
   let g:which_key_map.l.f = 'lsp format file'
 
   nnoremap <leader>ld :lua vim.lsp.buf.definition()<cr>
   let g:which_key_map.l.d = 'lsp definition'
+
+  nnoremap <leader>le :lua vim.diagnostic.open_float({scope="line"})<cr>
+  let g:which_key_map.l.e = 'lsp error'
 else
+  nnoremap <leader>ld :LspDefinition<cr>
+  let g:which_key_map.l.d = 'lsp definition'
+  nnoremap <leader>li :LspInstallServer<cr>
+  let g:which_key_map.l.i = 'install lsp server'
+  nnoremap <leader>ls :LspStatus<cr>
+  let g:which_key_map.l.s = 'lsp status'
+
   for standard_vim_plugin_to_plug in g:standard_vim_plugins_ftw
     " prabirshrestha/vim-lsp becomes vim-lsp
     let repo_without_org = substitute(standard_vim_plugin_to_plug, '.\{-}/', "", "")
