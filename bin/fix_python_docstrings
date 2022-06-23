@@ -52,7 +52,11 @@ for python_file in $python_files ; do
   #   def method():
   #       """The stuffs."""
   #       code...
-  perl -pi -0 -e 's/\b(def[^\n]+\n)( +"""[^"]+"""\n)( *\n)/\1\2/g' "$python_file"
+  #
+  # ignore script.py file since it has a method within a method and we do not support that
+  if ! grep -qE 'scripts/script.py' <<<"$python_file" ; then
+    perl -pi -0 -e 's/\b(def[^\n]+\n)( +"""[^"]+"""\n)( *\n)/\1\2/g' "$python_file"
+  fi
 
   # add docstring to method definition missing one
   # Example:
