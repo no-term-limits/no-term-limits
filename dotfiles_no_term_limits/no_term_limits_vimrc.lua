@@ -30,7 +30,15 @@ cmp.setup({
   sources = cmp.config.sources({
     { name = 'ultisnips' }, -- For ultisnips users.
     { name = 'nvim_lsp' },
-    { name = 'buffer' }, -- For autocompleting stuff from the current buffer
+    { 
+      -- For autocompleting stuff from the current buffer
+      name = 'buffer',
+      option = {
+        get_bufnrs = function()
+          return vim.api.nvim_list_bufs()
+        end
+      }
+    }, 
     { name = 'path' }, -- nvim-cmp source for filesystem paths.
   }, {
   })
@@ -85,11 +93,20 @@ cmp.setup.cmdline(':', {
 })
 
 -- Setup lspconfig.
+local lspconfig = require('lspconfig')
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
-require('lspconfig')['pyright'].setup {
+lspconfig['pyright'].setup {
   capabilities = capabilities
 }
+
+require("typescript").setup({
+    disable_commands = false, -- prevent the plugin from creating Vim commands
+    debug = false, -- enable debug logging for commands
+    server = { -- pass options to lspconfig's setup method
+        on_attach = ...,
+    },
+})
 
 vim.lsp.handlers.hover = function() end
 

@@ -43,6 +43,7 @@ let g:neovim_plugins_ftw = [
   \'hrsh7th/cmp-cmdline',
   \'hrsh7th/nvim-cmp',
   \'jose-elias-alvarez/null-ls.nvim',
+  \'jose-elias-alvarez/typescript.nvim',
   \'nvim-lua/plenary.nvim',
   \'kyazdani42/nvim-web-devicons',
   \'mfussenegger/nvim-lint',
