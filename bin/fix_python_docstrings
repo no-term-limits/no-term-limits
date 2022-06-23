@@ -81,7 +81,7 @@ for python_file in $python_files ; do
   #       """Method."""
   #       code...
   perl -pi -0 -e 's/\n( *)(def )([^(]+)(\([^)]*\)[^:]*:\n)(( *\w| *#)| *\n)/\n\1\2\3\4\1    """\u\3."""\n\6/g' "$python_file"
-  perl -pi -0 -e 's/\n( *)(class )(\w+)([^:]*:\n)(( *\w)| *\n)/\n\1\2\3\4\1    """\u\3."""\n\5/g' "$python_file"
+  perl -pi -0 -e 's/\n( *)(class )(\w+)([^:]*:\n)(( *[@\w])| *\n)/\n\1\2\3\4\1    """\u\3."""\n\5/g' "$python_file"
 
   # for top of file
   first_line=$(head -n1 "$python_file")
