@@ -762,6 +762,9 @@ if has('nvim')
 
   nnoremap <leader>le :lua vim.diagnostic.open_float({scope="line"})<cr>
   let g:which_key_map.l.e = 'lsp error'
+
+  nnoremap <leader>ls :LspInfo<cr>
+  let g:which_key_map.l.s = 'lsp info (status)'
 else
   nnoremap <leader>ld :LspDefinition<cr>
   let g:which_key_map.l.d = 'lsp definition'

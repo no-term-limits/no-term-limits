@@ -127,6 +127,14 @@ vim.api.nvim_exec([[
 
 local null_ls = require("null-ls")
 
+-- Show the source
+vim.diagnostic.config({
+  virtual_text = {
+    -- source = "if_many" -- might also be cool, but for now, it's really nice to know where the errors are coming from
+    source = true
+  }
+})
+
 local null_ls_sources = {
   null_ls.builtins.diagnostics.shellcheck,
 
