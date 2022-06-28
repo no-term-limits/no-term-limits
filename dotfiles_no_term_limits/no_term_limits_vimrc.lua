@@ -152,15 +152,20 @@ vim.diagnostic.config({
   }
 })
 
+-- diagnostics show errors
+-- formatting codemods stuff
+-- code actions, in here, are just for ignoring linting rules for the current line
 local null_ls_sources = {
   -- shell
   null_ls.builtins.diagnostics.shellcheck,
+  null_ls.builtins.code_actions.shellcheck,
 
   -- javascript
   null_ls.builtins.diagnostics.eslint_d, -- it's pretty funny that the eslint_d dianostics work fine without a custom command, but not formatting
   null_ls.builtins.formatting.eslint_d.with({
     command = "./node_modules/.bin/eslint_d",
   }),
+  null_ls.builtins.code_actions.eslint_d,
 
   -- python
   null_ls.builtins.diagnostics.flake8,
