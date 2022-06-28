@@ -153,10 +153,14 @@ vim.diagnostic.config({
 })
 
 local null_ls_sources = {
+  -- shell
   null_ls.builtins.diagnostics.shellcheck,
 
-  null_ls.builtins.formatting.stylua,
-  null_ls.builtins.diagnostics.eslint,
+  -- javascript
+  null_ls.builtins.diagnostics.eslint_d, -- it's pretty funny that the eslint_d dianostics work fine without a custom command, but not formatting
+  null_ls.builtins.formatting.eslint_d.with({
+    command = "./node_modules/.bin/eslint_d",
+  }),
 
   -- python
   null_ls.builtins.diagnostics.flake8,
@@ -174,11 +178,33 @@ local null_ls_sources = {
   null_ls.builtins.formatting.black,
   null_ls.builtins.formatting.reorder_python_imports,
 
+  -- other
+  null_ls.builtins.formatting.stylua,
   null_ls.builtins.completion.spell,
 }
 
+local augroup = vim.api.nvim_create_augroup("LspFormatting", {})
+
+-- format on save with null_ls for javascript buffers
 null_ls.setup({
   sources = null_ls_sources,
+    -- you can reuse a shared lspconfig on_attach callback here
+  on_attach = function(client, bufnr)
+    if client.supports_method("textDocument/formatting") then
+        vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
+        vim.api.nvim_create_autocmd("BufWritePre", {
+            group = augroup,
+            buffer = bufnr,
+            callback = function()
+                -- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
+                -- vim.lsp.buf.format({ bufnr = bufnr })
+                if vim.bo.filetype == "javascript" then
+                  vim.lsp.buf.formatting_sync()
+                end
+            end,
+        })
+    end
+  end,
 })
 
 function filter(arr, func)

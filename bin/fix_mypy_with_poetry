@@ -9,7 +9,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: python: run mypy with poetry
 
-# set -x
 # import_lines_to_ignore_a="$(run_mypy_with_poetry | grep -B1 'found module but no type hints or library stubs' | grep -v 'found module but no type hints or library stubs' | grep -Ev '^--$')"
 # echo "import_lines_to_ignore_a: ${import_lines_to_ignore_a}"
 # import_lines_to_ignore="$( (MYPY_PRETTY=false run_mypy_with_poetry 2>/dev/null || echo) | grep 'found module but no type hints or library stubs')"
@@ -21,8 +20,8 @@ if grep -q 'found module but no type hints or library stubs' <<< "$output"; then
     line_number="$(awk -F ':' '{print $2}' <<< "$import_line_to_ignore")"
     hot_sed -i "${line_number}s/\$/  # type: ignore/" "$file"
   done <<< "$import_lines_to_ignore"
-elif grep -q 'error: unused "type: ignore" comment' <<< "$output"; then
-  import_lines_to_stop_ignoring="$(grep 'error: unused "type: ignore" comment' <<< "$output")"
+elif grep -iq 'error: unused "type: ignore" comment' <<< "$output"; then
+  import_lines_to_stop_ignoring="$(grep -i 'error: unused "type: ignore" comment' <<< "$output")"
   while read -r import_line_to_stop_ignoring; do
     file="$(awk -F ':' '{print $1}' <<< "$import_line_to_stop_ignoring")"
     line_number="$(awk -F ':' '{print $2}' <<< "$import_line_to_stop_ignoring")"
