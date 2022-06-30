@@ -13,10 +13,12 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: python: run mypy with poetry
 
 args=()
-if [[ "${MYPY_PRETTY:-}" == "false" ]]; then
-  args+=(--no-pretty)
+if [[ "${MYPY_PRETTY:-}" != "true" ]]; then
+  args+=(--no-pretty --no-color-output)
 fi
 
 # debug:
 # echo "$@" > /tmp/hey
-MYPYPATH=$PWD/src poetry run mypy "${args[@]}" "$@"
+if ! MYPYPATH=$PWD/src poetry run mypy "${args[@]}" "$@"; then
+  exit 1
+fi
