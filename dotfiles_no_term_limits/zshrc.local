@@ -222,6 +222,9 @@ if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]
   bindkey "^?" backward-delete-char
 
   if [ -f ~/.fzf.zsh ]; then
+    # https://github.com/junegunn/fzf, fuzzy finder, overrides ctrl+r to run fzf-history-widget
+    # so we get fast search through history with fzf. to see the key binding:
+    # bindkey | grep history | grep R
     source ~/.fzf.zsh
   fi
 fi
