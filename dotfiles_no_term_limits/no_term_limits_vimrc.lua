@@ -205,7 +205,7 @@ null_ls.setup({
             callback = function()
                 -- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
                 -- vim.lsp.buf.format({ bufnr = bufnr })
-                if vim.bo.filetype == "javascript" then
+                if vim.bo.filetype == "javascript" or vim.bo.filetype == "typescriptreact" then
                   vim.lsp.buf.formatting_sync()
                 end
             end,
