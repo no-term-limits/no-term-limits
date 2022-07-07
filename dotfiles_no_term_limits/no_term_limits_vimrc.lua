@@ -7,6 +7,12 @@ end
 local cmp = require'cmp'
 
 cmp.setup({
+  -- debounce defaulted to 80 and throttle to 40 july 2022.
+  -- https://github.com/hrsh7th/nvim-cmp/issues/598
+  performance = {
+    debounce = 400,
+    throttle = 400
+  },
   snippet = {
     -- REQUIRED - you must specify a snippet engine
     expand = function(args)
@@ -33,13 +39,15 @@ cmp.setup({
     { 
       -- For autocompleting stuff from the current buffer
       name = 'buffer',
+      keyword_length = 3, -- only show autocompletions after i have typed 3 characters
+      max_item_count = 5, -- maximium number of buffer results to display
       option = {
         get_bufnrs = function()
           return vim.api.nvim_list_bufs()
         end
       }
     }, 
-    { name = 'path' }, -- nvim-cmp source for filesystem paths.
+    { name = 'path', keyword_length = 3 }, -- nvim-cmp source for filesystem paths.
   }, {
   })
 })
