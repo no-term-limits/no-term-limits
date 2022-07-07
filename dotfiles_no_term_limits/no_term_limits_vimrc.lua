@@ -49,14 +49,12 @@ cmp.setup({
     }, 
     { name = 'path', keyword_length = 3 }, -- nvim-cmp source for filesystem paths.
   }, {
-  })
-})
+  }),
 
--- https://github.com/onsails/lspkind.nvim/issues/19#issuecomment-915810181
--- lspkind icons didn't work for me out of the box and nobody has time for that.
--- this extends the nvim-cmp autocomplete menu to also show where each autocomplete
--- item comes from (LSP or Ultisnips or the current buffer, etc.
-cmp.setup {
+  -- https://github.com/onsails/lspkind.nvim/issues/19#issuecomment-915810181
+  -- lspkind icons didn't work for me out of the box and nobody has time for that.
+  -- this extends the nvim-cmp autocomplete menu to also show where each autocomplete
+  -- item comes from (LSP or Ultisnips or the current buffer, etc.
   formatting = {
     deprecated = true,
     format = function(entry, vim_item)
@@ -70,7 +68,7 @@ cmp.setup {
       return vim_item
     end,
   },
-}
+})
 
 -- Set configuration for specific filetype.
 cmp.setup.filetype('gitcommit', {
@@ -213,7 +211,7 @@ null_ls.setup({
             callback = function()
                 -- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
                 -- vim.lsp.buf.format({ bufnr = bufnr })
-                if vim.bo.filetype == "javascript" or vim.bo.filetype == "typescriptreact" then
+                if vim.bo.filetype == "javascript" or vim.bo.filetype == "typescriptreact" or vim.bo.filetype == "typescript" then
                   vim.lsp.buf.formatting_sync()
                 end
             end,
