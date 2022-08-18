@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: pyl stands for pylint, and it's a wrapper for every python checker command we run
+
+set -x
+run_precommit_with_poetry || run_precommit_with_poetry # this one can totally succeed on re-run
+fix_python_docstrings src tests
+run_mypy_with_poetry
+poetry run coverage run --parallel -m pytest

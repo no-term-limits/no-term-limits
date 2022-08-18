@@ -17,8 +17,7 @@ if [[ "${MYPY_PRETTY:-}" != "true" ]]; then
   args+=(--no-pretty --no-color-output)
 fi
 
-# debug:
-# echo "$@" > /tmp/hey
-if ! MYPYPATH=$PWD/src poetry run mypy "${args[@]}" "$@"; then
+# shoving standard error nowhere because any output there causes you to have to clear it in vim, which is annoying
+if ! MYPYPATH=$PWD/src poetry run mypy "${args[@]}" "$@" 2>/dev/null; then
   exit 1
 fi

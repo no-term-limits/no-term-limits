@@ -135,6 +135,11 @@ if file_exists(python3_program) then
   vim.g["python3_host_prog"] = python3_program
 end
 
+nodejs_program_for_github_copilot = os.getenv("HOME") .. "/.asdf/installs/nodejs/16.16.0/bin/node"
+if file_exists(nodejs_program_for_github_copilot) then
+  vim.g["copilot_node_command"] = nodejs_program_for_github_copilot
+end
+
 -- disable ale augroup from thoughtbot/dotfiles
 vim.api.nvim_exec([[
   autocmd! ale
