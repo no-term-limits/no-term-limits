@@ -9,8 +9,20 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: git checkout an existing feature branch
 
-if grep -qE '^feature' <<<"$1"; then
-  git checkout "$1"
-else
-  git checkout "feature/$1"
+function get_branch_names() {
+  git --no-pager branch -a --format='%(refname:short)' | sed -E 's/^origin\///' | sort | uniq
+}
+
+if [[ "$1" == "auto_complete_commands" ]]; then
+  get_branch_names | awk -F '/' '{print $NF}'
+  exit
 fi
+
+branch_name=$(get_branch_names | grep -E "\<$1$" || echo '')
+
+if [[ -z "$branch_name" ]]; then
+  >&2 echo "ERROR: Could not find a branch matching name: $1"
+  exit 1
+fi
+
+git checkout "$branch_name"
