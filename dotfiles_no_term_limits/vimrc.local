@@ -782,3 +782,9 @@ else
     call plug#load(repo_without_org)
   endfor
 endif
+
+" the huge red vertical line at 79 characters when .editorconfig says max_line_length = 79
+" is quite distracting and hard to style. you can't make it thinner, for one.
+" so turn it off. editorconfig was basically doing set colorcolumn=80 in that
+" case.
+let g:EditorConfig_max_line_indicator = "none"
