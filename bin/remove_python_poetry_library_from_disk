@@ -23,11 +23,20 @@ if ! grep -qE '\<pypoetry\>' <<<"$virtual_env_full_path" ; then
   exit 1
 fi
 
-full_path_to_lib="${virtual_env_full_path}/lib/*/site-packages/${library_name}"
-if ! ls ${full_path_to_lib} >/dev/null 2>&1 ; then
-  >&2 echo "ERROR: Could not find lib on disk. Maybe it needs an underscore or hyphen: ${full_path_to_lib}"
-  exit 1
+full_path_to_src="${virtual_env_full_path}/src/${library_name}"
+if [[ -d "$full_path_to_src" ]]; then
+  set -x
+  rm -rf "$full_path_to_src"
+  set +x
 fi
 
-set -x
-rm -rf ${full_path_to_lib}
+list_of_directories=$(find "$virtual_env_full_path" -type d | grep -E "/${library_name}(-[0-9]+.*\.dist-info)?$" || echo '')
+if [[ -n "$list_of_directories" ]]; then
+  while read -r dir; do
+    if [[ -d "$dir" ]] && grep -q "$virtual_env_full_path" <<<"$dir"; then
+      set -x
+      rm -rf "$dir"
+      set +x
+    fi
+  done <<<"$list_of_directories"
+fi
