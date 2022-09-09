@@ -40,4 +40,12 @@ elif [[ "$command" == "update" ]]; then
 
   remove_python_poetry_library_from_disk "$@"
   poetry update "$@"
+# we imagine that the npm install command has code something like this since we
+# know that it handles npm i, npm ins, npm install, and even a few common
+# mispellings. :D
+elif grep -Eq '^i[nstall]*' <<< "$command" ; then
+  poetry install "$@"
+else
+  >&2 echo "ERROR: unknown command: $command"
+  exit 1
 fi
