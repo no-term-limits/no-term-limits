@@ -9,34 +9,36 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: python: removes the given library from the corresponding poetry location. Useful to force poetry to update a package from git or localhost
 
-library_name="${1:-}"
+libraries="$*"
 if [[ -z "${1:-}" ]]; then
-  >&2 echo "usage: $(basename "$0") [library_name]"
+  >&2 echo "usage: $(basename "$0") [library_name1, library_name2, ...]"
   exit 1
 fi
 
 virtual_env_path_line="$(poetry env info | grep Path:)"
 virtual_env_full_path="$(awk '{print $2}' <<<"$virtual_env_path_line" || echo '')"
 
-if ! grep -qE '\<pypoetry\>' <<<"$virtual_env_full_path" ; then
-  >&2 echo "ERROR: Could not find pypoetry in full path: ${virtual_env_full_path}"
-  exit 1
-fi
+for library_name in $libraries; do
+  if ! grep -qE '\<pypoetry\>' <<<"$virtual_env_full_path" ; then
+    >&2 echo "ERROR: Could not find pypoetry in full path: ${virtual_env_full_path}"
+    exit 1
+  fi
 
-full_path_to_src="${virtual_env_full_path}/src/${library_name}"
-if [[ -d "$full_path_to_src" ]]; then
-  set -x
-  rm -rf "$full_path_to_src"
-  set +x
-fi
+  full_path_to_src="${virtual_env_full_path}/src/${library_name}"
+  if [[ -d "$full_path_to_src" ]]; then
+    set -x
+    rm -rf "$full_path_to_src"
+    set +x
+  fi
 
-list_of_directories=$(find "$virtual_env_full_path" -type d | grep -E "/${library_name}(-[0-9]+.*\.dist-info)?$" || echo '')
-if [[ -n "$list_of_directories" ]]; then
-  while read -r dir; do
-    if [[ -d "$dir" ]] && grep -q "$virtual_env_full_path" <<<"$dir"; then
-      set -x
-      rm -rf "$dir"
-      set +x
-    fi
-  done <<<"$list_of_directories"
-fi
+  list_of_directories=$(find "$virtual_env_full_path" -type d | grep -E "/${library_name}(-[0-9]+.*\.dist-info)?$" || echo '')
+  if [[ -n "$list_of_directories" ]]; then
+    while read -r dir; do
+      if [[ -d "$dir" ]] && grep -q "$virtual_env_full_path" <<<"$dir"; then
+        set -x
+        rm -rf "$dir"
+        set +x
+      fi
+    done <<<"$list_of_directories"
+  fi
+done
