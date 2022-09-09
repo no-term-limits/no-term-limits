@@ -90,7 +90,7 @@ function get_help_from_bin_dirs() {
     all_files=$(find "$bin_dir" -type f)
     if [[ -n "$pattern" ]]; then
       files_that_match=$(grep -E "$pattern" <<<"$all_files" || echo '')
-      help_messages_that_match=$(grep -lRE "^# ?HELP:.*${pattern}" "$bin_dir" || echo '')
+      help_messages_that_match=$(grep -lRE "^# ?HELP:.*${pattern}" "$bin_dir" 2>/dev/null || echo '')
       files_to_process=$(echo "$files_that_match\n$help_messages_that_match" | sort | uniq)
     else
       files_to_process="$all_files"
