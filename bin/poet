@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: wrapper around the python poetry command
+
+command="${1:-}"
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [command]"
+  exit 1
+fi
+
+if [[ "$command" == "test" ]]; then
+  poetry run coverage run --parallel -m pytest
+elif [[ "$command" == "update" ]]; then
+  library="${2:-}"
+
+  if [[ -z "${library}" ]]; then
+    >&2 echo "usage: $(basename "$0") [update] [library]"
+    exit 1
+  fi
+
+  remove_python_poetry_library_from_disk "$library"
+  poetry update "$library"
+fi
