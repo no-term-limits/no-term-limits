@@ -19,7 +19,7 @@ shift
 if [[ "$command" == "test" ]]; then
   args="$@"
   if [[ -z "${2:-}" ]] && grep -qE '^test_' <<<"${1:-}" ; then
-    test_file=$(grep -lR --exclude-dir=__pycache__ "$1" tests/)
+    test_file=$(grep -lR --exclude=_* --exclude-dir=_* "$1" tests/ || echo '')
     if [[ -z "$test_file" ]]; then
       >&2 echo "ERROR: test_name specified, but it could not be found in any file"
       exit 1
@@ -46,6 +46,5 @@ elif [[ "$command" == "update" ]]; then
 elif grep -Eq '^i[nstall]*' <<< "$command" ; then
   poetry install "$@"
 else
-  >&2 echo "ERROR: unknown command: $command"
-  exit 1
+  poetry "$command" "$@"
 fi

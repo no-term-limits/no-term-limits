@@ -22,7 +22,7 @@ function run_on_file() {
     if [[ -x "$file_that_may_be_present" ]]; then
       "${file_that_may_be_present}" "$file_that_was_changed"
     else
-      zsh "$file_that_may_be_present" "$file_that_was_changed"
+      bash "$file_that_may_be_present" "$file_that_was_changed"
     fi
     count=$((count + 1))
   fi
