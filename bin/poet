@@ -38,7 +38,6 @@ elif [[ "$command" == "update" ]]; then
     exit 1
   fi
 
-  remove_python_poetry_library_from_disk "$@"
   poetry update "$@"
 # we imagine that the npm install command has code something like this since we
 # know that it handles npm i, npm ins, npm install, and even a few common
