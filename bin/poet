@@ -16,10 +16,23 @@ if [[ -z "${1:-}" ]]; then
 fi
 shift
 
-if [[ "$command" == "test" ]]; then
+if [[ "$command" == "test" ]] || grep -Eq "^test_" <<< "$command"; then
   args="$@"
-  if [[ -z "${2:-}" ]] && grep -qE '^test_' <<<"${1:-}" ; then
-    test_file=$(grep -lR --exclude=_* --exclude-dir=_* "$1" tests/ || echo '')
+  test_name=''
+  test_file=''
+  if grep -Eq "^test_" <<< "$command"; then
+    test_name="$command"
+  else
+    if [[ -z "${2:-}" ]]; then
+      if grep -qE '^test_' <<<"${1:-}" ; then
+        test_name="$1"
+      elif [[ -f "${1:-}" ]]; then
+        test_file="$1"
+      fi
+    fi
+  fi
+  if [[ -n "$test_name" ]]; then
+    test_file=$(grep -lR --exclude=_* --exclude-dir=_* "$test_name" tests/ || echo '')
     if [[ -z "$test_file" ]]; then
       >&2 echo "ERROR: test_name specified, but it could not be found in any file"
       exit 1
@@ -29,7 +42,7 @@ if [[ "$command" == "test" ]]; then
     if grep -q "^class \<${expected_class_name}\>" "$test_file"; then
       class_name_arg="::${expected_class_name}"
     fi
-    args="-s ${test_file}${class_name_arg}::${1}"
+    args="-s ${test_file}${class_name_arg}::${test_name}"
   fi
   poetry run coverage run --parallel -m pytest $args
 elif [[ "$command" == "update" ]]; then
@@ -44,6 +57,8 @@ elif [[ "$command" == "update" ]]; then
 # mispellings. :D
 elif grep -Eq '^i[nstall]*' <<< "$command" ; then
   poetry install "$@"
+elif [[ "$command" == "mypy" ]]; then
+  run_mypy_with_poetry
 else
   poetry "$command" "$@"
 fi
