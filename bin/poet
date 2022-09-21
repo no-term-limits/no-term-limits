@@ -32,7 +32,7 @@ if [[ "$command" == "test" ]] || grep -Eq "^test_" <<< "$command"; then
     fi
   fi
   if [[ -n "$test_name" ]]; then
-    test_file=$(grep -lR --exclude=_* --exclude-dir=_* "$test_name" tests/ || echo '')
+    test_file=$(grep -lR --exclude=.* --exclude-dir=.* --exclude=_* --exclude-dir=_* "$test_name" tests/ || echo '')
     if [[ -z "$test_file" ]]; then
       >&2 echo "ERROR: test_name specified, but it could not be found in any file"
       exit 1
