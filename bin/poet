@@ -59,6 +59,8 @@ elif grep -Eq '^i[nstall]*' <<< "$command" ; then
   poetry install "$@"
 elif [[ "$command" == "mypy" ]]; then
   run_mypy_with_poetry
+elif grep -Eq '^pre[commit]*' <<< "$command" ; then
+  poetry run pre-commit run --verbose --all-files
 else
   poetry "$command" "$@"
 fi
