@@ -15,7 +15,7 @@ if [[ -z "${1:-}" ]]; then
   exit 1
 fi
 
-python_files=$(find $dirs -type f -name "*.py" ! -name '_null-ls*')
+python_files=$(find $dirs -type f -name "*.py" ! -name '.null-ls*' ! -name '_null-ls*')
 
 if [[ -z "$python_files" ]]; then
   >&2 echo "ERROR: Could not find any python files in '$dirs'"
