@@ -7,5 +7,9 @@ set -eo pipefail
 if [[ "$1" == "terse" ]]; then
   ls -d $HOME/.{alias,bash,zsh,local,$USER}* | uniq | grep -vE '(logout|history|\.(zshenv|local|zsh)$)'
 else
-  ll -d $HOME/.{alias,bash,zsh,local,$USER}* | uniq | grep -vE '(logout|history|\.(zshenv|local|zsh)$)'
+  if ls "$USER"*; then
+    ll -d $HOME/.{alias,bash,zsh,local,$USER}* | uniq | grep -vE '(logout|history|\.(zshenv|local|zsh)$)'
+  else
+    ll -d $HOME/.{alias,bash,zsh,local}* | uniq | grep -vE '(logout|history|\.(zshenv|local|zsh)$)'
+  fi
 fi
