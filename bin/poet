@@ -16,7 +16,7 @@ if [[ -z "${1:-}" ]]; then
 fi
 shift
 
-if [[ "$command" == "test" ]] || grep -Eq "^test_" <<< "$command"; then
+if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test_" <<< "$command"; then
   args="$@"
   test_name=''
   test_file=''
