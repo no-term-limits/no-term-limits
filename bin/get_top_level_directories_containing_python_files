@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: python: get all directories containing python omitting ones we do not want to run linting on like bin and migrations
+
+
+(git ls-tree -r HEAD --name-only | grep -E '\.py$' | awk -F '/' '{print $1}' | sort | uniq | grep -v '\.' | grep -Ev '^(bin|migrations)$') || echo ''

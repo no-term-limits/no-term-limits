@@ -11,6 +11,5 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 set -x
 poet pre || poet pre # this one can totally succeed on re-run
-fix_python_docstrings src tests
 poet mypy
 poet test

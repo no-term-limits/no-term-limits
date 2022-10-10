@@ -9,12 +9,16 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: python: run mypy with poetry
 
+errors_to_ignore='found module but no type hints or library stubs'
+errors_to_ignore="$errors_to_ignore|module is installed, but missing library stubs or py.typed marker"
+errors_to_ignore="$errors_to_ignore|Library stubs not installed for"
+
 # import_lines_to_ignore_a="$(run_mypy_with_poetry | grep -B1 'found module but no type hints or library stubs' | grep -v 'found module but no type hints or library stubs' | grep -Ev '^--$')"
 # echo "import_lines_to_ignore_a: ${import_lines_to_ignore_a}"
 # import_lines_to_ignore="$( (MYPY_PRETTY=false run_mypy_with_poetry 2>/dev/null || echo) | grep 'found module but no type hints or library stubs')"
 output="$( (MYPY_PRETTY=false run_mypy_with_poetry 2>/dev/null || echo))"
-if grep -q 'found module but no type hints or library stubs' <<< "$output"; then
-  import_lines_to_ignore="$(grep 'found module but no type hints or library stubs' <<< "$output")"
+if grep -qE "($errors_to_ignore)" <<< "$output"; then
+  import_lines_to_ignore="$(grep -E "($errors_to_ignore)" <<< "$output")"
   while read -r import_line_to_ignore; do
     file="$(awk -F ':' '{print $1}' <<< "$import_line_to_ignore")"
     line_number="$(awk -F ':' '{print $2}' <<< "$import_line_to_ignore")"

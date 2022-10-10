@@ -15,12 +15,16 @@ test_failed=false
 cp "$original_test_file" "$tmp_test_file"
 NO_TERM_LIMITS_RUN_PYTHON_FIXES=false fix_python_docstrings "$tmp_test_file"
 
-function run_grep() {
+function ensure_pattern() {
   local pattern="$1"
-  if ! grep -q "\"\"\"$pattern.\"\"\"" "$tmp_test_file" ; then
+  if ! grep -q "$pattern" "$tmp_test_file" ; then
     >&2 echo "ERROR: Failed to correct ${pattern}"
     test_failed=true
   fi
+}
+function run_grep() {
+  local pattern="$1"
+  ensure_pattern "\"\"\"$pattern.\"\"\""
 }
 
 run_grep 'ClassA'
@@ -29,6 +33,9 @@ run_grep 'fix_python_docstrings'
 for test_num in a b c d e f ; do
   run_grep "Method_${test_num}"
 done
+
+run_grep "Method_g"
+ensure_pattern "access_token ="
 
 if [[ "$test_failed" == true ]]; then
   >&2 echo "ERROR: tests failed. look above for failed cases"

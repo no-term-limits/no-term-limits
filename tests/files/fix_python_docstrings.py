@@ -20,3 +20,7 @@ class ClassA(object):
 
     def method_f(string: str="Hello") -> str:
         print(string)
+
+    def method_g(token: str):
+        access_token = token
+

@@ -14,6 +14,8 @@ if [[ "${MYPY_PRETTY:-}" == "false" ]]; then
   args+=(--no-pretty)
 fi
 
-if ! MYPYPATH=$PWD/src poetry run mypy src tests docs/conf.py "${args[@]}" "$@" ; then
+dirs=$(get_top_level_directories_containing_python_files)
+
+if ! poetry run mypy $dirs "${args[@]}" "$@" ; then
   exit 1
 fi
