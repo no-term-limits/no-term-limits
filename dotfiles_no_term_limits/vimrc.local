@@ -262,7 +262,6 @@ fun! OpenLastFailedTestFile() "{{{
 endfun "}}}
 
 command! OpenLastFailedTestFile call OpenLastFailedTestFile()
-nnoremap <leader>7 :OpenLastFailedTestFile<cr>
 
 " disable window functionality for fzf because it causes the cursor to move to
 " the top of the current window whenever using ctrl-p which is really annoying
@@ -364,9 +363,6 @@ let g:which_key_map['b'] = [ ':Buffers'                     , 'search open buffe
 " let g:which_key_map['v'] = [ '<C-W>v'                     , 'split right']
 " let g:which_key_map['z'] = [ 'Goyo'                       , 'zen' ]
 
-nmap <leader>3 :%s/\s\+$//e<cr>
-let g:which_key_map.3 = 'delete trailing whitespace'
-
 " s is for search
 let g:which_key_map.s = {
       \ 'name' : '+search' ,
@@ -401,9 +397,9 @@ let g:which_key_map.s.c = 'commits'
 
 let g:which_key_map.v = {
       \ 'name' : '+vimrc' ,
-      \ 'v' : [':edit $MYVIMRC'                                                    , 'edit $MYVIMRC (thoughtbot dotfiles, ~/.vimrc)'],
-      \ 'g' : [':edit ~/vimrc.local'     , 'edit no-term-limits vimrc'],
-      \ 'p' : [':edit ~/vimrc.no_term_limits_overrides'                            , 'edit ~/.vimrc.no_term_limits_overrides'],
+      \ 'v' : [':edit $MYVIMRC'                                                    , '(vimrc, loaded #1) edit $MYVIMRC (thoughtbot dotfiles, ~/.vimrc)'],
+      \ 'n' : [':edit ~/.vimrc.local'                                              , '(no-term, #2) edit ~/.vimrc.local'],
+      \ 'o' : [':edit ~/.vimrc.no_term_limits_overrides'                           , '(overrides of no-term, #3) edit ~/.vimrc.no_term_limits_overrides'],
       \ 's' : [':source $MYVIMRC'                                                  , 'source $MYVIMRC'],
       \ }
 
@@ -517,6 +513,9 @@ nmap <leader>rc :!ctags -R --exclude=.mypy_cache --exclude=.nox<cr>
 let g:which_key_map.r = { 'name' : '+run' }
 let g:which_key_map.r.c = 'run ctags'
 
+nmap <leader>rd :%s/\s\+$//e<cr>
+let g:which_key_map.r.d = 'delete trailing whitespace'
+
 nnoremap <leader>rj :JenkinsValidateJenkinsFile<cr>
 let g:which_key_map.r.j = 'run Jenkinsfile lint'
 nnoremap <leader>rr :!open_url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"<cr>
@@ -526,25 +525,23 @@ let g:which_key_map.r.s = 'run add shebang line'
 let g:which_key_map.r.t = 'run tests'
 let g:which_key_map.r.g = 'run guid generator'
 
-" FIXME: deprecated by <leader>rj, run Jenkinsfile lint
-nnoremap <leader>jj :JenkinsValidateJenkinsFile<cr>
-let g:which_key_map.j = { 'name' : '+jenkins deprecated by +run' }
-
 " added by vim-rubocop plugin, so just documenting here. can be switched off by user with: let g:vimrubocop_keymap = 0
 let g:which_key_map.r.u = 'run rubocop'
+nnoremap <leader>r7 :OpenLastFailedTestFile<cr>
+let g:which_key_map.r.7 = 'OpenLastFailedTestFile'
 
 " actually creating these mappings in which-key results in mappings that don't
 " work. so define them normally and document them with which key per below.
 " let g:which_key_map.p = {
 "       \ 'name' : '+panes' ,
-"       \ 'z' : [':wincmd _<cr>:wincmd \|<cr>'    , 'zoom'],
-"       \ 'r' : [':wincmd =<cr>'                  , 're-balance'],
+"       \ 'z' : [':wincmd _<cr>:wincmd \|<cr>'    , 'zoom vim'],
+"       \ 'r' : [':wincmd =<cr>'                  , 're-balance vim'],
 "       \ }
 let g:which_key_map.p = { 'name' : '+panes' }
 nnoremap <leader>pz :wincmd _<cr>:wincmd \|<cr>
-let g:which_key_map.p.z = 'zoom'
+let g:which_key_map.p.z = 'zoom vim'
 nnoremap <leader>pr :wincmd =<cr>
-let g:which_key_map.p.r = 're-balance'
+let g:which_key_map.p.r = 're-balance vim'
 
 nnoremap <leader>pz :wincmd _<cr>:wincmd \|<cr>
 
