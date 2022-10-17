@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: grep: greps for "for_grepping" which can be used to highlight helpful code snippets
+
+pattern="${1:-}"
+
+cd "$NO_TERM_LIMITS_PROJECTS_DIR/github/no-term-limits"
+
+results=$( (gre 'for.?grepping' | grep -v 'bin/for_grepping') || echo '')
+if [[ -n "$results" ]]; then
+  if [[ -n "$pattern" ]]; then
+    grep -i "${pattern}" --color <<<"$results"
+  else
+    echo "$results"
+  fi
+fi
