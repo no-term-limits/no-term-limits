@@ -8,6 +8,8 @@ trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
 original_test_file="${NO_TERM_LIMITS_TESTS_DIR}/files/fix_python_docstrings.py"
+
+# for_grepping: create a tempdir in bash: tags: temporary directory, tmp, mktemp
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 tmp_test_file="${tmp_dir}/$(basename "$original_test_file")"
 test_failed=false
