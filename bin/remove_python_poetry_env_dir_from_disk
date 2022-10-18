@@ -10,11 +10,15 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: python: removes the whole poetry env directory from disk.
 
 
-virtual_env_path_line="$(poetry env info | grep Path:)"
-virtual_env_full_path="$(awk '{print $2}' <<<"$virtual_env_path_line" || echo '')"
+virtual_env_full_path="$(poetry env info -p)"
 
 if ! grep -qE '\<pypoetry\>' <<<"$virtual_env_full_path" ; then
   >&2 echo "ERROR: Could not find pypoetry in full path: ${virtual_env_full_path}"
+  exit 1
+fi
+
+if [[ ! -d "$virtual_env_full_path" ]]; then
+  >&2 echo "ERROR: Could not find poetry env directory: ${virtual_env_full_path}"
   exit 1
 fi
 

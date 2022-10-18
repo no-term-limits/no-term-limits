@@ -57,6 +57,8 @@ elif [[ "$command" == "update" ]]; then
 # mispellings. :D
 elif grep -Eq '^i[nstall]*' <<< "$command" ; then
   poetry install "$@"
+elif grep -Eq 'destroy' <<< "$command" ; then
+  remove_python_poetry_env_dir_from_disk
 elif [[ "$command" == "mypy" ]]; then
   run_mypy_with_poetry
 elif grep -Eq '^pre[commit]*' <<< "$command" ; then
