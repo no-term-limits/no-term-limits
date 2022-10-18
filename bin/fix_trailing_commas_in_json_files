@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: finds all json files in current directory and removes all commas that come before a left curly brace
+
+perl -pi -0 -e 's/,\n( *)}/\n\1}/g' $(find . -type f -name "*.json")
