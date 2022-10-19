@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: check if given element is in given array
+# HELP: check if given element is in given array. originally from https://stackoverflow.com/a/8574392/6090676 and aka containsElement and elementIn. USAGE: if element_in_array "$cmd" "${available_commands[@]}"; then
 
 value="$1"
 shift
