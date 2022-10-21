@@ -761,6 +761,9 @@ if has('nvim')
 
   nnoremap <leader>la :lua vim.lsp.buf.code_action()<cr>
   let g:which_key_map.l.a = 'lsp code action'
+
+  nnoremap <leader>lh :lua vim.lsp.buf.hover()<cr>
+  let g:which_key_map.l.h = 'lsp hover'
 else
   nnoremap <leader>ld :LspDefinition<cr>
   let g:which_key_map.l.d = 'lsp definition'
