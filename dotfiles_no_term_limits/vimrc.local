@@ -706,10 +706,6 @@ hi fileHi gui=none cterm=bold ctermbg=black ctermfg=green
 hi mainHi gui=none cterm=bold ctermbg=black ctermfg=white
 set statusline=%#fullPathHi#%{getcwd()}/%#fileHi#%f%m%#mainHi#\ %y%=%l,%c\ Total:\ %L\ 
 
-if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
-  source ~/.vimrc.no_term_limits_overrides
-endif
-
 " https://aloha.org.cn/2021/03/28/Create-Snippets-for-Ultisnips/ with vimscript
 " regex explanation:
 " turn on very magic. match optional two characters. match any number of
@@ -785,3 +781,7 @@ endif
 " so turn it off. editorconfig was basically doing set colorcolumn=80 in that
 " case.
 let g:EditorConfig_max_line_indicator = "none"
+
+if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
+  source ~/.vimrc.no_term_limits_overrides
+endif
