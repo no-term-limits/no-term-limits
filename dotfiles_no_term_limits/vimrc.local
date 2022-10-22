@@ -146,6 +146,10 @@ endif
 
 syntax on " Enable syntax highlighting
 
+" prevents the whole file from lighting up in red due to some bug in oct 2022.
+" we can likely remove this if you are reading this much later.
+hi Error NONE
+
 " highlights the whole line just for quickfix
 " would rather have this in a custom buffer
 au BufReadPost quickfix setlocal cursorline

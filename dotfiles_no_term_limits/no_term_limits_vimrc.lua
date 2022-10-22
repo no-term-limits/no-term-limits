@@ -37,6 +37,7 @@ cmp.setup({
   sources = cmp.config.sources({
     { name = 'ultisnips' }, -- For ultisnips users.
     { name = 'nvim_lsp' },
+    { name = 'nvim_lsp_signature_help' },
     { 
       -- For autocompleting stuff from the current buffer
       name = 'buffer',
