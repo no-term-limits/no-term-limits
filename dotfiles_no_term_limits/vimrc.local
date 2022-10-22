@@ -409,6 +409,7 @@ let g:which_key_map.t = {
       \ 'h' : [':set hlsearch!' , 'toggle highlighted search'],
       \ 'i' : [':IndentLinesToggle' , 'toggle IndentLines'],
       \ 'l' : [':set list!'     , 'toggle list mode'],
+      \ 't' : [':exec "!toggle_t_file"'     , 'toggle t file'],
       \ 'p' : [':set paste!'    , 'toggle paste mode'],
       \ }
 

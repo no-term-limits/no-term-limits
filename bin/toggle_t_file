@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: if you are using a "t-file" (a thing that autoruns a custom command in a tmux from vim on save), this will enable or disable it
+
+if [[ -f t ]]; then
+  if grep -q DISABLE_T_FILE t; then
+    perl -pi -e "s/DISABLE_T_FILE/ENABLE_T_FILE/g" t
+    echo "enabled t file"
+  elif grep -q ENABLE_T_FILE t; then
+    perl -pi -e "s/ENABLE_T_FILE/DISABLE_T_FILE/g" t
+    echo "disabled t file"
+  else
+    append_text_to_top_of_file "# DISABLE_T_FILE\n" t
+    echo "disabled t file"
+  fi
+fi
