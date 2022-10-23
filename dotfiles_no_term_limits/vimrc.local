@@ -796,6 +796,50 @@ endif
 " case.
 let g:EditorConfig_max_line_indicator = "none"
 
+" https://vi.stackexchange.com/a/10700
+if !exists('*Preserve')
+    function! Preserve(command)
+        try
+            " Preparation: save last search, and cursor position.
+            let l:win_view = winsaveview()
+            let l:old_query = getreg('/')
+            silent! execute 'keepjumps ' . a:command
+        finally
+            " try restore / reg and cursor position
+            call winrestview(l:win_view)
+            call setreg('/', l:old_query)
+        endtry
+    endfunction
+endif
+
+function! AddImportForTermUnderCursor()
+  let fullFilePath = expand('%:p')
+  let wordUnderCursor = expand("<cword>")
+
+  let importExpressionToSearchFor = 'import ' . wordUnderCursor
+  " look in other files in the current project and find the import for the word under the cursor
+  if search(importExpressionToSearchFor, 'nw') == 0
+    " if the import isn't already there, add it
+    let desiredImportExpression = trim(system('find_import_lines_for_term ' . fullFilePath . ' ' . wordUnderCursor))
+    if v:shell_error
+      echom desiredImportExpression
+    else
+      " add the fresh new import after the first import statement in the file and
+      " then take the cursor back to where it was
+      call Preserve('normal gg0/import o' . desiredImportExpression)
+      " if an import line was added, we actually want to go back to the place we
+      " were, and then down one line, so that we are again having the cursor
+      " on top of the same character of the same term
+      normal j
+    endif
+  else
+    echom 'import already exists'
+  endif
+endfunction
+
+nnoremap <leader>ri :call AddImportForTermUnderCursor()<cr>
+let g:which_key_map.r.i = 'add import'
+
 if filereadable($HOME . "/.vimrc.no_term_limits_overrides")
   source ~/.vimrc.no_term_limits_overrides
 endif
