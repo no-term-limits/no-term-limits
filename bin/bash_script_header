@@ -1,5 +1,25 @@
 #!/usr/bin/env bash
 
+# for grepping: this allows us to remove traps for use with set +e
+# function setup_traps() {
+#   trap 'error_handler ${LINENO} $?' ERR
+# }
+# function remove_traps() {
+#   trap - ERR
+# }
+# function error_handler() {
+#   >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+#   exit "$2"
+# }
+# setup_traps
+#
+# usage:
+#   remove_traps
+#   set +e
+#   {code...}
+#   setup_traps
+#   set -e
+
 function error_handler() {
   >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
