@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: python: removes the whole poetry env directory from disk.
+
+
+virtual_env_full_path="$(poetry env info -p)"
+
+if ! grep -qE '\<pypoetry\>' <<<"$virtual_env_full_path" ; then
+  >&2 echo "ERROR: Could not find pypoetry in full path: ${virtual_env_full_path}"
+  exit 1
+fi
+
+poetry_cache_dir="$(hot_sed -E 's/pypoetry\/virtualenvs.*/pypoetry/' <<<"$virtual_env_full_path")"
+echo "$poetry_cache_dir"
+
+if [[ ! -d "$poetry_cache_dir" ]]; then
+  >&2 echo "ERROR: Could not find poetry cache directory: ${poetry_cache_dir}"
+  exit 1
+fi
+
+set -x
+rm -rf "$poetry_cache_dir"
