@@ -65,6 +65,11 @@ unbind-key C-z
 # since we copied and pasted in the contents of this file above, this isn't necessary:
 # if-shell "[ -f ~/dotfiles/tmux.conf ]" 'source ~/dotfiles/tmux.conf'
 
+# https://unix.stackexchange.com/a/622211/456630
+# to avoid having to ctrl+s shift+r all the time
+set -g window-size smallest
+setw -g aggressive-resize on
+
 set-window-option -g main-pane-width 150
 
 # https://superuser.com/questions/343572/how-do-i-reorder-tmux-windows
