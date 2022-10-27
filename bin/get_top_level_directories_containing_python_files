@@ -10,4 +10,12 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: python: get all directories containing python omitting ones we do not want to run linting on like bin and migrations
 
 
-(git ls-tree -r HEAD --name-only | grep -E '\.py$' | awk -F '/' '{print $1}' | sort | uniq | grep -v '\.' | grep -Ev '^(bin|migrations)$') || echo ''
+initial_list=$( (git ls-tree -r HEAD --name-only | grep -E '\.py$' | awk -F '/' '{print $1}' | sort | uniq | grep -v '\.' | grep -Ev '^(bin|migrations)$') || echo '')
+
+if [[ -n "$initial_list" ]]; then
+  if [[ "${NO_TERM_LIMITS_PYTHON_FILE_EXCLUSION_PATTERN:-}" ]]; then
+    grep -vE "$NO_TERM_LIMITS_PYTHON_FILE_EXCLUSION_PATTERN" <<< "$initial_list"
+  else
+    echo "$initial_list"
+  fi
+fi
