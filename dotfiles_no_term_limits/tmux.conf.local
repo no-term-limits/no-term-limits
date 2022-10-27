@@ -157,6 +157,7 @@ set -s focus-events on
 # we accidentally hit prefix Space too often, and next-layout moves the panes into a totally different configuration, which is highly undesirable when not expected.
 unbind Space
 
+# for_grepping: swap-window - move tmux window left: ctrl-s ctrl-shift-left
 bind-key -n C-S-Left swap-window -t -1
 bind-key -n C-S-Right swap-window -t +1
 
