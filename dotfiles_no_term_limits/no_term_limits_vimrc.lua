@@ -113,7 +113,12 @@ require("typescript").setup({
     debug = false, -- enable debug logging for commands
     server = { -- pass options to lspconfig's setup method
         on_attach = function(client)
-        client.resolved_capabilities.document_formatting = false
+        -- at least 0.8, https://www.reddit.com/r/neovim/comments/qskg6z/how_to_determine_whether_the_current_nvim_version/
+        if vim.fn.has('nvim-0.8') == 1 then
+          client.server_capabilities.documentFormattingProvider = false
+        else
+          client.resolved_capabilities.document_formatting = false
+        end
     end,
     },
 })
@@ -216,10 +221,13 @@ null_ls.setup({
             group = augroup,
             buffer = bufnr,
             callback = function()
-                -- on 0.8, you should use vim.lsp.buf.format({ bufnr = bufnr }) instead
-                -- vim.lsp.buf.format({ bufnr = bufnr })
+                -- on 0.8 and above, you should use vim.lsp.buf.format({ bufnr = bufnr })
                 if vim.bo.filetype == "javascript" or vim.bo.filetype == "typescriptreact" or vim.bo.filetype == "typescript" then
-                  vim.lsp.buf.formatting_sync()
+                  if vim.fn.has('nvim-0.8') == 1 then
+                    vim.lsp.buf.format({ bufnr = bufnr })
+                  else
+                    vim.lsp.buf.formatting_sync()
+                  end
                 end
             end,
         })
