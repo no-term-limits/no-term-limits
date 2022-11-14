@@ -34,6 +34,7 @@ if [[ "${NO_TERM_LIMITS_RUN_PYTHON_FIXES:-}" != "false" ]]; then
   fi
 
   autoflake8 --in-place --remove-unused-variables --remove-duplicate-keys --expand-star-imports --exit-zero-even-if-changed $python_files
+  autoflake --in-place --remove-all-unused-imports $python_files
   autopep8 --in-place $python_files
 fi
 
