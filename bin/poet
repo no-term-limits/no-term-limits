@@ -28,8 +28,10 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
     if [[ -z "${2:-}" ]]; then
       if grep -qE '^test_' <<<"${1:-}" ; then
         test_name="$1"
+        shift
       elif [[ -f "${1:-}" ]]; then
         test_file="$1"
+        shift
       fi
     fi
   fi
@@ -45,7 +47,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
     if grep -q "^class \<${expected_class_name}\>" "$test_file"; then
       class_name_arg="::${expected_class_name}"
     fi
-    args="-s ${test_file}${class_name_arg}::${test_name}"
+    args="-s ${test_file}${class_name_arg}::${test_name} ${@}"
   elif [[ -n "$test_file" ]]; then
     args="$test_file $args"
   fi
