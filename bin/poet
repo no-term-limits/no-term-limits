@@ -16,12 +16,14 @@ if [[ -z "${1:-}" ]]; then
 fi
 shift
 
-if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test_" <<< "$command"; then
+if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<< "$command"; then
   args="$@"
   test_name=''
   test_file=''
   if grep -Eq "^test_" <<< "$command"; then
     test_name="$command"
+  elif grep -Eq "^test.*py$" <<< "$command" && [[ -f "${command:-}" ]]; then
+    test_file="$command"
   else
     if [[ -z "${2:-}" ]]; then
       if grep -qE '^test_' <<<"${1:-}" ; then
@@ -32,6 +34,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test_" <<
     fi
   fi
   if [[ -n "$test_name" ]]; then
+    # there's no way to to have a test_file and test_name yet, so look up test_file based on test_name
     test_file=$(grep -lR --exclude=.* --exclude-dir=.* --exclude=_* --exclude-dir=_* "$test_name" tests/ || echo '')
     if [[ -z "$test_file" ]]; then
       >&2 echo "ERROR: test_name specified, but it could not be found in any file"
@@ -43,6 +46,8 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test_" <<
       class_name_arg="::${expected_class_name}"
     fi
     args="-s ${test_file}${class_name_arg}::${test_name}"
+  elif [[ -n "$test_file" ]]; then
+    args="$test_file $args"
   fi
   poetry run coverage run --parallel -m pytest $args
 elif [[ "$command" == "update" ]]; then
