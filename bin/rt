@@ -7,36 +7,41 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: rails_tests: runs each rails test file found in given directory
+# HELP:
 
-if [[ "$1" == "clean" ]]; then
+clean=false
+if [[ "${1:-}" == "clean" ]]; then
   clean=true
   shift
 fi
 
+repo_name=$(repo_name)
+
+if [[ -z "${CT_OUTPUT_BASE_DIR:-}" ]]; then
+  CT_OUTPUT_BASE_DIR=/var/tmp
+fi
+
+output_dir="${CT_OUTPUT_BASE_DIR}/${repo_name}"
+mkdir -p "$output_dir"
+log_file="${output_dir}/test.log"
+
 test_dirs=$*
 if [[ -z "$test_dirs" ]]; then
-  for dir in test/unit test/functional test/integration test/agents test/pdfs spec/requests spec/models spec/controllers test/selenium ; do
+  for dir in test/unit test/functional test/integration test/agents test/pdfs spec/requests spec/models spec/controllers test/selenium cypress/e2e ; do
     if [[ -d "$dir" ]]; then
       test_dirs="$test_dirs $dir"
     fi
   done
 fi
 
-if [[ -z "${RT_OUTPUT_BASE_DIR:-}" ]]; then
-  RT_OUTPUT_BASE_DIR=/var/tmp
-fi
-
-app_identifier=$(repo_name)
-
 function get_cache_file() {
   local test_dir="$1"
-  echo "${RT_OUTPUT_BASE_DIR}/${app_identifier}_passing_$(basename "$test_dir")_files"
+  echo "${output_dir}/passing_$(basename "$test_dir")_files"
 }
 
 function get_last_failed_file() {
   local test_dir="$1"
-  echo "${RT_OUTPUT_BASE_DIR}/${app_identifier}_last_failed_$(basename "$test_dir")_file"
+  echo "${output_dir}/last_failed_$(basename "$test_dir")_file"
 }
 
 if [[ "$clean" == "true" ]]; then
@@ -48,12 +53,12 @@ if [[ "$clean" == "true" ]]; then
   done
 fi
 
-echo >log/test.log
+echo >"$log_file"
 
 for test_dir in $test_dirs ; do
   echo "Checking $test_dir"
 
-  files=$(find "${test_dir}" -type f \( -name "*_spec.rb" -o -name "*_test.rb" \) | sort)
+  files=$(find "${test_dir}" -type f \( -name "*_spec.rb" -o -name "*_test.rb" -o -name "*.cy.js" \) | sort)
   cache_file="$(get_cache_file "$test_dir")"
   last_failed_file="$(get_last_failed_file "$test_dir")"
 
@@ -62,19 +67,24 @@ for test_dir in $test_dirs ; do
   while read -r file; do
     if ! grep -qE "\<$file\>" "$cache_file" ; then
 
-      test_command="ruby"
+      test_command="bundle exec ruby"
       if grep -qE '\<spec\/' <<<"$file"; then
         test_command="rspec"
+        test_command="bundle exec rspec"
+
+      elif grep -qE '\.cy\.js$' <<<"$file"; then
+        # cypress run --env grep="can filter",grepFilterSpecs=true
+        test_command="./node_modules/.bin/cypress run --spec"
       fi
 
-      echo bundle exec "$test_command" "$file"
-      if ! bundle exec "$test_command" "$file" ; then
+      echo "$test_command" "$file"
+      if ! $test_command "$file" ; then
         echo "$file" >"$last_failed_file"
-        gns DEPRECATION log/test.log
+        gns DEPRECATION "$log_file"
         exit 1
       else
-        if [[ -f log/test.log ]]; then
-          if gns DEPRECATION log/test.log; then
+        if [[ -f "$log_file" ]]; then
+          if gns DEPRECATION "$log_file"; then
             echo "$file" >"$last_failed_file"
             exit 1
           fi
