@@ -22,7 +22,7 @@ if [[ -z "${2:-}" ]]; then
   exit 1
 fi
 
-desired_import_expression="import $term"
+desired_import_expression="import .*\b${term}\b"
 if grep -q "$desired_import_expression" "$file_with_term"; then
   >&2 echo "ERROR: '${desired_import_expression}' already exists in this file"
   exit 1
@@ -31,7 +31,8 @@ fi
 if grep -q '\.py$' <<< "$file_with_term"; then
   # find python imports matching the term, sort by most unique matches, and take the most popular version
   # the awk gets all but the first field/column, because the count is in the first column
-  most_popular_matching_import_line="$(rg --no-filename --glob '*.py' "$desired_import_expression" | sort | uniq -c | sort -n | awk '{for (i=2; i<NF; i++) printf $i " "; print $NF}' | tail -n 1)"
+  match="$(rg --no-filename --glob '*.py' "$desired_import_expression" | sed -E "s/(import).*/\1 ${term}/")"
+  most_popular_matching_import_line="$(sort <<<"$match" | uniq -c | sort -n | awk '{for (i=2; i<NF; i++) printf $i " "; print $NF}' | tail -n 1)"
   echo "$most_popular_matching_import_line"
 else
   >&2 echo "ERROR: only python is supported"
