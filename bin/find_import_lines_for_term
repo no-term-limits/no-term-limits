@@ -31,7 +31,11 @@ fi
 if grep -q '\.py$' <<< "$file_with_term"; then
   # find python imports matching the term, sort by most unique matches, and take the most popular version
   # the awk gets all but the first field/column, because the count is in the first column
-  match="$(rg --no-filename --glob '*.py' "$desired_import_expression" | sed -E "s/(import).*/\1 ${term}/")"
+  # the sed is making it so we can search for Task and this still finds it despite the line importing multiple things:
+  #   from SpiffWorkflow.task import Whatever, Task
+  # also handle alias like (by ensuring there is a comma if we remove stuff in the middle):
+  #   from SpiffWorkflow.task import Task as SpiffTask
+  match="$(rg --no-filename --glob '*.py' "$desired_import_expression" | sed -E "s/(import)(.*\,.*)? ${term}/\1 ${term}/")"
   most_popular_matching_import_line="$(sort <<<"$match" | uniq -c | sort -n | awk '{for (i=2; i<NF; i++) printf $i " "; print $NF}' | tail -n 1)"
   echo "$most_popular_matching_import_line"
 else
