@@ -11,10 +11,10 @@ else
 fi
 
 for i in $(eval "echo {1..$attempts}"); do
-  echo "index: $i"
+  echo "Starting attempt $i of $attempts"
   eval "$@"
   exitcode=$?
-  echo "Completed index: $i"
+  echo "Attempt succeeded: $i of $attempts"
 
   if [ "$exitcode" != "0" ]; then
     break
