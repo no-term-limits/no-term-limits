@@ -4,4 +4,4 @@ set -e
 
 # HELP: edit (first matching) file by file name
 
-vim $(find_first_file $1)
+$(vim_command) $(find_first_file $1)

@@ -31,7 +31,7 @@ function run() {
     echo -e "# HELP: ${command_help}\n\n${command_contents}" >>"$new_command_location"
     chmod +x "$new_command_location"
     if [[ "${NON_INTERACTIVE:-}" != "true" ]]; then
-      vim "+normal G^" "$new_command_location"
+      $(vim_command) "+normal G^" "$new_command_location"
     fi
   else
     echo "ERROR: command already exists"
