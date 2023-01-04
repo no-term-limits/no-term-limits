@@ -1,3 +1,13 @@
 snippet cl "console log"
 console.log('$1', $1)
 endsnippet
+
+# https://stackoverflow.com/q/63528811/6090676
+snippet us "react useState hook"
+const [$1, set${1/\w+/\u$0/g}] = useState<$2>($3)
+endsnippet
+
+# from https://github.com/mlaursen/vim-react-snippets, in case we want to use a real language to write the useState snippet someday
+# snippet useS "useState()"
+# const [$1, set`!p snip.rv=upperfirst(t[1])`] = useState$3($2)$0
+# endsnippet

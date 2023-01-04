@@ -4,6 +4,9 @@ for _, neovim_plugin_to_load in pairs(vim.g["neovim_plugins_ftw"]) do
   vim.call('plug#load', repo_without_org)
 end
 
+require("cmp_nvim_ultisnips").setup{}
+local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+
 local cmp = require'cmp'
 
 cmp.setup({
@@ -33,6 +36,19 @@ cmp.setup({
     ['<C-e>'] = cmp.mapping.abort(),
     -- Set `select` to `false` to only confirm explicitly selected items. `true` is autocomplete with word at top of menu automatically.
     ['<CR>'] = cmp.mapping.confirm({ select = false }),
+    -- otherwise Tab will not move through ultisnips placeholders.
+    ["<Tab>"] = cmp.mapping(
+      function(fallback)
+        cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
+      end,
+      { "i", "s", --[[ "c" (to enable the mapping in command mode) ]] }
+    ),
+    ["<S-Tab>"] = cmp.mapping(
+      function(fallback)
+        cmp_ultisnips_mappings.jump_backwards(fallback)
+      end,
+      { "i", "s", --[[ "c" (to enable the mapping in command mode) ]] }
+    ),
   }),
   sources = cmp.config.sources({
     { name = 'ultisnips' }, -- For ultisnips users.
