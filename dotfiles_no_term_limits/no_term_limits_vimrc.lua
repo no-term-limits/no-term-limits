@@ -124,6 +124,24 @@ lspconfig['pyright'].setup {
   capabilities = capabilities
 }
 
+-- allows for:
+--   lua vim.lsp.buf.range_code_action() -- though it's deprecated and gone in neovim 9 and the replacement, vim.lsp.buf.code_action, doesn't work with this
+--   lua vim.lsp.buf.rename()
+-- pip install python-lsp-server
+-- pip install pylsp-rope
+-- lspconfig.pylsp.setup
+--   settings = {
+--     pylsp = {
+--       plugins = {
+--         pycodestyle = {
+--           ignore = {'W391'},
+--           maxLineLength = 100
+--         }
+--       }
+--     }
+--   }
+-- }
+
 require("typescript").setup({
     disable_commands = false, -- prevent the plugin from creating Vim commands
     debug = false, -- enable debug logging for commands
