@@ -75,7 +75,7 @@ elif [[ "$command" == "typeguard" ]]; then
   # if os.environ.get("RUN_TYPEGUARD") == "true":
   #   from typeguard.importhook import install_import_hook
   #   install_import_hook(packages="my_hot_package")
-  RUN_TYPEGUARD=true poet test
+  RUN_TYPEGUARD=true poet test "$@"
 else
   poetry "$command" "$@"
 fi
