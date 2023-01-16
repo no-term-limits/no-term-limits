@@ -36,13 +36,18 @@ cmp.setup({
     ['<C-e>'] = cmp.mapping.abort(),
     -- Set `select` to `false` to only confirm explicitly selected items. `true` is autocomplete with word at top of menu automatically.
     ['<CR>'] = cmp.mapping.confirm({ select = false }),
+
     -- otherwise Tab will not move through ultisnips placeholders.
-    ["<Tab>"] = cmp.mapping(
-      function(fallback)
-        cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
-      end,
-      { "i", "s", --[[ "c" (to enable the mapping in command mode) ]] }
-    ),
+    -- Tab is awesome for snippets but it breaks copilot.
+    -- Just use ctrl+j the way you do to invoke the snippet in the first place.
+    -- ["<Tab>"] = cmp.mapping(
+    --   function(fallback)
+    --     cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
+    --   end,
+    --   { "i", "s", --[[ "c" (to enable the mapping in command mode) ]] }
+    -- ),
+    --
+    --
     ["<S-Tab>"] = cmp.mapping(
       function(fallback)
         cmp_ultisnips_mappings.jump_backwards(fallback)
@@ -377,3 +382,25 @@ require'nvim-treesitter.configs'.setup {
     },
   },
 }
+
+vim.api.nvim_create_autocmd('BufRead', {
+  desc = 'turn on autowrap for markdown files if they already have lines longer than 100 characters',
+
+  group = vim.api.nvim_create_augroup('no markdown autowrap', { clear = true }),
+  callback = function (opts)
+    if vim.bo[opts.buf].filetype == 'markdown' then
+      -- iterate over all lines in file and see if it contains any lines with more than 80 characters.
+      -- if so, turn off autowrap to match the style, which might be ventilated prose.
+      longest_line = 0
+      for ii, line_contents in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, true)) do
+        if string.len(line_contents) > longest_line then
+          longest_line = string.len(line_contents)
+        end
+      end
+      if longest_line > 100 then
+        -- https://stackoverflow.com/a/25687631/6090676
+        vim.cmd 'setlocal formatoptions-=t'
+      end
+    end
+  end,
+})
