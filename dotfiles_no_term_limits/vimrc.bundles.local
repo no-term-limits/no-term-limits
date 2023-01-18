@@ -49,7 +49,6 @@ let g:neovim_plugins_ftw = [
   \'nvim-lua/plenary.nvim',
   \'kyazdani42/nvim-web-devicons',
   \'mfussenegger/nvim-lint',
-  \'github/copilot.vim',
   \'nvim-treesitter/nvim-treesitter',
   \'nvim-treesitter/nvim-treesitter-textobjects',
 \]
