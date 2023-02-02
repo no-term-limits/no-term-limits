@@ -14,6 +14,7 @@ git fetch
 if has_main_branch; then
   git checkout main
 elif git ls-remote --exit-code . origin/master &>/dev/null; then
+  # https://stackoverflow.com/questions/28666357/how-to-get-default-git-branch
   git checkout master
 fi
 
