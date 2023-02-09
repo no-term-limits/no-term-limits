@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: display the branch each git repo is on if it doesn't match the given branch regex. Default: "^(master|main)$"
+
+branch_pattern="${1:-}"
+if [[ -z "$branch_pattern" ]]; then
+  branch_pattern="^(master|main)$"
+fi
+export BRANCH_PATTERN="$branch_pattern"
+
+if ! command -v parallel >/dev/null 2>&1; then
+  >&2 echo "ERROR: need the command parallel"
+  exit 1
+fi
+
+git_repos=$(gclonedrepos)
+
+if [[ -z "$git_repos" ]]; then
+  >&2 echo "ERROR: Could not find any git repos to check in ${NO_TERM_LIMITS_PROJECTS_DIR}"
+  exit 1
+fi
+
+function check_if_repo_is_clean() {
+  local app_path="$1"
+  pushd "$app_path" >/dev/null
+  current_branch="$(git_branch)"
+  if ! grep -qE "${BRANCH_PATTERN}" <<<"$current_branch"; then
+    echo "${current_branch}: ${app_path}"
+  fi
+  popd >/dev/null
+}
+
+export -f check_if_repo_is_clean
+parallel --env "BRNCH_PATTERN" check_if_repo_is_clean ::: "$git_repos"
