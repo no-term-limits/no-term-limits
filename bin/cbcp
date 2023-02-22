@@ -28,9 +28,9 @@ if is_mac ; then
   # pbcopy does not take arguments
   "${copy_command}" <<< "${text}"
 else
-  eval "${copy_command} '${text}'"
+  $copy_command "$text"
 
   if [[ -n "$post_command" ]]; then
-    eval "$post_command"
+    $post_command
   fi
 fi
