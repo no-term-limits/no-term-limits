@@ -10,7 +10,9 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: open a url in a web browser
 
 if [[ -n "${2:-}" ]]; then
-  if which chromium-browser >/dev/null 2>&1; then
+  if command -v google-chrome >/dev/null; then
+    google-chrome "$@"
+  elif command -v chromium-browser >/dev/null; then
     chromium-browser "$@"
   else
     >&2 echo "ERROR: Extra options were passed in but cannot be used. Currently chromium-browser needs to be installed to use these options. OPTIONS PASSED IN: '$*'"
