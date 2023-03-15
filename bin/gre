@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: grep recursively in all directories minus .svn and .git. run "cac gre" for full exclusion list
 
-exclusions="--exclude=tags"
+exclusions="--exclude=tags --exclude-dir=.terragrunt-cache"
 if ! grep -qE '\<logs?\>' <<<"$@" ; then
   exclusions="$exclusions --exclude=*.log"
 fi
