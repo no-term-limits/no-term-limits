@@ -721,7 +721,7 @@ set statusline=%#fullPathHi#%{getcwd()}/%#fileHi#%f%m%#mainHi#\ %y%=%l,%c\ Total
 " another="${2}"
 " stillanother="${3:-}"
 func! SnippetAddUsageLineToBashScript()
-  let regexForVariableAssignments = '\v^(\w+)\="\$\{?(\d)(:-\w*)?\}?"'
+  let regexForVariableAssignments = '\v^(\w+)\="?\$\{?(\d)(:-\w*)?\}?"?'
   let argVariableAssignmentLineNumbers=getline(1, '$')->map({l, v -> [l+1, v =~ regexForVariableAssignments]})->filter({k,v -> v[1]})->map({k,v -> v[0]})
   let biggestArgumentNumber = 0
   let variableNames = []
