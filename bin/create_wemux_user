@@ -75,7 +75,11 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   done <<<"${ssh_public_keys}"
 
   # because the wemux script refers to tmux without the full absolute path and therefore, with a command in authorized_keys, it fails
-  echo "export PATH=\"/usr/local/bin:\$PATH\"" > /tmp/tmp_bashrc
+  extra_paths="/usr/local/bin"
+  if [[ -f /opt/homebrew/bin/tmux ]] ; then
+    extra_paths="$extra_paths:/opt/homebrew/bin"
+  fi
+  echo "export PATH=\"${extra_paths}:\$PATH\"" > /tmp/tmp_bashrc
   sudo mv /tmp/tmp_bashrc "$pair_user_dir/.bashrc"
   sudo mv /tmp/temp_auth_content "$pair_user_dir/.ssh/authorized_keys"
   sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
