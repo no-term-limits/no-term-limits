@@ -16,12 +16,16 @@ url_path=""
 branch=$(git_branch)
 git_url=$(git_url_of_current_directory)
 
+git_root="$(git rev-parse --show-toplevel)"
+current_directory=$(pwd)
+git_subdirs=$(perl -p -e "s|^${git_root}||" <<<"${current_directory}")
+
 if grep -q 'github.com' <<<"$git_url" ; then
   if [[ -n "$file" ]]; then
     if [[ -d "$file" ]]; then
-      url_path="/tree/${branch}/${file}"
+      url_path="/tree/${branch}${git_subdirs}/${file}"
     else
-      url_path="/blob/${branch}/${file}"
+      url_path="/blob/${branch}${git_subdirs}/${file}"
     fi
   else
     url_path="/tree/${branch}"
