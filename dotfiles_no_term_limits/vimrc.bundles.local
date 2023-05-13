@@ -7,7 +7,6 @@ Plug 'editorconfig/editorconfig-vim'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-dispatch'
 Plug 'majutsushi/tagbar'
-Plug 'ekalinin/Dockerfile.vim'
 
 " commented out since i think vim-fugitive has this covered
 " Plug 'vim-scripts/vcscommand.vim'
