@@ -218,6 +218,25 @@ fun! Should_execute_t_file(t_file_to_use)
   return 0
 endfun
 
+" code to check whether pane is zoomed is borrowed from vim-tmux-navigator
+function! s:TmuxVimPaneIsZoomed()
+  return s:TmuxCommand("display-message -p '#{window_zoomed_flag}'") == 1
+endfunction
+
+function! s:TmuxSocket()
+  " The socket path is the first value in the comma-separated list of $TMUX.
+  return split($TMUX, ',')[0]
+endfunction
+
+function! s:TmuxCommand(args)
+  let cmd = 'tmux -S ' . s:TmuxSocket() . ' ' . a:args
+  let l:x=&shellcmdflag
+  let &shellcmdflag='-c'
+  let retval=system(cmd)
+  let &shellcmdflag=l:x
+  return retval
+endfunction
+
 " this is pretty intense. it's meant to help speed up a workflow. so first
 " make sure you are running vim inside tmux all day every day.
 " i assume i lost most everyone.
@@ -227,11 +246,20 @@ endfun
 " (vim) is the same as that in the bottom right (where you should have an
 " empty shell). Now create a file in the working directory called t. Put any
 " shell command in there that you want. When you save any file in vim, that
-" command the "t file" will be run in the bottom right tmux pane. It's not
+" command in the "t file" will be run in the bottom right tmux pane. It's not
 " perfect, but it's pretty magical for certain workflows, like editing code in
-" one pane and running it automatically in another.
+" one pane and running it automatically in another, or editing code in one
+" pane and running its tests in another, or editing a script in one pane and
+" syncing it out to a container in another.
 fun! Run_run_in_tmux_pane_ProgramInTmuxPane() "{{{
   let file_that_was_changed = '<afile>'
+
+  " never run if the tmux pane is zoomed, since that would just result in splatting
+  " text into vim.
+  if s:TmuxVimPaneIsZoomed()
+    return 0
+  endif
+
   " if you have a file called "t", it will run to the right, since t is short and right is best!
   if Should_execute_t_file('t')
     execute 'silent !tmux send-keys -t bottom-right "run_in_tmux_pane ' . getcwd() . '/t '. file_that_was_changed . '" Enter'
