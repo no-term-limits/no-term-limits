@@ -1,5 +1,5 @@
 for _, neovim_plugin_to_load in pairs(vim.g["neovim_plugins_ftw"]) do
-  -- neovim/nvim-lspconfig becomes nvim-lspconfig
+  -- for example, when we get the repo without the org, neovim/nvim-lspconfig becomes nvim-lspconfig
   repo_without_org = neovim_plugin_to_load:match("/(.*)")
   vim.call('plug#load', repo_without_org)
 end
@@ -125,8 +125,89 @@ cmp.setup.cmdline(':', {
 local lspconfig = require('lspconfig')
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+local on_attach = function(client, bufnr)
+  -- in nvim, i ran:
+  --   :lua =vim.lsp.get_active_clients()[1].server_capabilities
+  -- where lua =vim.lsp.get_active_clients()[1].name is pyright
+  -- and got rid of all of its capabilities to try to get rid of these errors like this:
+  --   Pyright: Import "flask" could not be resolved
+  -- by setting their values to false like this:
+  -- client.server_capabilities.renameProvider = false
+  -- that did not work. instead, you need to fix the load path by creating a pyrightconfig.json with venv and venvPath (which is what i did)
+  -- or disable the pyright rule with this configuration:
+  --   https://github.com/microsoft/pyright/blob/main/docs/configuration.md#type-check-diagnostics-settings
+  --   the rule in question is reportMissingModuleSource or reportMissingImports or something
+  --
+  -- client.server_capabilities.codeActionProvider = false
+  -- client.server_capabilities.completionProvider = false
+  -- client.server_capabilities.documentSymbolProvider = false
+  -- client.server_capabilities.executeCommandProvider = false
+  -- client.server_capabilities.renameProvider = false
+  -- client.server_capabilities.textDocumentSync = false
+  -- client.server_capabilities.workspace = false
+  -- client.server_capabilities.typeDefinitionProvider = false
+  -- client.server_capabilities.workspaceSymbolProvider = false
+
+  -- client.server_capabilities.hoverProvider = false
+  -- client.server_capabilities.documentHighlightProvider = false
+  -- client.server_capabilities.declarationProvider = false
+  -- client.server_capabilities.definitionProvider = false
+  -- client.server_capabilities.referencesProvider = false
+  -- client.server_capabilities.signatureHelpProvider = false
+end
+
+-- turns off all hints, since ruff already has those taken care of
+-- https://www.reddit.com/r/neovim/comments/11k5but/comment/jbjwwtf
 lspconfig['pyright'].setup {
-  capabilities = capabilities
+  capabilities = (function()
+    local capabilities = vim.lsp.protocol.make_client_capabilities()
+    capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
+    return capabilities
+  end)()
+}
+
+local opts = { noremap=true, silent=true }
+vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
+vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+  -- Enable completion triggered by <c-x><c-o>
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  local bufopts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+
+  -- we use <ctrl>k to navigate tmux and vim panes (go to pane above)
+  -- vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+
+  vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+  vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+  vim.keymap.set('n', '<space>wl', function()
+    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  end, bufopts)
+  vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
+  vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
+  vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+
+  -- we use <leader>f for fuzzy find
+  -- vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+end
+
+-- Configure `ruff-lsp`.
+-- See: https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#ruff_lsp
+-- For the default config, along with instructions on how to customize the settings
+require('lspconfig').ruff_lsp.setup {
+  on_attach = on_attach
 }
 
 -- allows for:
@@ -227,7 +308,7 @@ local null_ls_sources = {
   null_ls.builtins.code_actions.eslint_d,
 
   -- python
-  null_ls.builtins.diagnostics.flake8,
+  -- null_ls.builtins.diagnostics.flake8,
   -- null_ls.builtins.diagnostics.pydocstyle,
 
   -- these did not understand imports of stuff installed via poetry (before run_mypy_with_poetry_for_null_ls), so they had a bunch of false positives

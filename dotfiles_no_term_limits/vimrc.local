@@ -331,9 +331,10 @@ endif
 " added by tabnine-vim/YouCompleteMe
 let g:ycm_key_detailed_diagnostics=''
 
-" added by tComment / tcomment_vim
+" added by tComment / tcomment_vim but we don't use
 let g:tcommentMapLeader1=''
 let g:tcomment_mapleader1=''
+let g:tcommentMapLeader2=''
 
 " default mapping from ctags in favor of "+run" menu, "run ctags", <leader>rc
 " unmap <silent!> <leader>ct
@@ -377,9 +378,6 @@ highlight default link WhichKeyDesc      Function
 autocmd! FileType which_key
 autocmd  FileType which_key set laststatus=0 noshowmode noruler
   \| autocmd BufLeave <buffer> set laststatus=2 noshowmode ruler
-
-" Define prefix dictionary
-let g:which_key_map =  {}
 
 " Single mappings
 
@@ -633,7 +631,7 @@ function! OpenCurrentCodeLineInBrowser()
 endfunction
 
 " use calling <cr> twice so it returns back to vim after opening the link
-nnoremap <Leader>rb :call OpenCurrentCodeLineInBrowser()<cr><cr>
+nnoremap <leader>rb :call OpenCurrentCodeLineInBrowser()<cr><cr>
 let g:which_key_map.r.b = 'open source file in browser'
 
 " https://stackoverflow.com/questions/14896327/ultisnips-and-youcompleteme
