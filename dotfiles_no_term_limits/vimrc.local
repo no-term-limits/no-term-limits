@@ -540,9 +540,11 @@ endfunction
 noremap <Leader>rg :call GenerateUUID()<CR>
 
 " Ignores stuff in ~/dotfiles/vim/plugin/ctags.vim
-nmap <leader>rc :!ctags -R --exclude=.mypy_cache --exclude=.nox<cr>
+nmap <leader>ra :!ctags -R --exclude=.mypy_cache --exclude=.nox<cr>
 let g:which_key_map.r = { 'name' : '+run' }
-let g:which_key_map.r.c = 'run ctags'
+let g:which_key_map.r.a = 'run ctags'
+nmap <leader>rc :let @+ = expand("%:h") . '/' . expand("%:t")<cr>:echo 'copied file path into clipboard. note that cp copies the full path'<cr>
+let g:which_key_map.r.c = 'run copy path to clipboard'
 
 nmap <leader>rd :%s/\s\+$//e<cr>
 let g:which_key_map.r.d = 'delete trailing whitespace'
