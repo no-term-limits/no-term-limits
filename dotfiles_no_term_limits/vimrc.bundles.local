@@ -25,8 +25,7 @@ Plug 'ngmy/vim-rubocop'
 Plug 'vim-scripts/groovy.vim'
 
 " helps you remember and discover key bindings. type <spacebar> to use.
-" Plug 'liuchengxu/vim-which-key'
-Plug 'burnettk/vim-which-key', { 'branch': 'do-not-parse-mappings-w-lua-implementations' }
+Plug 'liuchengxu/vim-which-key'
 
 " allows you to hammer <leader>c to open up and manipulate cheat sheets.
 " See http://cht.sh/ and the plugin page for more features.
