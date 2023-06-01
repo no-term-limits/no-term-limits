@@ -431,9 +431,7 @@ require'nvim-treesitter.configs'.setup {
     -- Instead of true it can also be a list of languages
     additional_vim_regex_highlighting = false,
   },
-}
 
-require'nvim-treesitter.configs'.setup {
   textobjects = {
     select = {
       enable = true,
@@ -463,6 +461,9 @@ require'nvim-treesitter.configs'.setup {
     },
   },
 }
+
+-- Highlight the @foo.bar capture group with the "Identifier" highlight group
+vim.api.nvim_set_hl(0, "@variable.python", { link = "Text" })
 
 vim.api.nvim_create_autocmd('BufRead', {
   desc = 'turn on autowrap for markdown files if they already have lines longer than 100 characters',
