@@ -254,6 +254,10 @@ endfunction
 fun! Run_run_in_tmux_pane_ProgramInTmuxPane() "{{{
   let file_that_was_changed = '<afile>'
 
+  if !exists('$TMUX')
+    return 0
+  endif
+
   " never run if the tmux pane is zoomed, since that would just result in splatting
   " text into vim.
   if s:TmuxVimPaneIsZoomed()
