@@ -24,9 +24,6 @@ set background=dark
 " for vim-test. run tests (Leader+s for TestNearest, etc) using dispatch.vim
 let test#strategy = "dispatch"
 
-" Make Shift-K grep for word under cursor rather than look up docs
-nnoremap K :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
-
 let g:ctrlp_cmd = 'CtrlP .'
 let g:ctrlp_regexp = 1
 
@@ -545,6 +542,7 @@ noremap <Leader>rg :call GenerateUUID()<CR>
 
 " Ignores stuff in ~/dotfiles/vim/plugin/ctags.vim
 nmap <leader>ra :!ctags -R --exclude=.mypy_cache --exclude=.nox<cr>
+nmap <leader>rG :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
 let g:which_key_map.r = { 'name' : '+run' }
 let g:which_key_map.r.a = 'run ctags'
 nmap <leader>rc :let @+ = expand("%:h") . '/' . expand("%:t")<cr>:echo 'copied file path into clipboard. note that cp copies the full path'<cr>
