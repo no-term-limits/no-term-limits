@@ -47,7 +47,11 @@ set -g status-fg '#aaaaaa'
 
 # remove administrative debris (session name, hostname, time) in status bar
 set -g status-left ''
-set -g status-right "#(tmux_status_bar_right)"
+
+# run set status since it handles content length properly
+# and I cannot figure out how to get the content length of a string
+# that was gotten from a shell command in tmux conf file
+set -g status-right "#(tmux_set_status_bar_right)"
 
 # increase scrollback lines
 set -g history-limit 10000

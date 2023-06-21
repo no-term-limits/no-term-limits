@@ -13,4 +13,5 @@ if [[ -n "$TMUX" ]]; then
     tmux set status-right "$content"
     tmux set status-right-length "$(wc -c <<<"$content")"
   fi
+  echo "$content"
 fi
