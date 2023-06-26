@@ -9,6 +9,10 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP:
 
+if [[ "${NO_TERM_LIMITS_DISABLE_KN_FOR_PROMPT:-}" == "true" ]]; then
+  exit
+fi
+
 called_from="${1:-}"
 if [[ -n "${TMUX:-}" ]] && [[ "$called_from" == "p10k" ]]; then
   exit
