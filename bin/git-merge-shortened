@@ -9,12 +9,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: merge branch into current repo
 
-# __git_complete gitpull _git_pull
-function thefunc() {
-    __git_complete HEY
-}
-thefunc
-
 if [[ "$1" == "auto_complete_commands" ]]; then
   git-branch-names "$1" | awk -F '/' '{print $NF}'
   exit
