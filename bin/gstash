@@ -9,4 +9,31 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: git stash local changes
 
-git stash "$@"
+if [[ "$1" == "auto_complete_commands" ]]; then
+  git stash list | awk -F ':' '{print $NF}' | sed -E 's/^ +//'
+  exit
+fi
+
+stash_name=""
+apply_stash="false"
+for arg in "$@" ; do
+  if [[ "$arg" == "apply" ]]; then
+    apply_stash="true"
+  else
+    stash_name="$arg"
+  fi
+done
+
+stash_args=""
+if [[ "$apply_stash" == "true" ]]; then
+  stash_args="${stash_args} apply"
+  if [[ -n "$stash_name" ]]; then
+    # shellcheck disable=2089
+    stash_args="${stash_args} stash^{/${stash_name}}"
+  fi
+elif [[ -n "$stash_name" ]]; then
+  stash_args="${stash_args} -m ${stash_name}"
+fi
+
+# shellcheck disable=2086
+git stash $stash_args
