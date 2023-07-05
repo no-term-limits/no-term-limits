@@ -153,19 +153,19 @@ then
     compctl -K local_${tool}_auto_complete ${tool}
     "
   done
-fi
 
-# From: https://unix.stackexchange.com/a/496759
-# makes alias command pass through to source command
-# for the purposes of tab completion on command line
-compdefas () {
-  local source_command="$1"
-  local alias_command="$2"
-  if (($+_comps[$source_command])); then
-    compdef $_comps[$source_command] ${alias_command}=$source_command
-  fi
-}
-compdefas git g
+  # From: https://unix.stackexchange.com/a/496759
+  # makes alias command pass through to source command
+  # for the purposes of tab completion on command line
+  compdefas () {
+    local source_command="$1"
+    local alias_command="$2"
+    if (($+_comps[$source_command])); then
+      compdef $_comps[$source_command] ${alias_command}=$source_command
+    fi
+  }
+  compdefas git g
+fi
 
 alias cd..='cd ..'
 for count in {1..9}
