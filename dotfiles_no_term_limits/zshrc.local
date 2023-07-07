@@ -129,6 +129,10 @@ alias cproj=cd_to_project
 alias ntl='c no-term-limits'
 
 # for the c function, autocomplete as if we were in the ~/projects directory
+# -c is command
+# -f is file
+# -K will run the specified function
+# evidently all values are returned as single list
 if type compctl >/dev/null 2>&1
 then
   compctl -/ -W "${HOME}/projects" c
