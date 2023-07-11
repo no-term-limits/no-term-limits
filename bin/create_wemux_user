@@ -84,7 +84,10 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   sudo mv /tmp/temp_auth_content "$pair_user_dir/.ssh/authorized_keys"
   sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
   sudo chown -R "$pair_user" "$pair_user_dir"
-  tmux server-access -a "$pair_user"
+
+  # tmux 3.3+ requires this command but it does not exist before
+  # that version so ignore the failure
+  tmux server-access -a "$pair_user" || echo ''
 
   echo "$pair_user" >>/var/tmp/no_term_limits_wemux_ssh_users
 fi
