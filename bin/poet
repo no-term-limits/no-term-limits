@@ -51,7 +51,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   elif [[ -n "$test_file" ]]; then
     args="$test_file $args"
   fi
-  poetry run coverage run --parallel -m pytest $args
+  poetry run pytest $args
 elif [[ "$command" == "update" ]]; then
   if [[ -z "${1:-}" ]]; then
     >&2 echo "usage: $(basename "$0") [update] [library]"
