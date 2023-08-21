@@ -6,7 +6,7 @@ Plug 'nono/vim-handlebars'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-dispatch'
-Plug 'majutsushi/tagbar'
+Plug 'preservim/tagbar'
 
 " commented out since i think vim-fugitive has this covered
 " Plug 'vim-scripts/vcscommand.vim'
@@ -20,7 +20,11 @@ Plug 'christoomey/vim-tmux-runner'
 Plug 'wincent/terminus'
 
 Plug 'burnettk/vim-jenkins'
-Plug 'SirVer/ultisnips'
+
+if !exists('g:ntl_ultisnips_enabled') || g:ntl_ultisnips_enabled != 0
+  Plug 'SirVer/ultisnips'
+endif
+
 Plug 'ngmy/vim-rubocop'
 Plug 'vim-scripts/groovy.vim'
 
@@ -42,7 +46,6 @@ let g:neovim_plugins_ftw = [
   \'hrsh7th/cmp-path',
   \'hrsh7th/cmp-cmdline',
   \'hrsh7th/nvim-cmp',
-  \'quangnguyen30192/cmp-nvim-ultisnips',
   \'jose-elias-alvarez/null-ls.nvim',
   \'jose-elias-alvarez/typescript.nvim',
   \'nvim-lua/plenary.nvim',
@@ -51,6 +54,11 @@ let g:neovim_plugins_ftw = [
   \'nvim-treesitter/nvim-treesitter',
   \'nvim-treesitter/nvim-treesitter-textobjects',
 \]
+
+if !exists('g:ntl_ultisnips_enabled') || g:ntl_ultisnips_enabled != 0
+  call add(g:neovim_plugins_ftw, 'quangnguyen30192/cmp-nvim-ultisnips')
+endif
+
 for neovim_plugin_to_plug in g:neovim_plugins_ftw
   " CommandThatNeverFires actually never fires.
   " Instead, we load each of the plugins in g:neovim_plugins_ftw

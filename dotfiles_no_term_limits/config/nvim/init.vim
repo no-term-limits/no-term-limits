@@ -1,5 +1,9 @@
 set runtimepath^=~/.vim runtimepath+=~/.vim/after
 let &packpath = &runtimepath
+
+" was giving me some error. will debug.
+let g:ntl_ultisnips_enabled = 1
+
 source ~/.vimrc
 
 " function! TellVimPlugThatWeAreInNeovim()

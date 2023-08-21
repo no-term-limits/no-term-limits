@@ -4,8 +4,10 @@ for _, neovim_plugin_to_load in pairs(vim.g["neovim_plugins_ftw"]) do
   vim.call('plug#load', repo_without_org)
 end
 
-require("cmp_nvim_ultisnips").setup{}
-local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+if (vim.g.ntl_ultisnips_enabled == nil or vim.g.ntl_ultisnips_enabled ~= 0) then
+  require("cmp_nvim_ultisnips").setup{}
+  local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+end
 
 local cmp = require'cmp'
 

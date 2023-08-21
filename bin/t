@@ -69,6 +69,11 @@ function ko() {
   tmux kill-pane -a
 }
 
+# actually more intense than TKO
+function k() {
+  tmux kill-session
+}
+
 function layout_6_panes() {
   tmux split-window -t 1 -v -p 40
   tmux split-window -t 2 -h -p 33
