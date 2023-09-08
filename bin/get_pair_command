@@ -33,10 +33,10 @@ if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]]; then
 
   while read -r pair_user ; do
     if [[ "$pair_user" != "$(whoami)" ]]; then
-      commands_to_copy="${commands_to_copy}ssh -o \"StrictHostKeyChecking=no\" $pair_user@${ssh_target}:"
+      commands_to_copy="${commands_to_copy}ssh -o \"StrictHostKeyChecking=no\" $pair_user@${ssh_target}:::"
     fi
   done </var/tmp/no_term_limits_wemux_ssh_users
-  commands_to_copy=$(perl -p -e 's/:*$//' <<<"$commands_to_copy" | tr ':' '\n')
+  commands_to_copy=$(perl -p -e 's/:*$//' <<<"$commands_to_copy" | sed -E 's/:::/\n/g')
   echo -e "$commands_to_copy"
   cbcp "$commands_to_copy"
 fi
