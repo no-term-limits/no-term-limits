@@ -35,7 +35,7 @@ found.
 
 Based on https://github.com/gpakosz/.tmux
 
-**Note**: We override `<Leader>` from `ctrl-b` to `ctrl-s`.
+**Note**: We override `<Leader>` from `ctrl-b` (default) to `ctrl-s` because `ctrl-s` is a bit more ergonomic.
 
 Common shortcuts:
   * `<Leader>\` - split pane vertically (same key as vertical bar, `|`, but you don't have to hold down shift)
@@ -118,4 +118,4 @@ and traps these errors so we can print out the command name and line number on
 which it failed. This makes debugging issues way easier. We prefer all commands
 to have this header.
 
-To add the header to an existing script, open the command in vim: `edc [command_name]`, type `h ctrl-j` and it will add the header.
+To add the header to an existing script, open the command in vim (`edc [command_name]`), insert the character `h`, execute `ctrl-j` and it will add the header (this is using a vim snippet).
