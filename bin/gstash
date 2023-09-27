@@ -28,8 +28,9 @@ stash_args=""
 if [[ "$apply_stash" == "true" ]]; then
   stash_args="${stash_args} apply"
   if [[ -n "$stash_name" ]]; then
+    stash_index=$(git stash list | grep -E ": ${stash_name}$" | head -n1 | sed -E 's/stash\@\{([0-9]*)\}.*/\1/')
     # shellcheck disable=2089
-    stash_args="${stash_args} stash^{/${stash_name}}"
+    stash_args="${stash_args} stash@{${stash_index}}"
   fi
 elif [[ -n "$stash_name" ]]; then
   stash_args="${stash_args} -m ${stash_name}"
