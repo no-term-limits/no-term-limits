@@ -315,6 +315,7 @@ local null_ls_sources = {
 
   -- these did not understand imports of stuff installed via poetry (before run_mypy_with_poetry_for_null_ls), so they had a bunch of false positives
   -- still haven't fixed pylint
+  -- null_ls.builtins.diagnostics.mypy,
   null_ls.builtins.diagnostics.mypy.with({
     command = "run_mypy_with_poetry_for_null_ls",
   }),

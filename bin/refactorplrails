@@ -9,34 +9,35 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: auto_maintain: refactorplrails
 
-originalSnakeCased=`echo "$1" | perl -pe "s/-/_/g"`
-newSnakeCased=`echo "$2" | perl -pe "s/-/_/g"`
+originalSnakeCased=$(echo "$1" | perl -pe "s/-/_/g")
+newSnakeCased=$(echo "$2" | perl -pe "s/-/_/g")
 if [[ "$1" != "$originalSnakeCased" ]]; then
-  for file in `find . | ( grep $1 | egrep -v "coverage|node_modules|.bower|bower_componets" || echo '' )`; do
-    newfile=`echo $file | sed -e "s/$1/$2/g"`
-    echo running: git mv $file $newfile
-    git mv $file $newfile
+  for file in $(git ls-files | ( grep "$1" | grep -vE "coverage|node_modules" || echo '' )); do
+    newfile=$(echo "$file" | sed -e "s/$1/$2/g")
+    echo running: git mv "$file" "$newfile"
+    git mv "$file" "$newfile"
   done
 fi
-for file in `find . | ( grep $originalSnakeCased | egrep -v "coverage|node_modules|.bower|bower_componets" | grep -v "/$originalSnakeCased/" || echo '')`
+
+for file in $(git ls-files | ( grep "$originalSnakeCased" | grep -vE "coverage|node_modules" | grep -v "/$originalSnakeCased/" || echo ''))
 do
-  newfile=`echo $file | sed -e "s/$originalSnakeCased/$newSnakeCased/g"`
-  echo running: git mv $file $newfile
-  git mv $file $newfile
+  newfile=$(echo "$file" | sed -e "s/$originalSnakeCased/$newSnakeCased/g")
+  echo running: git mv "$file" "$newfile"
+  git mv "$file" "$newfile"
 done
 
 new_title_case=$(perl -p -e 's/_(\w)/ \u\1/g' <<<"$newSnakeCased" | perl -p -e 's/^(\w)/\u\1/')
 original_title_case=$(perl -p -e 's/_(\w)/ \u\1/g' <<<"$originalSnakeCased" | perl -p -e 's/^(\w)/\u\1/')
 
-originalClass=`echo "$1" | perl -pe "s/-([a-z])/\u\1/g" | perl -pe "s/^(.)/\u\1/g"`
-newClass=`echo "$2" | perl -pe "s/-([a-z])/\u\1/g" | perl -pe "s/^(.)/\u\1/g"`
+originalClass=$(echo "$1" | perl -pe "s/-([a-z])/\u\1/g" | perl -pe "s/^(.)/\u\1/g")
+newClass=$(echo "$2" | perl -pe "s/-([a-z])/\u\1/g" | perl -pe "s/^(.)/\u\1/g")
 if [[ "$1" != "$originalSnakeCased" ]]; then
   echo "running gitsr $1 $2"
-  gitsr $1 $2
+  gitsr "$1" "$2"
 fi
 echo "running gitsr $originalClass $newClass"
-gitsr $originalClass $newClass
+gitsr "$originalClass" "$newClass"
 echo "running gitsr $originalSnakeCased $newSnakeCased"
-gitsr $originalSnakeCased $newSnakeCased
+gitsr "$originalSnakeCased" "$newSnakeCased"
 echo "running gitsr $original_title_case $new_title_case"
 gitsr "$original_title_case" "$new_title_case"
