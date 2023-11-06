@@ -2,17 +2,17 @@
 
 set -eo pipefail
 
-# HELP: git: runs a git bisect command in current directory with given revision range and command
+# HELP: git: runs a git bisect command in current directory with given revision range (bad good) and command
+
+if [[ -z "$3" ]]; then
+  >&2 echo "usage: $(basename "$0") [bad_revision] [good_revision] [command]"
+  exit 1
+fi
 
 bad_revision="$1"
 good_revision="$2"
 shift
 shift
-
-if [[ -z "$1" ]]; then
-  >&2 echo "usage: $0 [bad_revision] [good_revision] [command]"
-  exit 1
-fi
 
 if grep -q 'HEAD' <<<"${bad_revision}${good_revision}" ; then
   >&2 echo "ERROR: revisions must be actual sha1's and not 'HEAD' which is ambiguous"

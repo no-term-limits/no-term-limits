@@ -489,3 +489,12 @@ vim.api.nvim_create_autocmd('BufRead', {
     end
   end,
 })
+
+-- https://www.reddit.com/r/neovim/comments/17mrka2/comment/k7n3d9b
+vim.keymap.set("n", "i", function()
+  if #vim.fn.getline(".") == 0 then
+    return [["_cc]]
+  else
+    return "i"
+  end
+end, { expr = true, desc = "properly indent on empty line when insert" })
