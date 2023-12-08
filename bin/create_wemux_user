@@ -83,7 +83,7 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   sudo mv /tmp/tmp_bashrc "$pair_user_dir/.bashrc"
   sudo mv /tmp/temp_auth_content "$pair_user_dir/.ssh/authorized_keys"
   sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
-  sudo chown -R "$pair_user" "$pair_user_dir"
+  sudo chown -R "$pair_user" "$pair_user_dir" || echo 'failed to chown everything, but hopefully it chowned enough'
 
   # tmux 3.3+ requires this command but it does not exist before
   # that version so ignore the failure
