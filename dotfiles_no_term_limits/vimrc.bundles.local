@@ -38,6 +38,7 @@ Plug 'dbeniamine/cheat.sh-vim'
 " null-ls is a possible ale replacement: https://github.com/jose-elias-alvarez/null-ls.nvim
 " kyazdani42/nvim-web-devicons is related to null-ls
 "  \'folke/trouble.nvim',
+"  MunifTanjim/nui.nvim is the popup window for codegpt
 let g:neovim_plugins_ftw = [
   \'neovim/nvim-lspconfig',
   \'hrsh7th/cmp-nvim-lsp',
@@ -53,6 +54,8 @@ let g:neovim_plugins_ftw = [
   \'mfussenegger/nvim-lint',
   \'nvim-treesitter/nvim-treesitter',
   \'nvim-treesitter/nvim-treesitter-textobjects',
+  \'dpayne/CodeGPT.nvim',
+  \'MunifTanjim/nui.nvim',
 \]
 
 if !exists('g:ntl_ultisnips_enabled') || g:ntl_ultisnips_enabled != 0
