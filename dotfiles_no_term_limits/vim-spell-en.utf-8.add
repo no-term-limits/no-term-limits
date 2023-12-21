@@ -4,3 +4,6 @@ github
 aws
 k8s
 DevOps
+frontend
+backend
+auth
