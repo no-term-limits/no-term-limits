@@ -9,4 +9,8 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: git: gitkilllastlocalcommit
 
-git reset --hard HEAD~1 "$@"
+number_of_commits="${1:-}"
+if [[ -z "$number_of_commits" ]]; then
+  number_of_commits=1
+fi
+git reset --hard "HEAD~${number_of_commits}"
