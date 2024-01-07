@@ -1,10 +1,14 @@
 return {
-	s("he", t("also loaded!!")),
-	s("help", t("also loaded help!!")),
 	s(
-		"ha",
-		f(function(args, snip, user_arg_1)
-			return vim.fn.trim(vim.fn.system([['date -d ']] .. target_date .. [[' +'%F %a']]))
+		"h",
+		f(function(_, snip)
+			-- return vim.fn.trim(vim.fn.system("bash_script_header"))
+			local output = vim.fn.systemlist("bash_script_header")
+			local trimmed_output = {}
+			for _, line in ipairs(output) do
+				table.insert(trimmed_output, line)
+			end
+			return trimmed_output
 		end, {})
 	),
 }
