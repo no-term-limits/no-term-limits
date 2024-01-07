@@ -2,10 +2,17 @@
 -- the lazyvim extras (like lazyvim.plugins.extras.lang.typescript) actually do load like i intend. i hope it isn't double loading lazyvim.
 return {
   { "LazyVim/LazyVim" },
-  -- import any extras modules here
+
+  -- everyday languages
   { import = "lazyvim.plugins.extras.lang.typescript" },
-  { import = "lazyvim.plugins.extras.lang.json" },
   { import = "lazyvim.plugins.extras.lang.python" },
+
+  -- languages that are not as important, but why not
+  { import = "lazyvim.plugins.extras.lang.json" },
+  { import = "lazyvim.plugins.extras.lang.yaml" },
+  { import = "lazyvim.plugins.extras.lang.markdown" },
+  { import = "lazyvim.plugins.extras.lang.docker" },
+
 
   { import = "lazyvim.plugins.extras.coding.copilot" },
 
