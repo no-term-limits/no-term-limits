@@ -282,3 +282,8 @@ if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]; then
     source "${HOME}/.zshrc.no_term_limits_overrides"
   fi
 fi
+
+nvim_appnames_file="${HOME}/.config/nvims/nvim_appnames"
+if [[ -f "$nvim_appnames_file" ]]; then
+  source "$nvim_appnames_file"
+fi
