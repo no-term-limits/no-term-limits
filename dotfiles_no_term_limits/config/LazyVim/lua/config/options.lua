@@ -4,3 +4,6 @@
 
 -- turn off vim mouse support
 vim.opt.mouse = ""
+
+-- swapfiles are mega annoying
+vim.opt.swapfile = false.
