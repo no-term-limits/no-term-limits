@@ -1,0 +1,5 @@
+# default is Tabs
+indent_type = "Spaces"
+
+# default is 4
+indent_width = 2
