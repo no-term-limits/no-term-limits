@@ -8,4 +8,9 @@ return {
 			require("luasnip.loaders.from_lua").load({ paths = vim.fn.stdpath("config") .. "/snippets/" })
 		end,
 	},
+  opts = {
+    history = true,
+    delete_check_events = "TextChanged",
+    update_events = 'InsertLeave,TextChangedI',
+  },
 }
