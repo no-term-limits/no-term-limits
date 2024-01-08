@@ -6,9 +6,7 @@ return {
       shfmt = {
         prepend_args = { "-i", "2" },
       },
-      stylelua = {
-        prepend_args = { "-i", "2" },
-      },
+      -- stylelua uses tabs by default as well, but it is configured for spaces in no-term/.stylelua.toml
     },
   },
 }
