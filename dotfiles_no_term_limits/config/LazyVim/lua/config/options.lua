@@ -6,7 +6,7 @@
 vim.opt.mouse = ""
 
 -- swapfiles are mega annoying
-vim.opt.swapfile = false.
+vim.opt.swapfile = false
 
 -- turn off unnamedplus clipboard, since we don't want the main register syncing with system clipboard
 vim.opt.clipboard = ""
