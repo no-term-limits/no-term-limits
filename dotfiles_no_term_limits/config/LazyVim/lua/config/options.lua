@@ -10,3 +10,6 @@ vim.opt.swapfile = false
 
 -- turn off unnamedplus clipboard, since we don't want the main register syncing with system clipboard
 vim.opt.clipboard = ""
+
+-- do not highlight full line
+vim.o.cursorline = false
