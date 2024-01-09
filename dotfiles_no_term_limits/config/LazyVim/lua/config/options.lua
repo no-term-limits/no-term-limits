@@ -13,3 +13,6 @@ vim.opt.clipboard = ""
 
 -- do not highlight full line
 vim.o.cursorline = false
+
+-- this is super annoying for pairing
+vim.o.relativenumber = false
