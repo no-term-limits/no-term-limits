@@ -13,8 +13,9 @@ return {
   { import = "lazyvim.plugins.extras.lang.markdown" },
   { import = "lazyvim.plugins.extras.lang.docker" },
 
+  -- formatting
+  { import = "lazyvim.plugins.extras.formatting.prettier" },
 
+  -- AI
   { import = "lazyvim.plugins.extras.coding.copilot" },
-
-  -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
 }
