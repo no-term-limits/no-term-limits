@@ -13,6 +13,9 @@ return {
   { import = "lazyvim.plugins.extras.lang.markdown" },
   { import = "lazyvim.plugins.extras.lang.docker" },
 
+  -- linting
+  { import = "lazyvim.plugins.extras.linting.eslint" },
+
   -- formatting
   { import = "lazyvim.plugins.extras.formatting.prettier" },
 
