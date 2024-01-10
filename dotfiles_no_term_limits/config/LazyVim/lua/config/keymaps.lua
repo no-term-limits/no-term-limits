@@ -14,3 +14,7 @@ local utils = require("telescope.utils")
 vim.keymap.set("n", "<leader>fd", function()
   builtin.find_files({ cwd = utils.buffer_dir() })
 end, { noremap = false, silent = false, desc = "Find Files (buffer dir)" })
+
+vim.keymap.set("n", "<leader>se", function()
+  builtin.grep_string()
+end, { noremap = false, silent = false, desc = "Grep word under cursor" })

@@ -6,5 +6,5 @@ return {
       colorscheme = "default",
       style = "",
     },
-  }
+  },
 }
