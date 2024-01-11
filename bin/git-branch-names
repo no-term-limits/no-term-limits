@@ -23,7 +23,7 @@ if [[ "$1" == "auto_complete_commands" ]]; then
   exit
 fi
 
-branch_name=$(get_branch_names | grep -E "\<$1$" || echo '')
+branch_name=$(get_branch_names | grep -E "(/|^)$1$" || echo '')
 
 if [[ -z "$branch_name" ]]; then
   >&2 echo "ERROR: Could not find a branch matching name: $1"

@@ -16,3 +16,6 @@ vim.o.cursorline = false
 
 -- this is super annoying for pairing
 vim.o.relativenumber = false
+
+-- disable so json files will show quotes
+vim.opt.conceallevel = 0
