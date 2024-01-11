@@ -18,3 +18,6 @@ end, { noremap = false, silent = false, desc = "Find Files (buffer dir)" })
 vim.keymap.set("n", "<leader>se", function()
   builtin.grep_string()
 end, { noremap = false, silent = false, desc = "Grep word under cursor" })
+
+-- there is never a time when we want to save a visual selection: https://vi.stackexchange.com/a/16735
+vim.cmd([[cabbrev <expr> w getcmdtype()==':' && getcmdline() == "'<,'>w" ? '<c-u>w' : 'w']])
