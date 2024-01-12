@@ -7,10 +7,10 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: returns lvim if configs exist, nvim if installed, or vim
+# HELP: returns nvim-lazyvim if configs exist, nvim if installed, or vim
 
 if [[ -d "${HOME}/.config/LazyVim" ]]; then
-  echo lvim
+  echo nvim-lazyvim
 elif command -v nvim >/dev/null 2>&1; then
   echo nvim
 else
