@@ -60,3 +60,18 @@ function AddImportForTermUnderCursor()
 end
 
 vim.keymap.set("n", "<leader>ri", AddImportForTermUnderCursor, { noremap = false, silent = false, desc = "Add import" })
+
+-- define LazyActiveLinters command to see what nvim-lint is up to
+-- doesn't actually work, despite get_running() being documented on the nvim-lint github page
+local lint_progress = function()
+  local linters = require("lint").get_running()
+  local active_linters = ""
+  if #linters == 0 then
+    active_linters = "none"
+  else
+    active_linters = "󱉶 " .. table.concat(linters, ", ")
+  end
+  vim.print("active linters: " .. active_linters)
+end
+
+vim.api.nvim_create_user_command("LazyActiveLinters", lint_progress, {})
