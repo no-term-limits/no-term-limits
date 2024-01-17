@@ -3,8 +3,12 @@ return {
   opts = {
     linters_by_ft = {
       python = { "mypy" },
+      sh = { "shellcheck" },
     },
     linters = {
+      shellcheck = {
+        append_fname = true,
+      },
       mypy = {
         -- otherwise it won't be able to access the mypy extensions we require
         cmd = "run_mypy_with_poetry_for_lint",
