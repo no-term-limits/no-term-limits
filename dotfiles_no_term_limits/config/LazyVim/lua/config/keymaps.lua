@@ -75,3 +75,11 @@ local lint_progress = function()
 end
 
 vim.api.nvim_create_user_command("LazyActiveLinters", lint_progress, {})
+
+function OpenCurrentCodeLineInBrowser()
+  local line_number = vim.fn.line(".")
+  local file_full_path = vim.fn.bufname()
+  vim.fn.execute("! git_open " .. file_full_path .. " " .. line_number)
+end
+
+vim.keymap.set("n", "<leader>rb", OpenCurrentCodeLineInBrowser, { noremap = true, silent = true })
