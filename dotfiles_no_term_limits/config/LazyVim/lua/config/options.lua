@@ -19,3 +19,6 @@ vim.o.relativenumber = false
 
 -- disable so json files will show quotes
 vim.opt.conceallevel = 0
+
+-- disable persistent undo
+vim.o.undofile = false
