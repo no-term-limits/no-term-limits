@@ -7,6 +7,7 @@ return {
       "shfmt",
       "shellcheck",
       "mypy",
+      "json-lsp",
     },
   },
 }
