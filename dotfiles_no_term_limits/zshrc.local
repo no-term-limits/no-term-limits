@@ -159,6 +159,7 @@ then
     git-merge-shortened
     gstash
     kc
+    kn
   )
   for tool in "${auto_complete_commands[@]}" ; do
     eval "
@@ -180,11 +181,6 @@ then
     fi
   }
   compdefas git g
-
-  # add completions for flux
-  if command -v flux > /dev/null; then
-    . <(flux completion zsh)
-  fi
 fi
 
 alias cd..='cd ..'
@@ -258,6 +254,11 @@ if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]
     # so we get fast search through history with fzf. to see the key binding:
     # bindkey | grep history | grep R
     source ~/.fzf.zsh
+  fi
+
+  # add completions for flux
+  if command -v flux >/dev/null && command -v compdef >/dev/null; then
+    . <(flux completion zsh)
   fi
 fi
 

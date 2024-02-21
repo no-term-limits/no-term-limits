@@ -7,23 +7,19 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: kubernetes/k8s: show the current cluster and namespace
+# HELP: kubernetes/k8s: set the current namespace within the current context
 
-config_view=$(k config view -o json)
-current_context=$(jq -r '."current-context"' <<<"$config_view")
-
-if [[ -n "$current_context" ]]; then
-  cluster_name="$current_context"
-  cluster=$(jq -r ".clusters | map(select(.name == \"${cluster_name}\")) | .[].cluster.server" <<<"$config_view")
-
-  # if current_context isn't a cluster name then try shaving off the text through the first hyphen
-  if [[ -z "$cluster" ]]; then
-    cluster_name=$(sed 's/^[^-]*-//' <<<"$current_context")
-    cluster=$(jq -r ".clusters | map(select(.name == \"${cluster_name}\")) | .[].cluster.server" <<<"$config_view")
-  fi
-
-  namespace=$(jq -r ".contexts | map(select(.name == \"${current_context}\")) | .[].context.namespace" <<<"$config_view")
-  echo "${cluster} >>> ${namespace}"
-else
-  exit 1
+namespace="${1:-}"
+if [[ -z "$namespace" ]]; then
+  namespace=default
+  echo "no argument specified. switching to ${namespace} namespace."
 fi
+
+if [[ "$namespace" == "auto_complete_commands" ]]; then
+  kg namespaces -o json | jq -r '.items[] | .metadata.name'
+  exit
+fi
+
+kubectl config set-context --current --namespace="$namespace"
+
+tmux_set_status_bar_right >/dev/null

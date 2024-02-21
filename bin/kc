@@ -9,17 +9,23 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: kubernetes/k8s: set the current namespace within the current context
 
-namespace="${1:-}"
-if [[ -z "$namespace" ]]; then
-  namespace=default
-  echo "no argument specified. switching to ${namespace} namespace."
-fi
+function list_contexts() {
+  kubectl config get-contexts -o name
+}
 
-if [[ "$namespace" == "auto_complete_commands" ]]; then
-  kg namespaces -o json | jq -r '.items[] | .metadata.name'
+context="${1:-}"
+if [[ -z "$context" ]]; then
+  echo >&2 "usage: $(basename $0) [context]"
+  echo >&2 -e "\navailable contexts:\n"
+  list_contexts >&2
   exit
 fi
 
-kubectl config set-context --current --namespace="$namespace"
+if [[ "$context" == "auto_complete_commands" ]]; then
+  list_contexts
+  exit
+fi
 
-tmux_set_status_bar_right
+kubectl config use-context "$context"
+
+tmux_set_status_bar_right >/dev/null

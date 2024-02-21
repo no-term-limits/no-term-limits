@@ -22,7 +22,7 @@ if command -v kube_ps1 >/dev/null 2>&1; then
   kube_ps1
 else
   set +e
-  kns=$(kn)
+  kns=$(kcurrentnamespace)
   exitstatus=$?
   set -e
 
