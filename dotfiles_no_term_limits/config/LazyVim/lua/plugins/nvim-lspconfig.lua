@@ -20,7 +20,6 @@ return {
       yamlls = {
         -- yaml seems to work. hot.yml is validated.
         on_new_config = function(new_config)
-          vim.print("HI yaml")
           new_config.settings.yaml.schemas = vim.tbl_deep_extend(
             "force",
             new_config.settings.yaml.schemas or hot_schemas_to_inject,
@@ -31,7 +30,6 @@ return {
       -- json seems to NOT work. hot.json is not validated when line two is changed to hot.json, even though <leader>li shows vscode-json-language-server running. the print statements don't work in either yaml or json.
       jsonls = {
         on_new_config = function(new_config)
-          vim.print("HI json")
           new_config.settings.json.schemas = new_config.settings.json.schemas or hot_schemas_to_inject
           vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
         end,
