@@ -6,6 +6,10 @@ then
   export NO_TERM_LIMITS_PROJECTS_DIR="$HOME/projects"
 fi
 
+if [[ -d "${NO_TERM_LIMITS_PROJECTS_DIR}/github/kube-ps1" ]]; then
+  source "${NO_TERM_LIMITS_PROJECTS_DIR}/github/kube-ps1/kube-ps1.sh"
+fi
+
 # checking for profile shell will catch the case where this file is sourced from a bash script
 # so we don't then do crazy things like source powerlevel10k in bash
 if test -n "$ZSH_VERSION"; then
