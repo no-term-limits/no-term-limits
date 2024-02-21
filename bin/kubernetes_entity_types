@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -10,4 +10,22 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: kubernetes/k8s: basic kubernetes types that we care about
 
 # does not include secrets because that entity type is often restricted and we don't want lack of access to break commands.
-echo 'cm,cronjob,deploy,daemonset,hpa,pvc,ing,job,po,poddisruptionbudget,role,rolebinding,rs,serviceaccount,statefulset,svc'
+ktypes=(cm
+  cronjob
+  deploy
+  daemonset
+  hpa
+  pvc
+  ing
+  job
+  po
+  poddisruptionbudget
+  role
+  rolebinding
+  rs
+  serviceaccount
+  statefulset
+  svc
+)
+
+tr ' ' ',' <<<"${ktypes[*]}"
