@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 # trap 'error_handler ${LINENO} $?' ERR
@@ -18,14 +18,18 @@ if [[ -n "${TMUX:-}" ]] && [[ "$called_from" == "p10k" ]]; then
   exit
 fi
 
-set +e
-kns=$(kn)
-exitstatus=$?
-set -e
-
-if [[ "$exitstatus" == "0" ]]; then
-  kns_line=$(perl -p -e 's~.*//(.*?)\..*> (.*)~\1:\2~' <<<"$kns")
-  echo "(${kns_line}) "
+if command -v kube_ps1 >/dev/null 2>&1; then
+  kube_ps1
 else
-  echo ""
+  set +e
+  kns=$(kn)
+  exitstatus=$?
+  set -e
+
+  if [[ "$exitstatus" == "0" ]]; then
+    kns_line=$(perl -p -e 's~.*//(.*?)\..*> (.*)~\1:\2~' <<<"$kns")
+    echo "(${kns_line}) "
+  else
+    echo ""
+  fi
 fi

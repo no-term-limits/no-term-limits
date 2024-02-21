@@ -9,6 +9,10 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: kubernetes/k8s: set the current namespace within the current context
 
-namespace="$1"
+namespace="${1:-}"
+if [[ -z "$namespace" ]]; then
+  namespace=default
+  echo "no argument specified. switching to ${namespace} namespace."
+fi
 
 kubectl config set-context --current --namespace="$namespace"
