@@ -173,6 +173,11 @@ then
     fi
   }
   compdefas git g
+
+  # add completions for flux
+  if command -v flux > /dev/null; then
+    . <(flux completion zsh)
+  fi
 fi
 
 alias cd..='cd ..'
