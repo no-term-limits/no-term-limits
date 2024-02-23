@@ -1,4 +1,4 @@
-function debuglogger(message)
+local function debuglogger(message)
   local m = "nil"
   if m then
     m = tostring(message)
@@ -7,9 +7,28 @@ function debuglogger(message)
 end
 
 return {
+  s("cl", {
+    t('echo "'),
+    i(1, "value"),
+    t(": ${"),
+    extras.rep(1),
+    t('}"'),
+  }),
+  s("e", {
+    t('>&2 echo "ERROR: '),
+    i(1, "value"),
+    -- 2 args here signify a newline between them
+    t({ '"', "exit 1" }),
+  }),
+  s(
+    "s",
+    f(function(_, _)
+      return 'script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"'
+    end, {})
+  ),
   s(
     "h",
-    f(function(_, snip)
+    f(function(_, _)
       local output = vim.fn.systemlist("bash_script_header")
       local trimmed_output = {}
       for _, line in ipairs(output) do
@@ -20,7 +39,7 @@ return {
   ),
   s(
     "u",
-    f(function(_, snip)
+    f(function(_, _)
       local regexForVariableAssignments = '^([%w_]+)="?%$%{?(%d)(:-[%w_]*)}?"?'
       local argVariableAssignmentLineNumbers = {}
       for lineNumber, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, -1, false)) do

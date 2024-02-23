@@ -1,0 +1,4 @@
+{
+  "diagnostics.globals": ["s", "t", "i", "f", "vim", "extras"]
+}
+
