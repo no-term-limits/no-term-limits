@@ -7,8 +7,16 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP:
+# HELP: returns the current kubernetes context and namespace
 
-context=$(kubectl config current-context)
-namespace=$(kubectl config view --minify --output 'jsonpath={..namespace}')
-echo "${context} >>> ${namespace}"
+if [[ -f "${HOME}/.kube/config" ]]; then
+  context=$(kubectl config current-context)
+  namespace=$(kubectl config view --minify --output 'jsonpath={..namespace}')
+  echo "${context} >>> ${namespace}"
+else
+  # this is called in the prompt, so we can't use echo >&2
+  # (When using Powerlevel10k with instant prompt, console output during zsh
+  # initialization may indicate issues.)
+  echo "No kubeconfig file found at ${HOME}/.kube/config"
+  exit 1
+fi
