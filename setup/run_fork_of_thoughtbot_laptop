@@ -4,7 +4,7 @@
 # this file is basically the above, but with some search and replaces that we performed on it.
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 
@@ -25,8 +25,8 @@ fi
 
 if [[ -z "$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
   export NO_TERM_LIMITS_PREFERRED_SHELL=zsh
-elif ! grep -qE '^(zsh|bash)$' <<<"$NO_TERM_LIMITS_PREFERRED_SHELL" ; then
-  >&2 echo "ERROR: no-term-limits only supports zsh and bash but you have specified $NO_TERM_LIMITS_PREFERRED_SHELL. Please either unset this variable which will default to zsh or set it to bash"
+elif ! grep -qE '^(zsh|bash)$' <<<"$NO_TERM_LIMITS_PREFERRED_SHELL"; then
+  echo >&2 "ERROR: no-term-limits only supports zsh and bash but you have specified $NO_TERM_LIMITS_PREFERRED_SHELL. Please either unset this variable which will default to zsh or set it to bash"
   exit 1
 fi
 
@@ -41,20 +41,20 @@ function ubuntu_greater_than_18_04() {
 
 function update_shell() {
   if [[ "$SHELL" != *"$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
-    local shell_path;
+    local shell_path
     shell_path="$(command -v "$NO_TERM_LIMITS_PREFERRED_SHELL")"
     local username_of_current_user
     username_of_current_user="$(whoami)"
 
     echo "Changing your shell to $NO_TERM_LIMITS_PREFERRED_SHELL ..."
-    if ! grep "$shell_path" /etc/shells > /dev/null 2>&1 ; then
+    if ! grep "$shell_path" /etc/shells >/dev/null 2>&1; then
       echo "Adding '$shell_path' to /etc/shells"
       sudo sh -c "echo $shell_path >> /etc/shells"
     fi
 
     local should_change_shell="false"
     if is_mac; then
-      if dscl . -read "/Users/${username_of_current_user}" UniqueID > /dev/null; then
+      if dscl . -read "/Users/${username_of_current_user}" UniqueID >/dev/null; then
         should_change_shell="true"
       fi
     else
@@ -70,7 +70,7 @@ function update_shell() {
 }
 
 function gem_install_or_update() {
-  if gem list "$1" --installed > /dev/null; then
+  if gem list "$1" --installed >/dev/null; then
     gem update "$@"
   else
     gem install "$@"
@@ -81,9 +81,9 @@ function gem_install_or_update() {
 # installation on ubuntu 20.04 so compile from source instead
 # ubuntu 20.04 has 8.1 by default in apt
 function install_vim_from_source() {
-  if ! command -v vim >/dev/null || vim --cmd 'if v:version < 802 | q | else | cq | fi' ; then
+  if ! command -v vim >/dev/null || vim --cmd 'if v:version < 802 | q | else | cq | fi'; then
     # sudo apt install ncurses-dev
-    curl  --fail -sL "https://github.com/vim/vim/archive/refs/tags/v${vim_version}.zip" -o /tmp/vim.zip
+    curl --fail -sL "https://github.com/vim/vim/archive/refs/tags/v${vim_version}.zip" -o /tmp/vim.zip
     unzip /tmp/vim.zip -d /tmp/vim
     pushd "/tmp/vim/vim-${vim_version}/src"
     ./configure
@@ -112,7 +112,7 @@ function get_additional_apt_keys() {
     $(lsb_release -cs)-security \
     main"
 
-  if ! ubuntu_greater_than_18_04 ; then
+  if ! ubuntu_greater_than_18_04; then
     # thoughtbot rcm
     sudo add-apt-repository -y ppa:martin-frost/thoughtbot-rcm
     # sudo add-apt-repository -y ppa:jonathonf/vim
@@ -150,14 +150,14 @@ function add_user_to_docker_group() {
   username_of_current_user="$(whoami)"
   if grep -Eq docker /etc/group; then
     groups_for_user=$(id -nG "$username_of_current_user")
-    if ! grep -qw "docker" <<< "$groups_for_user"; then
+    if ! grep -qw "docker" <<<"$groups_for_user"; then
       sudo usermod -a -G docker "$username_of_current_user"
     fi
   fi
 }
 
 function set_number_of_cores_for_bundler() {
-  if is_mac ; then
+  if is_mac; then
     number_of_cores=$(sysctl -n hw.ncpu)
   elif [[ -f /proc/cpuinfo ]]; then
     number_of_cores=$(grep -c processor /proc/cpuinfo)
@@ -172,7 +172,7 @@ function install_stern() {
   local version="1.21.0"
   if command -v stern >/dev/null; then
     stern_version_output="$(stern --version)"
-    if grep -q "$version" <<< "$stern_version_output"; then
+    if grep -q "$version" <<<"$stern_version_output"; then
       return # got it already
     fi
   fi
@@ -205,7 +205,7 @@ function install_kubectl() {
       architecture=amd64
     fi
     local os_type='linux'
-    if is_mac ; then
+    if is_mac; then
       os_type='darwin'
     fi
     curl -L "https://dl.k8s.io/release/${desired_kubectl_version}/bin/${os_type}/${architecture}/kubectl" -o /tmp/kubectl
@@ -226,7 +226,7 @@ function install_github_cli() {
 }
 
 # shellcheck disable=SC1090
-if is_mac ; then
+if is_mac; then
   if [ -d "$HOMEBREW_PREFIX" ]; then
     if ! [ -r "$HOMEBREW_PREFIX" ]; then
       sudo chown -R "$LOGNAME:admin" /usr/local
@@ -279,10 +279,11 @@ if is_mac ; then
   brew bundle --file=- <<EOF
 tap "thoughtbot/formulae"
 tap "homebrew/services"
-tap "universal-ctags/universal-ctags"
+# ctags probably not needed any longer with neovim and lsps, 20240229
+# tap "universal-ctags/universal-ctags"
 
 # Unix
-brew "universal-ctags", args: ["HEAD"]
+# brew "universal-ctags", args: ["HEAD"]
 brew "git${git_version_qualifier}"
 brew "openssl"
 
@@ -411,7 +412,7 @@ else
     zlib1g-dev \
     zsh
 
-  if ubuntu_greater_than_18_04 ; then
+  if ubuntu_greater_than_18_04; then
     if [[ "$NO_TERM_LIMITS_INSTALL_VIM_FROM_SOURCE" != "false" ]]; then
       install_vim_from_source
     fi
@@ -419,7 +420,7 @@ else
   else
     # so we can install tmux 3 on ubuntu 18.04
     if [[ "$NO_TERM_LIMITS_INSTALL_TMUX_FROM_SOURCE" != "false" ]]; then
-      if ! command -v tmux >/dev/null || ! grep -Eq 'tmux 3' <<< "$(tmux -V)"; then
+      if ! command -v tmux >/dev/null || ! grep -Eq 'tmux 3' <<<"$(tmux -V)"; then
         sudo apt update && sudo apt install -y libevent-dev libncurses5-dev byacc bison
         rm -fr /tmp/tmux
         git clone https://github.com/tmux/tmux.git /tmp/tmux
@@ -438,7 +439,7 @@ else
 
   get_additional_apt_keys
 
-  if ubuntu_greater_than_18_04 ; then
+  if ubuntu_greater_than_18_04; then
     additional_packages="$additional_packages ripgrep universal-ctags"
   fi
 
@@ -457,14 +458,14 @@ else
 fi
 
 case "$SHELL" in
-  */zsh)
-    if [ "$(command -v zsh)" != '/usr/local/bin/zsh' ] ; then
-      update_shell
-    fi
-    ;;
-  *)
+*/zsh)
+  if [ "$(command -v zsh)" != '/usr/local/bin/zsh' ]; then
     update_shell
-    ;;
+  fi
+  ;;
+*)
+  update_shell
+  ;;
 esac
 
 echo "Configuring asdf version manager ..."
