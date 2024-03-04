@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -9,8 +9,18 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: kubernetes/k8s: popular: kssh todo-app to get inside the first todo-app app-server container in the current namespace
 
-cmd=bash
-if [[ -n "${*:3}" ]]; then
-  cmd="${*:3}"
+pod_name="${1:-}"
+shift
+
+if grep -qE "^\d+$" <<<"${2:-}"; then
+  export NO_TERM_LIMITS_K8S_ITEM_NUMBER="$2"
+  shift
 fi
-NO_TERM_LIMITS_K8S_SELECTOR="deploymentType=app-server" NO_TERM_LIMITS_K8S_ITEM_NUMBER="$2" exec kexec "$1" "$cmd"
+
+cmd=bash
+# if three or more args
+if [[ -n "${1:-}" ]]; then
+  cmd="${*}"
+fi
+
+NO_TERM_LIMITS_K8S_SELECTOR="deploymentType=app-server" exec kexec "$pod_name" "$cmd"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -9,8 +9,4 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: git checkout a new feature branch
 
-if grep -qE '/' <<<"$1"; then
-  git checkout -b "$1"
-else
-  git checkout -b "feature/$1"
-fi
+git checkout -b "$1"
