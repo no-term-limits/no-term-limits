@@ -2,6 +2,8 @@ local hot_schemas_to_inject = {
   ["https://raw.githubusercontent.com/datreeio/crds-catalog/main/argoproj.io/application_v1alpha1.json"] = "hot.yml",
 }
 
+local language_for_spelling = "en-US"
+
 return {
   "neovim/nvim-lspconfig",
   opts = {
@@ -16,11 +18,22 @@ return {
         prefix = "icons",
       },
     },
+    setup = {
+      ltex = function(_, opts)
+        local path = vim.fn.stdpath("config") .. "/spell/en.utf-8.add"
+        if vim.fn.filereadable(path) == 1 then
+          for word in io.open(path, "r"):lines() do
+            table.insert(opts.settings.ltex.dictionary[language_for_spelling], word)
+          end
+        end
+      end,
+    },
     servers = {
       ltex = {
         settings = {
           ltex = {
-            language = "en-US",
+            language = language_for_spelling,
+            dictionary = { [language_for_spelling] = {} },
           },
         },
       },
