@@ -17,6 +17,13 @@ return {
       },
     },
     servers = {
+      ltex = {
+        settings = {
+          ltex = {
+            language = "en-US",
+          },
+        },
+      },
       yamlls = {
         -- yaml seems to work. hot.yml is validated.
         on_new_config = function(new_config)

@@ -3,10 +3,15 @@ return {
   "williamboman/mason.nvim",
   opts = {
     ensure_installed = {
-      "stylua",
+      -- shell
       "shfmt",
       "shellcheck",
+      -- python
       "mypy",
+      -- for markdown/prose, LSP language server for LanguageTool
+      "ltex-ls",
+      -- misc
+      "stylua",
       "json-lsp",
     },
   },
