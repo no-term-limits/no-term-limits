@@ -4,6 +4,8 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
     vim.api.nvim_set_hl(0, "TelescopeSelection", { link = "TelescopeResultsDiffAdd", bg = "none" })
     vim.api.nvim_set_hl(0, "TelescopePreviewLine", { link = "TelescopeResultsDiffAdd", bg = "none" })
+    -- otherwise the cursor is invisible in command mode
+    vim.api.nvim_set_hl(0, "NoiceCursor", { fg = "none", bg = "#ffffff" })
   end,
 })
 
