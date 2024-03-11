@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -20,7 +20,7 @@ git_root="$(git rev-parse --show-toplevel)"
 current_directory=$(pwd)
 git_subdirs=$(perl -p -e "s|^${git_root}||" <<<"${current_directory}")
 
-if grep -q 'github.com' <<<"$git_url" ; then
+if grep -q 'github.com' <<<"$git_url"; then
   if [[ -n "$file" ]]; then
     if [[ -d "$file" ]]; then
       url_path="/tree/${branch}${git_subdirs}/${file}"
@@ -28,7 +28,7 @@ if grep -q 'github.com' <<<"$git_url" ; then
       url_path="/blob/${branch}${git_subdirs}/${file}"
     fi
   else
-    url_path="/tree/${branch}"
+    url_path="/tree/${branch}${git_subdirs}"
   fi
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#L${line_number}"
