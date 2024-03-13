@@ -82,4 +82,37 @@ function OpenCurrentCodeLineInBrowser()
   vim.fn.execute("! git_open " .. file_full_path .. " " .. line_number)
 end
 
-vim.keymap.set("n", "<leader>rb", OpenCurrentCodeLineInBrowser, { noremap = true, silent = true })
+function DumpLazyPluginList()
+  table_of_plugins = require("lazy").plugins()
+  local keys = {}
+
+  for k, plugin_spec_table in pairs(table_of_plugins) do
+    for plugin_name, value_thing in pairs(plugin_spec_table) do
+      if type(plugin_name) == "number" then
+        if type(value_thing) == "string" then
+          table.insert(keys, value_thing)
+        end
+      end
+    end
+  end
+  local file = io.open("/tmp/lazy_plugins.txt", "w")
+  if not file then
+    vim.print("Failed to open file for writing")
+    return
+  end
+  file:write(table.concat(keys, "\n"))
+  vim.notify("Wrote lazy plugin list to /tmp/lazy_plugins.txt")
+end
+
+vim.keymap.set(
+  "n",
+  "<leader>rb",
+  OpenCurrentCodeLineInBrowser,
+  { noremap = true, silent = true, desc = "Run [open current code line in] browser" }
+)
+vim.keymap.set(
+  "n",
+  "<leader>rp",
+  DumpLazyPluginList,
+  { noremap = true, silent = true, desc = "Run print lazy plugin list" }
+)

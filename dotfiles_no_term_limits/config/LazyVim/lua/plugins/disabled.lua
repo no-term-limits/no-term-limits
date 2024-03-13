@@ -3,4 +3,6 @@ return {
   { "folke/flash.nvim", enabled = false },
   -- we have our own, very small, snippet collection
   { "rafamadriz/friendly-snippets", enabled = false },
+
+  -- get the full list of plugins to potentially disable using <leader>rp
 }

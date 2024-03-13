@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: browse to repo in bitbucket-server
+
+# multiline string to insert at top of file
+string="""
+return {
+  -- disable flash, the thing "enhances" search by putting letters at the end of each match to let you jump to them
+  { "folke/flash.nvim", enabled = false },
+  -- we have our own, very small, snippet collection
+  { "rafamadriz/friendly-snippets", enabled = false },
+"""
+
+cp /tmp/lazy_plugins.txt /tmp/disabled.lua
+perl -pi -e "s/^/{ \"/g" /tmp/disabled.lua
+perl -pi -e "s/$/\", enabled = false },/" /tmp/disabled.lua
+echo "$string" | cat - /tmp/disabled.lua > /tmp/out && mv /tmp/out /tmp/disabled.lua
+
+# insert } on last line of file
+echo "}" >> /tmp/disabled.lua
