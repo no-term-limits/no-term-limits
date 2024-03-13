@@ -22,3 +22,6 @@ vim.opt.conceallevel = 0
 
 -- disable persistent undo
 vim.o.undofile = false
+
+-- lazyvim defaults to true but with smartcase. i think this makes smartcase irrelevant.
+vim.o.ignorecase = false
