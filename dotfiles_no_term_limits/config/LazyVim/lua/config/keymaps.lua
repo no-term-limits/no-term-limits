@@ -116,3 +116,12 @@ vim.keymap.set(
   DumpLazyPluginList,
   { noremap = true, silent = true, desc = "Run print lazy plugin list" }
 )
+
+-- make this in lua instead of vimscript
+-- nmap <leader>rc :let @+ = expand("%:h") . '/' . expand("%:t")<cr>:echo 'copied file path into clipboard. note that cp copies the full path'<cr>
+vim.keymap.set(
+  "n",
+  "<leader>rc",
+  [[:let @+ = expand("%:h")<CR>]],
+  { noremap = true, silent = true, desc = "Copy file path to clipboard. see also cp for full path." }
+)
