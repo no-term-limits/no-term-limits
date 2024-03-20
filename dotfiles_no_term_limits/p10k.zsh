@@ -1541,7 +1541,11 @@
   }
 
   function prompt_no_term_limits_kubecontext() {
+    if which kube_ps1 > /dev/null 2>&1 ; then
+      p10k segment -f 159 -i "$(kube_ps1)"
+    else
       p10k segment -f 159 -i "$(kn_for_prompt p10k)"
+    fi
   }
 
   # User-defined prompt segments may optionally provide an instant_prompt_* function. Its job

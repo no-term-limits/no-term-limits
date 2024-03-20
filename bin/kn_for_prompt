@@ -18,18 +18,14 @@ if [[ -n "${TMUX:-}" ]] && [[ "$called_from" == "p10k" ]]; then
   exit
 fi
 
-if command -v kube_ps1 >/dev/null 2>&1; then
-  kube_ps1
-else
-  set +e
-  kns=$(kcurrentnamespace)
-  exitstatus=$?
-  set -e
+set +e
+kns=$(kcurrentnamespace)
+exitstatus=$?
+set -e
 
-  if [[ "$exitstatus" == "0" ]]; then
-    kns_line=$(perl -p -e 's~.*//(.*?)\..*> (.*)~\1:\2~' <<<"$kns")
-    echo "(${kns_line}) "
-  else
-    echo ""
-  fi
+if [[ "$exitstatus" == "0" ]]; then
+  kns_line=$(perl -p -e 's~.*//(.*?)\..*> (.*)~\1:\2~' <<<"$kns")
+  echo "(${kns_line}) "
+else
+  echo ""
 fi
