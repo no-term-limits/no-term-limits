@@ -11,5 +11,12 @@ return {
       end,
       { noremap = false, silent = false, desc = "Find Files" },
     },
+    {
+      "<leader>,",
+      function()
+        builtin.buffers({ previewer = false })
+      end,
+      { noremap = false, silent = false, desc = "Switch Buffer" },
+    },
   },
 }
