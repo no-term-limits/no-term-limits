@@ -122,6 +122,6 @@ vim.keymap.set(
 vim.keymap.set(
   "n",
   "<leader>rc",
-  [[:let @+ = expand("%:h")<CR>]],
+  [[:let @+ = fnamemodify(expand("%"), ":~:.")<CR>]],
   { noremap = true, silent = true, desc = "Copy file path to clipboard. see also cp for full path." }
 )
