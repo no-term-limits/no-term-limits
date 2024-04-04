@@ -13,7 +13,6 @@ directory_name=$(pwd)
 
 file_full_path="${1:-$directory_name}"
 line_number="${2:-}"
-echo "$directory_name: $file_full_path" >/tmp/file.txt
 
 if [[ -f "$file_full_path" ]]; then
   directory_name=$(dirname "$file_full_path")
@@ -26,9 +25,10 @@ url_path=""
 branch=$(git_branch)
 git_url=$(git_url_of_current_directory)
 
+git_root="$(git rev-parse --show-toplevel)"
+relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+|/|g')
+
 if grep -q 'github.com' <<<"$git_url"; then
-  git_root="$(git rev-parse --show-toplevel)"
-  relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+|/|g')
   if [[ -d "$relative_file" ]]; then
     url_path="/tree/${branch}${relative_file}"
   else
@@ -40,10 +40,7 @@ if grep -q 'github.com' <<<"$git_url"; then
   url_path="${git_url}${url_path}"
 else
   # for bitbucket-server
-  if [[ -n "$file" ]]; then
-    url_path="browse/${file}"
-  fi
-  url_path="${git_url}/${url_path}?at=${branch}"
+  url_path="${git_url}browse/${relative_file}?at=${branch}"
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#${line_number}"
   fi
