@@ -78,7 +78,7 @@ vim.api.nvim_create_user_command("LazyActiveLinters", lint_progress, {})
 
 function OpenCurrentCodeLineInBrowser()
   local line_number = vim.fn.line(".")
-  local file_full_path = vim.fn.bufname()
+  local file_full_path = vim.fn.expand("%:p")
   vim.fn.execute("! git_open " .. file_full_path .. " " .. line_number)
 end
 

@@ -9,26 +9,30 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: browse to repo in bitbucket-server
 
-file="${1:-}"
+directory_name=$(pwd)
+
+file_full_path="${1:-$directory_name}"
 line_number="${2:-}"
+echo "$directory_name: $file_full_path" >/tmp/file.txt
+
+if [[ -f "$file_full_path" ]]; then
+  directory_name=$(dirname "$file_full_path")
+elif [[ -d "$file_full_path" ]]; then
+  directory_name="$file_full_path"
+fi
+cd "$directory_name"
 
 url_path=""
 branch=$(git_branch)
 git_url=$(git_url_of_current_directory)
 
-git_root="$(git rev-parse --show-toplevel)"
-current_directory=$(pwd)
-git_subdirs=$(perl -p -e "s|^${git_root}||" <<<"${current_directory}")
-
 if grep -q 'github.com' <<<"$git_url"; then
-  if [[ -n "$file" ]]; then
-    if [[ -d "$file" ]]; then
-      url_path="/tree/${branch}${git_subdirs}/${file}"
-    else
-      url_path="/blob/${branch}${git_subdirs}/${file}"
-    fi
+  git_root="$(git rev-parse --show-toplevel)"
+  relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+|/|g')
+  if [[ -d "$relative_file" ]]; then
+    url_path="/tree/${branch}${relative_file}"
   else
-    url_path="/tree/${branch}${git_subdirs}"
+    url_path="/blob/${branch}${relative_file}"
   fi
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#L${line_number}"
