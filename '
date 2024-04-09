@@ -42,10 +42,6 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
       echo >&2 "ERROR: test_name specified, but it could not be found in any file"
       exit 1
     fi
-    if [[ "$(wc -l <<<"$test_file")" -gt 1 ]]; then
-      echo -e "ERROR: Found multiple files with given test:\n${test_file}" >&2
-      exit 1
-    fi
     class_name_arg=""
     expected_class_name=$(basename "$test_file" .py | perl -pe 's/(^|_)(\w)/\U$2/g')
     if grep -q "^class \<${expected_class_name}\>" "$test_file"; then
@@ -55,6 +51,8 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   elif [[ -n "$test_file" ]]; then
     args="$test_file $args"
   fi
+  echo "args: ${args}"
+  exit
   poetry run pytest $args
 elif [[ "$command" == "update" ]]; then
   if [[ -z "${1:-}" ]]; then
