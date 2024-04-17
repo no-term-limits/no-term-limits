@@ -29,11 +29,7 @@ git_root="$(git rev-parse --show-toplevel)"
 relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+|/|g')
 
 if grep -q 'github.com' <<<"$git_url"; then
-  if [[ -d "$relative_file" ]]; then
-    url_path="/tree/${branch}${relative_file}"
-  else
-    url_path="/blob/${branch}${relative_file}"
-  fi
+  url_path="/tree/${branch}${relative_file}"
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#L${line_number}"
   fi
