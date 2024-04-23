@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -11,22 +11,22 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 command="${1:-}"
 if [[ -z "${1:-}" ]]; then
-  >&2 echo "usage: $(basename "$0") [command]"
+  echo >&2 "usage: $(basename "$0") [command]"
   exit 1
 fi
 shift
 
-if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<< "$command"; then
+if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<"$command"; then
   args="$@"
   test_name=''
   test_file=''
-  if grep -Eq "^test_" <<< "$command"; then
+  if grep -Eq "^test_" <<<"$command"; then
     test_name="$command"
-  elif grep -Eq "^test.*py$" <<< "$command" && [[ -f "${command:-}" ]]; then
+  elif grep -Eq "^test.*py$" <<<"$command" && [[ -f "${command:-}" ]]; then
     test_file="$command"
   else
     if [[ -z "${2:-}" ]]; then
-      if grep -qE '^test_' <<<"${1:-}" ; then
+      if grep -qE '^test_' <<<"${1:-}"; then
         test_name="$1"
         shift
       elif [[ -f "${1:-}" ]]; then
@@ -39,7 +39,11 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
     # there's no way to to have a test_file and test_name yet, so look up test_file based on test_name
     test_file=$(grep -lR --exclude=.* --exclude-dir=.* --exclude=_* --exclude-dir=_* "\<$test_name\>" tests/ || echo '')
     if [[ -z "$test_file" ]]; then
-      >&2 echo "ERROR: test_name specified, but it could not be found in any file"
+      echo >&2 "ERROR: test_name specified, but it could not be found in any file"
+      exit 1
+    fi
+    if [[ "$(wc -l <<<"$test_file")" -gt 1 ]]; then
+      echo -e "ERROR: Found multiple files with given test:\n${test_file}" >&2
       exit 1
     fi
     class_name_arg=""
@@ -54,7 +58,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   poetry run pytest $args
 elif [[ "$command" == "update" ]]; then
   if [[ -z "${1:-}" ]]; then
-    >&2 echo "usage: $(basename "$0") [update] [library]"
+    echo >&2 "usage: $(basename "$0") [update] [library]"
     exit 1
   fi
 
@@ -62,13 +66,13 @@ elif [[ "$command" == "update" ]]; then
 # we imagine that the npm install command has code something like this since we
 # know that it handles npm i, npm ins, npm install, and even a few common
 # mispellings. :D
-elif grep -Eq '^i[nstall]*' <<< "$command" ; then
+elif grep -Eq '^i[nstall]*' <<<"$command"; then
   poetry install "$@"
-elif grep -Eq 'destroy' <<< "$command" ; then
+elif grep -Eq 'destroy' <<<"$command"; then
   remove_python_poetry_env_dir_from_disk
 elif [[ "$command" == "mypy" ]]; then
   run_mypy_with_poetry
-elif grep -Eq '^pre[commit]*' <<< "$command" ; then
+elif grep -Eq '^pre[commit]*' <<<"$command"; then
   run_precommit_with_poetry
 elif [[ "$command" == "typeguard" ]]; then
   # we implement this in conftest.py like:
