@@ -12,7 +12,7 @@ return {
     "cl",
     fmt(
       [[
-  print("➡️ ➡️ ➡️  {}: ", {})
+  print(f"➡️ ➡️ ➡️  {}: {{{}}}")
   ]],
       {
         -- i(1) is at nodes[1], i(2) at nodes[2].
