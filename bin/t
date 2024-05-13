@@ -147,15 +147,15 @@ function 6() {
 
 function layout_4_panes() {
   original_pane="$(_current_pane_number)"
-  tmux split-window -t "$original_pane" -v -p 50
+  tmux split-window -t "$original_pane" -v
 
   # doesn't work. doesn't get new pane number, but still returns original pane number, i guess because of where the original script is run from
   # which is super confusing, because if you run these commands manually everything works perfectly and new_pane_below is one greater than original_pane
   # new_pane_below="$(_current_pane_number)"
 
   new_pane_below=$(( $original_pane + 1 ))
-  tmux split-window -t "$new_pane_below" -h -p 50
-  tmux split-window -t "$original_pane" -h -p 50
+  tmux split-window -t "$new_pane_below" -h
+  tmux split-window -t "$original_pane" -h
   tmux select-pane -t "$original_pane"
 
   # not sure why we need this.
