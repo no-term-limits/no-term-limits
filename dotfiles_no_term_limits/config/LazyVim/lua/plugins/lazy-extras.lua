@@ -21,5 +21,5 @@ return {
   { import = "lazyvim.plugins.extras.formatting.prettier" },
 
   -- AI
-  { import = "lazyvim.plugins.extras.coding.copilot" },
+  (os.getenv("NO_TERM_LIMITS_DISABLE_COPILOT") == nil) and { import = "lazyvim.plugins.extras.coding.copilot" } or nil,
 }
