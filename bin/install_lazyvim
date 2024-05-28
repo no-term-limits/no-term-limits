@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}. Last repo ${repo:-}"
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: install lazyvim
+
+lazyvim_config_dir="$HOME/.config/LazyVim"
+
+if [[ ! -d "${lazyvim_config_dir}/.git" ]]; then
+  if [[ -d "$lazyvim_config_dir" ]]; then
+    mv "$lazyvim_config_dir" /tmp
+  fi
+  git clone https://github.com/LazyVim/starter "$lazyvim_config_dir"
+
+  # set up lazyvim customizations via symlinks to no-term-limits/dotfiles_no_term_limits/config/LazyVim
+  rcup -K
+fi
+
+# neovim switcher
+if ! command -v nvims >/dev/null; then
+  # https://github.com/Traap/nvims
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Traap/nvims/master/install.sh)"
+fi
+
+# delete broken symlinks from files added by rcup -K and then since deleted, like if we rename a plugin config file in the lazyvim plugins dir.
+if [[ -d "$lazyvim_config_dir" ]]; then
+  files=$(find "$lazyvim_config_dir" -type l -exec test ! -e {} \; -print0)
+  if [[ -n "$files" ]]; then
+    rm "$files"
+  fi
+fi
