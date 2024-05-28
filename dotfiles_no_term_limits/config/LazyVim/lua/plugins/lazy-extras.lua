@@ -15,6 +15,7 @@ return {
   { import = "lazyvim.plugins.extras.lang.terraform" },
 
   -- linting
+  { import = "lazyvim.plugins.extras.linting.nvim-lint" },
   { import = "lazyvim.plugins.extras.linting.eslint" },
 
   -- formatting
