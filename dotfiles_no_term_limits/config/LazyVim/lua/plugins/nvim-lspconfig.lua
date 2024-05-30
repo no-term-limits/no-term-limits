@@ -55,5 +55,10 @@ return {
         end,
       },
     },
+
+    -- disable cursor word highlighting - we could turn back on if it didn't hide visual mode selected text
+    document_highlight = {
+      enabled = false,
+    },
   },
 }
