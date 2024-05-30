@@ -32,3 +32,11 @@ vim.api.nvim_create_autocmd("ModeChanged", {
     end
   end,
 })
+
+-- Map the function to a key for convenience
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>cc",
+  ":lua print(vim.inspect(require('cmp').get_config().sources))<CR>",
+  { noremap = true, silent = true }
+)
