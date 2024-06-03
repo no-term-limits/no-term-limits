@@ -4,6 +4,9 @@
 local plugin_config = {
   { "LazyVim/LazyVim" },
 
+  -- gsr (go surround replace)
+  { import = "lazyvim.plugins.extras.coding.mini-surround" },
+
   -- LazyVim uses native neovim snippets now but our configs depend on luasnip
   { import = "lazyvim.plugins.extras.coding.luasnip" },
 
@@ -27,7 +30,7 @@ local plugin_config = {
 
 if os.getenv("NO_TERM_LIMITS_DISABLE_COPILOT") == nil then
   -- AI
-  plugin_config.insert({ import = "lazyvim.plugins.extras.coding.copilot" })
+  table.insert(plugin_config, { import = "lazyvim.plugins.extras.coding.copilot" })
 end
 
 return plugin_config
