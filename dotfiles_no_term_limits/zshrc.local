@@ -21,6 +21,7 @@ else
 fi
 
 export PATH="$HOME/.bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 export PATH="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits/bin:$PATH"
 
 # Favor if conditionals over shortcut: [[ blah ]] && blah
