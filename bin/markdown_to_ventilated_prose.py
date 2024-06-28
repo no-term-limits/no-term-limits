@@ -111,4 +111,9 @@ if __name__ == "__main__":
         input_file = sys.argv[1]
         output_file = sys.argv[2]
         markdown_to_ventilated_prose(input_file, output_file)
-        print(f"Conversion successful. Ventilated prose written to {output_file}")
+        message = "Ventilation success: "
+        if input_file == output_file:
+            message += f"{output_file} updated"
+        else:
+            message += f"Output written to {output_file}"
+        print(message)
