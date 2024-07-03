@@ -13,7 +13,8 @@ from markdown_to_ventilated_prose import (
     add_whitespace_to_headings,
     remove_leading_whitespace_before_image_markup,
     ensure_ends_with_newline,
-    process_markdown_string
+    process_markdown_string,
+    remove_trailing_whitespace
 )
 
 # Ensure nltk tokenizer is available
@@ -105,6 +106,11 @@ def test_ensure_ends_with_newline():
     markdown_text = "Some text without a newline"
     expected = "Some text without a newline\n"
     assert ensure_ends_with_newline(markdown_text) == expected
+
+def test_remove_trailing_whitespace():
+    markdown_text = "This is a line with trailing spaces.   \nThis is another line with trailing spaces.   "
+    expected = "This is a line with trailing spaces.\nThis is another line with trailing spaces."
+    assert remove_trailing_whitespace(markdown_text) == expected
 
 def test_process_markdown_string_with_trailing_spaces():
     markdown_text = "This is a line with trailing spaces.   \nThis is another line with trailing spaces.   "

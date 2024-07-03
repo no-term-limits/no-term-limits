@@ -57,6 +57,12 @@ def remove_leading_whitespace_before_image_markup(markdown_text):
     return replaced_text
 
 
+def remove_trailing_whitespace(markdown_text):
+    """
+    Remove trailing whitespace from each line in the markdown text.
+    """
+    return "\n".join(line.rstrip() for line in markdown_text.splitlines())
+
 def ensure_ends_with_newline(markdown_text):
     if not markdown_text.endswith("\n"):
         markdown_text += "\n"
@@ -108,6 +114,7 @@ def process_markdown_string(markdown_text):
 
     # Join the potentially updated chunks into the new markdown text
     new_markdown_text = "\n\n".join(potentially_updated_chunks)
+    new_markdown_text = remove_trailing_whitespace(new_markdown_text)
     new_markdown_text = ensure_ends_with_newline(new_markdown_text)
 
     # one newline at the end is good. two or more is excessive.
