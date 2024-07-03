@@ -19,10 +19,19 @@ function update_file() {
     return
   fi
   markdown_to_ventilated_prose.py "$file" "$file"
-  # gpt-proofread.py "$file"
-  # markdown_to_ventilated_prose.py "$file" "$file"
+  gpt-proofread.py "$file"
+  markdown_to_ventilated_prose.py "$file" "$file"
 }
 
+arg1="${1:-}"
+
+if [[ -d "$arg1" ]]; then
+  target_dir="$arg1"
+  echo "edit_all target dir: $target_dir"
+  shift
+else
+  target_dir="."
+fi
 max_files="${1:-}"
 
 # provide option to exit after editing n files
@@ -35,7 +44,7 @@ while IFS= read -r -d '' file; do
       break
     fi
   fi
-done < <(find . -type f -name "*.md" -print0)
+done < <(find "$target_dir" -type f -name "*.md" -print0)
 
 # while IFS= read -r -d '' file; do
 #   update_file "$file"
