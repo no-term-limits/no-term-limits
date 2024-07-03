@@ -14,6 +14,16 @@ def tokenize_into_sentences(text):
         tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
     return tokenizer.tokenize(text)
 
+# find any sentence that is all exclamation marks
+# and add its contents to the previous sentence
+def merge_exclamation_sentences(sentences):
+    i = 1
+    while i < len(sentences):
+        if all(char == '!' for char in sentences[i]):
+            sentences[i - 1] += '' + sentences.pop(i)
+        else:
+            i += 1
+    return sentences
 
 # you gotta before careful, because you do not want to replace the thing that looks like a heading with a newline in this case,
 # since it is actually a python comment, not a heading:
@@ -22,9 +32,18 @@ def tokenize_into_sentences(text):
 # a = 1
 # ```
 # for that reason, i ignore h1 tags and just get it when there is more than one pound sign
+#
+# we also have to be careful to not screw up headers that have pounds signs by breaking up:
+#   #### Rule #4: Do Use Data Objects to limit access to information
+# into:
+#   #### Rule
+#
+#   #4: Do Use Data Objects to limit access to information
+#
 def add_whitespace_to_headings(markdown_text):
     # Define regex pattern to match markdown headings at the beginning of a line
     pattern = r"(^|\n)(#{2,6}\s*[^#\n]+)\n*"
+    # pattern = r"(^|\n)(#{2,6} .+?)(\n|$)"
     # Replace markdown headings with added whitespace
     replaced_text = re.sub(pattern, r"\1\2\n\n", markdown_text)
     return replaced_text
@@ -66,12 +85,14 @@ def markdown_to_ventilated_prose(input_file, output_file):
     for index, chunk in enumerate(chunks):
         # if the chunk contains any special markdown characters, then do not tokenize it
         #   * header
+        #   * starting with "[![" it is a markdown link with alt text
+        #   * starting with "{{" since this is likely jinja
         #   * starting with four spaces, which is a code block
         #   * starting with exclamation mark, which is an image
         #   * starting with pipe, which is a table
         #   * starting with a number or letter and a period, which is a list
         if re.search(
-            r"^(\s*[*#\d!-]|    |[\t ]+\!|\| |\w{1,2}\.)", chunk, flags=re.MULTILINE
+            r"^(\s*[*#\d!-]|\[\!\[|{{|    |[\t ]+\!|\| |\w{1,2}\.)", chunk, flags=re.MULTILINE
         ):
             potentially_updated_chunks.append(chunk)
             continue
@@ -84,6 +105,8 @@ def markdown_to_ventilated_prose(input_file, output_file):
 
         # Tokenize Markdown text chunk into sentences
         sentences = tokenize_into_sentences(chunk)
+
+        sentences = merge_exclamation_sentences(sentences)
 
         # remove any newlines from the sentences, preserving those at the beginning or end
         sentences = [

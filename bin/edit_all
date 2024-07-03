@@ -14,9 +14,13 @@ function update_file() {
     echo "skipping $file since it is in a question and answer format that LLMs cannot handle. They assume you are doing few-shot learning and do not return the full doc."
     return
   fi
+  if [[ "$file" == "./archetypes/default.md" ]]; then
+    echo "skipping $file since it is a file that does not have a lot of text in it and it has unconventional spacing."
+    return
+  fi
   markdown_to_ventilated_prose.py "$file" "$file"
-  gpt-proofread.py "$file"
-  markdown_to_ventilated_prose.py "$file" "$file"
+  # gpt-proofread.py "$file"
+  # markdown_to_ventilated_prose.py "$file" "$file"
 }
 
 max_files="${1:-}"
