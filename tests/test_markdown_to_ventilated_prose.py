@@ -111,6 +111,12 @@ def test_process_markdown_string_with_trailing_spaces():
     expected = "This is a line with trailing spaces.\nThis is another line with trailing spaces.\n"
     assert process_markdown_string(markdown_text) == expected
 
+# the two sentences get into the same chunk, which we ignore because of the the jinja, so it doesn't end up ventilating like we would want.
+# def test_process_markdown_string_with_sentences_and_jinja():
+#     markdown_text = "This is the first sentence. This is the second sentence.\n{{ jinja_variable }}"
+#     expected = "This is the first sentence.\nThis is the second sentence.\n{{ jinja_variable }}\n"
+#     assert process_markdown_string(markdown_text) == expected
+
 def test_process_markdown_string_with_period_and_spaces():
     markdown_text = "This is the first sentence.   This is the second sentence."
     expected = "This is the first sentence.\nThis is the second sentence.\n"
