@@ -106,6 +106,11 @@ def test_ensure_ends_with_newline():
     expected = "Some text without a newline\n"
     assert ensure_ends_with_newline(markdown_text) == expected
 
+def test_process_markdown_string_with_trailing_spaces():
+    markdown_text = "This is a line with trailing spaces.   \nThis is another line with trailing spaces.   "
+    expected = "This is a line with trailing spaces.\nThis is another line with trailing spaces.\n"
+    assert process_markdown_string(markdown_text) == expected
+
 def test_process_markdown_string_with_period_and_spaces():
     markdown_text = "This is the first sentence.   This is the second sentence."
     expected = "This is the first sentence.\nThis is the second sentence.\n"
