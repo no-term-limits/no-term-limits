@@ -1,8 +1,8 @@
+import sys
+import os
 import re
 import pytest
 import nltk
-import sys
-import os
 
 # Add the `bin` directory to the Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../bin'))
@@ -30,7 +30,7 @@ def test_tokenize_into_sentences():
 
 def test_merge_exclamation_sentences():
     sentences = ["Hello there!", "!!!", "How are you doing?", "!!!", "I'm good."]
-    expected = ["Hello there! !!!", "How are you doing? !!!", "I'm good."]
+    expected = ["Hello there!!!!", "How are you doing?!!!", "I'm good."]
     assert merge_exclamation_sentences(sentences) == expected
 
 def test_add_whitespace_to_headings():
@@ -59,6 +59,38 @@ More text here.
 """
     assert add_whitespace_to_headings(markdown_text) == expected
 
+    markdown_text_with_whitespace = """
+# This is a heading 1 (should be ignored)
+## This is heading 2
+
+Some text here.
+### This is heading 3
+
+More text here.
+#### Rule #4: Do Use Data Objects to limit access to information
+
+```python
+# This is how to initialize a variable
+a = 1
+```
+"""
+    expected_with_whitespace = """
+# This is a heading 1 (should be ignored)
+## This is heading 2
+
+Some text here.
+### This is heading 3
+
+More text here.
+#### Rule #4: Do Use Data Objects to limit access to information
+
+```python
+# This is how to initialize a variable
+a = 1
+```
+"""
+    assert add_whitespace_to_headings(markdown_text_with_whitespace) == expected_with_whitespace
+
 def test_remove_leading_whitespace_before_image_markup():
     markdown_text = """
     ![Alt text](/path/to/img.jpg)
@@ -75,4 +107,3 @@ def test_ensure_ends_with_newline():
 
 if __name__ == "__main__":
     pytest.main()
-

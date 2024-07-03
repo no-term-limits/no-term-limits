@@ -42,8 +42,7 @@ def merge_exclamation_sentences(sentences):
 #
 def add_whitespace_to_headings(markdown_text):
     # Define regex pattern to match markdown headings at the beginning of a line
-    pattern = r"(^|\n)(#{2,6}\s*[^#\n]+)\n*"
-    # pattern = r"(^|\n)(#{2,6} .+?)(\n|$)"
+    pattern = r"(^|\n)(#{2,6}\s*[^\n]+)\n*"
     # Replace markdown headings with added whitespace
     replaced_text = re.sub(pattern, r"\1\2\n\n", markdown_text)
     return replaced_text
