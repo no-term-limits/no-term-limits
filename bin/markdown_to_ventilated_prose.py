@@ -63,21 +63,12 @@ def ensure_ends_with_newline(markdown_text):
     return markdown_text
 
 
-def markdown_to_ventilated_prose(input_file, output_file):
-    # Read the Markdown file
-    with open(input_file, "r", encoding="utf-8") as f:
-        markdown_text = f.read()
+def process_markdown_string(markdown_text):
+    """
+    Process a markdown string and return the ventilated prose.
+    """
 
-    # at one point i was thinking it necessary to remove leading whitespace before images,
-    # but i think it is reasonable to have it for visual consistency in the markdown
-    # if the lines around it also have space.
-    # markdown_text = remove_leading_whitespace_before_image_markup(markdown_text)
-
-    markdown_text = add_whitespace_to_headings(markdown_text)
-
-    ventilated_prose = ""
-
-    # break the markddown text into chunks that are separated by two newlines
+    # break the markdown text into chunks that are separated by two newlines
     chunks = re.split(r"\n\n", markdown_text)
 
     potentially_updated_chunks = []
@@ -115,15 +106,14 @@ def markdown_to_ventilated_prose(input_file, output_file):
         # Join sentences with newline character
         potentially_updated_chunks.append("\n".join(sentences))
 
-    # Write the ventilated prose to the output file
+    # Join the potentially updated chunks into the new markdown text
     new_markdown_text = "\n\n".join(potentially_updated_chunks)
     new_markdown_text = ensure_ends_with_newline(new_markdown_text)
 
     # one newline at the end is good. two or more is excessive.
     new_markdown_text = new_markdown_text.rstrip() + "\n"
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(new_markdown_text)
+    return new_markdown_text
 
 
 if __name__ == "__main__":
@@ -132,7 +122,18 @@ if __name__ == "__main__":
     else:
         input_file = sys.argv[1]
         output_file = sys.argv[2]
-        markdown_to_ventilated_prose(input_file, output_file)
+        
+        # Read the Markdown file
+        with open(input_file, "r", encoding="utf-8") as f:
+            markdown_text = f.read()
+        
+        # Process the markdown string
+        new_markdown_text = process_markdown_string(markdown_text)
+        
+        # Write the ventilated prose to the output file
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(new_markdown_text)
+        
         message = "Ventilation success: "
         if input_file == output_file:
             message += f"{output_file} updated"
