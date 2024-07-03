@@ -12,7 +12,8 @@ from markdown_to_ventilated_prose import (
     merge_exclamation_sentences,
     add_whitespace_to_headings,
     remove_leading_whitespace_before_image_markup,
-    ensure_ends_with_newline
+    ensure_ends_with_newline,
+    process_markdown_string
 )
 
 # Ensure nltk tokenizer is available
@@ -105,5 +106,8 @@ def test_ensure_ends_with_newline():
     expected = "Some text without a newline\n"
     assert ensure_ends_with_newline(markdown_text) == expected
 
-if __name__ == "__main__":
+def test_process_markdown_string_with_period_and_spaces():
+    markdown_text = "This is the first sentence.   This is the second sentence."
+    expected = "This is the first sentence.\nThis is the second sentence.\n"
+    assert process_markdown_string(markdown_text) == expected
     pytest.main()
