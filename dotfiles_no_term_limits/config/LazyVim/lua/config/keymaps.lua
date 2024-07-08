@@ -178,3 +178,44 @@ vim.api.nvim_exec(
 ]],
   false
 )
+
+-- Function to detect the current Python function using Treesitter
+function _G.get_current_python_function()
+  local ts_utils = require("nvim-treesitter.ts_utils")
+  local current_node = ts_utils.get_node_at_cursor()
+
+  if not current_node then
+    return nil
+  end
+
+  while current_node do
+    if current_node:type() == "function_definition" then
+      for child in current_node:iter_children() do
+        if child:type() == "identifier" then
+          return vim.treesitter.get_node_text(child, 0)
+        end
+      end
+    end
+    current_node = current_node:parent()
+  end
+
+  return nil
+end
+
+-- Function to set the command to "poet [function_name]" if it starts with "test_"
+function _G.set_poet_command()
+  local function_name = _G.get_current_python_function()
+  if function_name then
+    if function_name:match("^test_") then
+      _G.tmux_command = "poet " .. function_name
+      print("Command set: " .. _G.tmux_command)
+    else
+      print("Function '" .. function_name .. "' does not start with 'test_'. Command not set.")
+    end
+  else
+    print("No Python function found at cursor position.")
+  end
+end
+
+-- Map <leader>rt to set the poet command
+vim.api.nvim_set_keymap("n", "<leader>rt", [[:lua _G.set_poet_command()<CR>]], { noremap = true, silent = true })
