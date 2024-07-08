@@ -159,3 +159,22 @@ vim.api.nvim_set_keymap(
   [[:lua run_tmux_command("{right-of}")<CR>]],
   { noremap = true, silent = true }
 )
+
+-- Function to check if tmux_command is set and run it in tmux on save
+function _G.run_tmux_command_on_save()
+  if _G.tmux_command ~= "" then
+    local cmd = string.format("tmux send-keys -t {right-of} '%s' C-m", _G.tmux_command)
+    os.execute(cmd)
+  end
+end
+
+-- Set autocmd to run run_tmux_command_on_save after saving a file if tmux_command is set
+vim.api.nvim_exec(
+  [[
+    augroup RunTmuxCommandOnSave
+        autocmd!
+        autocmd BufWritePost * lua run_tmux_command_on_save()
+    augroup END
+]],
+  false
+)
