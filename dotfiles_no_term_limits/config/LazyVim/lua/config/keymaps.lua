@@ -125,3 +125,37 @@ vim.keymap.set(
   [[:let @+ = fnamemodify(expand("%"), ":~:.")<CR>]],
   { noremap = true, silent = true, desc = "Copy file path to clipboard. see also cp for full path." }
 )
+
+-- Global variable to store the command
+_G.tmux_command = ""
+
+-- Function to set the command
+function _G.set_tmux_command()
+  _G.tmux_command = vim.fn.input("Enter command to run in tmux pane: ")
+  if _G.tmux_command == "" then
+    print("No command entered.")
+  else
+    print("Command set: " .. _G.tmux_command)
+  end
+end
+
+-- Function to run the command in the specified tmux pane
+function _G.run_tmux_command(pane)
+  if _G.tmux_command ~= "" then
+    local cmd = string.format("tmux send-keys -t %s '%s' C-m", pane, _G.tmux_command)
+    os.execute(cmd)
+  else
+    print("No command set. Use :lua set_tmux_command() to set the command.")
+  end
+end
+
+-- Map <leader>rs to set the command
+vim.api.nvim_set_keymap("n", "<leader>rs", [[:lua set_tmux_command()<CR>]], { noremap = true, silent = true })
+
+-- Map <leader>rr to run the command in the right tmux pane
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>rr",
+  [[:lua run_tmux_command("{right-of}")<CR>]],
+  { noremap = true, silent = true }
+)
