@@ -37,8 +37,17 @@ for file in glob.glob(glob_arg, recursive=True):
 # give report of files with most tokens
 sorted_token_tuples = sorted(file_to_token_count_map.items(), key=lambda item: item[1], reverse=True)
 
+files_with_tokens = len(sorted_token_tuples)
+if files_with_tokens == 0:
+    print(f"No .{file_extension} files found in {base_dir} dir")
+    sys.exit(0)
+
 print("Top 10 files with most tokens:\n")
-for i in range(10):
+print(f"➡️ ➡️ ➡️  sorted_token_tuples: {len(sorted_token_tuples)}")
+
+how_many_files_to_show = 10 if files_with_tokens > 10 else files_with_tokens
+
+for i in range(how_many_files_to_show):
     file, tokens = sorted_token_tuples[i]
     print(f"➡️ ➡️ ➡️  {file}: {tokens}")
 
