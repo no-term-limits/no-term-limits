@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -9,14 +9,14 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: auto_maintain: gitsr
 
-if type setopt > /dev/null 2>&1; then
+if type setopt >/dev/null 2>&1; then
   setopt SH_WORD_SPLIT
 fi
 
 old=$1
 new=$2
 file=""
-files=$( (grep "$old" . -lRE --exclude-dir='vendor' --exclude-dir='.svn' --exclude-dir='.git' --exclude-dir='log' --exclude-dir='node_modules' --exclude-dir='target' --exclude-dir=doc --exclude-dir=manifests --exclude-dir=coverage || echo '') | uniq)
+files=$( (grep "$old" . -lrE --exclude-dir='vendor' --exclude-dir='.svn' --exclude-dir='.git' --exclude-dir='log' --exclude-dir='node_modules' --exclude-dir='target' --exclude-dir=doc --exclude-dir=manifests --exclude-dir=coverage || echo '') | uniq)
 
 if [[ -n "$files" ]]; then
   old=$(echo $old | sed -E 's/\(/\(/g' | sed -E 's/\)/\)/g')
@@ -25,7 +25,7 @@ if [[ -n "$files" ]]; then
   done <<<"$files"
 fi
 
-file_count=$(wc -l <<< "$files")
+file_count=$(wc -l <<<"$files")
 if [[ "$file_count" != 0 ]]; then
   echo $files
 fi
