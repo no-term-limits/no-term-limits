@@ -7,19 +7,16 @@ set -e
 # or: c pl<tab> # to autocomplete stuff in the ~/projects directory
 startdir=$1
 curdir=$2
-shift; shift
+shift
+shift
 
 # the "not" expression is to exclude hidden files and directories
 direxactmatch=$(find -L "$startdir" -maxdepth 3 -not -path '*/\.*' -type d -name "$curdir")
 
 if [[ -n $direxactmatch ]]; then
-  if echo "$direxactmatch" | grep -q plat; then
-    mainmatch=$(echo "$direxactmatch" | grep plat | head -n1)
-  else
-    mainmatch=$(echo "$direxactmatch" | head -n1);
-  fi
+  mainmatch=$(echo "$direxactmatch" | head -n1)
 else
-  dirpartialmatch=$(find_directories "$startdir" "$curdir" | head -n1)
+  dirpartialmatch=$(find_directories "$startdir" "$curdir" | sort | head -n1)
   if [[ -n $dirpartialmatch ]]; then
     mainmatch=$dirpartialmatch
   else
