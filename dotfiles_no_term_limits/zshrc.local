@@ -20,10 +20,6 @@ else
   NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION=sh
 fi
 
-# unset this to avoid confusion of what is a command and what is directory
-# this was a terrible idea
-unsetopt autocd
-
 export PATH="$HOME/.bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits/bin:$PATH"
@@ -241,6 +237,10 @@ if which zstyle > /dev/null; then
 fi
 
 if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]]; then
+  # unset this to avoid confusion of what is a command and what is directory
+  # this was a terrible idea
+  unsetopt autocd
+
   if [[ -f "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
     source "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
   fi
