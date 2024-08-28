@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -9,6 +9,6 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: grev
 
-if ! gre --exclude-dir={vendor*,node_modules} "$@" ; then
+if ! gre --exclude-dir={vendor*,node_modules,.terraform,.packer.d} "$@"; then
   exit 1
 fi
