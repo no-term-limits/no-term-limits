@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: update no-term-limits and related projects
+
+# extra github directories or contain extra github directories
+additional_directories="$*"
 
 function git_pull_repo() {
   local git_repo="$1"
@@ -20,6 +23,24 @@ function git_pull_repo() {
   fi
 }
 
+function process_additional_directory() {
+  local dir="$1"
+  if [[ -d "${dir}/.git" ]]; then
+    git_pull_repo "$dir"
+  elif [[ -d "${dir}" ]]; then
+    for subdir in "$dir"/*; do
+      process_additional_directory "${subdir}"
+    done
+  else
+    echo >&2 "ERROR: INVALID DIR: $repo"
+    exit 1
+  fi
+}
+
 git_pull_repo "$(no_term_limits_location)"
 git_pull_repo "${HOME}/dotfiles"
 git_pull_repo "${NO_TERM_LIMITS_PROJECTS_DIR}/github/computer-setup"
+
+for repo in $additional_directories; do
+  process_additional_directory "$repo"
+done
