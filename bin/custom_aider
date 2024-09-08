@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: aider with custom args to use our azure openai deployment
+
+# see https://aider.chat/docs/config/adv-model-settings.html for --model-metadata-file info
+#   context window and output tokens for that file came from https://platform.openai.com/docs/models/gpt-4o
+#   costs for that file came from https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/#pricing
+
+# we just never had any luck with the typescript linter integration so turn it off
+# azure/go-nuts is our deployment. it won't work for you, sorry. :D
+
+aider_custom_model_metadata_file="$NO_TERM_LIMITS_PROJECTS_DIR/github/no-term-limits/setup/aider_custom_model_metadata.json"
+
+if [[ ! -f "$aider_custom_model_metadata_file" ]]; then
+  >&2 echo "ERROR: missing file: $aider_custom_model_metadata_file"
+  exit 1
+fi
+
+aider --no-auto-commits --lint-cmd 'typescript:echo' --model azure/go-nuts --model-metadata-file "$aider_custom_model_metadata_file" "$@"

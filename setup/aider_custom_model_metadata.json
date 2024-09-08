@@ -1,0 +1,10 @@
+{
+  "azure/go-nuts": {
+    "max_tokens": 128000,
+    "max_input_tokens": 110000,
+    "max_output_tokens": 16384,
+    "input_cost_per_token": 0.0000025,
+    "output_cost_per_token": 0.00001,
+    "mode": "chat"
+  }
+}
