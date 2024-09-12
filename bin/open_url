@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -11,11 +11,15 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 if [[ -n "${2:-}" ]]; then
   if command -v google-chrome >/dev/null; then
-    google-chrome "$@"
+    profile_arg=""
+    if ! grep 'profile-directory' <<<"$@"; then
+      profile_arg='--profile-directory=Default'
+    fi
+    google-chrome "$profile_arg" "$@"
   elif command -v chromium-browser >/dev/null; then
     chromium-browser "$@"
   else
-    >&2 echo "ERROR: Extra options were passed in but cannot be used. Currently chromium-browser needs to be installed to use these options. OPTIONS PASSED IN: '$*'"
+    echo >&2 "ERROR: Extra options were passed in but cannot be used. Currently chromium-browser needs to be installed to use these options. OPTIONS PASSED IN: '$*'"
     exit 1
   fi
 elif is_mac; then
@@ -24,6 +28,6 @@ elif which xdg-open >/dev/null 2>&1; then
   xo "$1"
   sleep 1 # allow for stdout to print for clarity
 else
-  >&2 echo 'ERROR: not sure how to open url on your system. Currently only support "open" for mac and "xdg-open" for ubuntu'
+  echo >&2 'ERROR: not sure how to open url on your system. Currently only support "open" for mac and "xdg-open" for ubuntu'
   exit 1
 fi

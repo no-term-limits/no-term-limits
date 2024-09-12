@@ -35,7 +35,8 @@ if grep -q 'github.com' <<<"$git_url"; then
   fi
   url_path="${git_url}${url_path}"
 elif grep -q 'bitbucket.org' <<<"$git_url"; then
-  url_path="${git_url}src/${branch}${relative_file}"
+  commit_hash=$(git rev-parse --verify HEAD)
+  url_path="${git_url}src/${commit_hash}${relative_file}?at=${branch}"
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#lines-${line_number}"
   fi
