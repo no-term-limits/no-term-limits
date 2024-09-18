@@ -118,6 +118,9 @@ function get_help_from_sourced_files() {
 
 if [[ -z "$pattern" ]]; then
   dohelp "${HOME}/.zshrc.local"
+  if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]; then
+    dohelp "${HOME}/.zshrc.no_term_limits_overrides"
+  fi
   pattern=metahelpcommands
   get_help_from_bin_dirs
   pattern=''
