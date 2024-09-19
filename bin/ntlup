@@ -26,7 +26,7 @@ function git_pull_repo() {
 function process_additional_directory() {
   local dir="$1"
   if [[ -d "${dir}/.git" ]]; then
-    git_pull_repo "$dir"
+    git_pull_repo "$dir" || echo ''
   elif [[ -d "${dir}" ]]; then
     for subdir in "$dir"/*; do
       process_additional_directory "${subdir}"
