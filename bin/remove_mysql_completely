@@ -53,6 +53,7 @@ if is_mac; then
   sudo rm -rf /Library/Receipts/mysql*
   sudo rm -rf /Library/Receipts/MySQL*
   sudo rm -rf /private/var/db/receipts/*mysql*
+  sudo rm -rf /opt/homebrew/var/mysql
 else
   # https://askubuntu.com/questions/640899/how-do-i-uninstall-mysql-completely
   sudo service mysql stop
