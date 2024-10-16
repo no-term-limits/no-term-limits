@@ -31,9 +31,6 @@ function process_additional_directory() {
     for subdir in "$dir"/*; do
       process_additional_directory "${subdir}"
     done
-  else
-    echo >&2 "ERROR: INVALID DIR: $repo"
-    exit 1
   fi
 }
 
@@ -42,5 +39,9 @@ git_pull_repo "${HOME}/dotfiles"
 git_pull_repo "${NO_TERM_LIMITS_PROJECTS_DIR}/github/computer-setup"
 
 for repo in $additional_directories; do
+  if [[ ! -d "${repo}" ]]; then
+    echo >&2 "ERROR: INVALID ADDITIONAL DIR: $repo"
+    exit 1
+  fi
   process_additional_directory "$repo"
 done
