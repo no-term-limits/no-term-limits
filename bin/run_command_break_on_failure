@@ -12,7 +12,7 @@ fi
 
 for i in $(eval "echo {1..$attempts}"); do
   echo "Starting attempt $i of $attempts"
-  eval "$@"
+  "$@"
   exitcode=$?
   echo "Attempt succeeded: $i of $attempts"
 
