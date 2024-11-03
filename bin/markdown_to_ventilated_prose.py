@@ -14,16 +14,21 @@ def tokenize_into_sentences(text):
         tokenizer = nltk.data.load("tokenizers/punkt/english.pickle")
     return tokenizer.tokenize(text)
 
+
 # find any sentence that is all exclamation marks
 # and add its contents to the previous sentence
 def merge_exclamation_sentences(sentences):
     i = 1
     while i < len(sentences):
-        if all(char == '!' for char in sentences[i]):
-            sentences[i - 1] += '' + sentences.pop(i)
+        if all(char == "!" for char in sentences[i]):
+            sentences[i - 1] += "" + sentences.pop(i)
         else:
             i += 1
     return sentences
+
+
+nltk.download("punkt_tab")
+
 
 # you gotta before careful, because you do not want to replace the thing that looks like a heading with a newline in this case,
 # since it is actually a python comment, not a heading:
@@ -63,6 +68,7 @@ def remove_trailing_whitespace(markdown_text):
     """
     return "\n".join(line.rstrip() for line in markdown_text.splitlines())
 
+
 def ensure_ends_with_newline(markdown_text):
     if not markdown_text.endswith("\n"):
         markdown_text += "\n"
@@ -88,7 +94,9 @@ def process_markdown_string(markdown_text):
         #   * starting with pipe, which is a table
         #   * starting with a number or letter and a period, which is a list
         if re.search(
-            r"^(\s*[*#\d!-]|\[\!\[|{{|    |[\t ]+\!|\| |\w{1,2}\.)", chunk, flags=re.MULTILINE
+            r"^(\s*[*#\d!-]|\[\!\[|{{|    |[\t ]+\!|\| |\w{1,2}\.)",
+            chunk,
+            flags=re.MULTILINE,
         ):
             potentially_updated_chunks.append(chunk)
             continue
@@ -129,18 +137,18 @@ if __name__ == "__main__":
     else:
         input_file = sys.argv[1]
         output_file = sys.argv[2]
-        
+
         # Read the Markdown file
         with open(input_file, "r", encoding="utf-8") as f:
             markdown_text = f.read()
-        
+
         # Process the markdown string
         new_markdown_text = process_markdown_string(markdown_text)
-        
+
         # Write the ventilated prose to the output file
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(new_markdown_text)
-        
+
         message = "Ventilation success: "
         if input_file == output_file:
             message += f"{output_file} updated"

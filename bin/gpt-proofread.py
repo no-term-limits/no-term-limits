@@ -56,6 +56,16 @@ system_text = """You are proofreading a markdown document and you will receive t
 - Avoid putting multiple sentences on the same line
 - Make sure you do not remove any headers at the beginning of the text (markdown headers begin with one or more # characters)
 
+Examples of good edits:
+<input>
+# Awesome Headerr
+This is a sentance that are about *something*.
+</input>
+<output>
+# Awesome Header
+This is a sentence that is about *something*.
+</output>
+
 The markdown document follows. The output document's first line should probably match that of the input document, even if it is a markdown header.
 """
 
