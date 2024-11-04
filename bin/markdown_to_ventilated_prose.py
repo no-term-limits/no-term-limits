@@ -79,19 +79,18 @@ def process_bullet_points(chunk):
     lines = chunk.splitlines()
     updated_lines = []
     for line in lines:
-        match = re.match(r"^(\s*[-*]\s+)(.*)", line)
+        match = re.match(r"^(\s*)([-*]\s+|\d+\.\s+|\*\*\w+\*\*\s+)?(.*)", line)
         if match:
-            bullet, content = match.groups()
-            # Tokenize the content into sentences
+            leading_whitespace, bullet, content = match.groups()
+            bullet = bullet or ""
             sentences = tokenize_into_sentences(content)
-            # Only process if there are multiple sentences
-            if len(sentences) > 1:
-                # Merge exclamation sentences
-                sentences = merge_exclamation_sentences(sentences)
-                # Join sentences with newline and indentation
-                updated_lines.append(bullet + sentences[0])
+            sentences = merge_exclamation_sentences(sentences)
+            if sentences:
+                updated_lines.append(leading_whitespace + bullet + sentences[0])
                 for sentence in sentences[1:]:
-                    updated_lines.append(" " * len(bullet) + sentence)
+                    updated_lines.append(
+                        leading_whitespace + " " * len(bullet) + sentence.strip()
+                    )
             else:
                 updated_lines.append(line)
         else:
@@ -161,13 +160,11 @@ if __name__ == "__main__":
         print("Usage: python script.py input.md output.md")
     else:
         input_file = sys.argv[1]
-        output_process_bullet_pointsfile = sys.argv[2]
+        output_file = sys.argv[2]
 
-        # Read the Markdown file
         with open(input_file, "r", encoding="utf-8") as f:
             markdown_text = f.read()
 
-        # Process the markdown string
         new_markdown_text = process_markdown_string(markdown_text)
 
         if new_markdown_text == markdown_text:

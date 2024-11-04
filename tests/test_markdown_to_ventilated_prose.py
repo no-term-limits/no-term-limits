@@ -158,3 +158,17 @@ Hot list:
 """
     actual = process_markdown_string(markdown_text)
     assert actual == expected
+
+
+def test_process_markdown_string_when_sentences_are_indented():
+    markdown_text = """
+1. **Cool Stuff**
+   Awesome thing. It is mega awesome. So awesome, actually."""
+    expected = """
+1. **Cool Stuff**
+   Awesome thing.
+   It is mega awesome.
+   So awesome, actually.
+"""
+    actual = process_markdown_string(markdown_text)
+    assert actual == expected
