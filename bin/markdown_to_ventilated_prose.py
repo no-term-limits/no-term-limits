@@ -89,6 +89,10 @@ def process_bullet_points(chunk):
         match = re.match(r"^(\s*([-*]|\d+\.)?\s+)(.*)", line)
         if match:
             bullet, content = match.groups()[0], match.groups()[2]
+            # Check if the content contains markdown elements that should not be split
+            if re.search(r"!\[.*\]|\*\*.*\*\*", content):
+                updated_lines.append(line)
+                continue
             # Tokenize the content into sentences
             sentences = tokenize_into_sentences(content)
             # Only process if there are multiple sentences

@@ -187,7 +187,8 @@ Hot list:
 Hot list:
   - Select the "git" button ![Git button](./images/git.png "Git button")
   - **Internal vs. External**
-  - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter."""
+  - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter.
+"""
     actual = process_markdown_string(markdown_text)
     print(f"➡️ ➡️ ➡️  actual: {actual}")
     print(f"➡️ ➡️ ➡️  expected: {expected}")
@@ -227,4 +228,27 @@ def test_weird_header_that_should_remain_intact():
 ### **1. Running SpiffWorkflow in PyCharm**
 """
     actual = process_markdown_string(markdown_text)
+    assert actual == expected
+
+
+def test_process_markdown_string_does_not_screw_up_code_blocks():
+    markdown_text = """
+```json
+{
+  "title": "Dropdown list",
+  "description": "A dropdown list with options pulled from existing Task Data. IMPORTANT - Add 'fruits' to Task Data before using this component!!! ",
+}
+```
+    """
+    expected = """
+```json
+{
+  "title": "Dropdown list",
+  "description": "A dropdown list with options pulled from existing Task Data. IMPORTANT - Add 'fruits' to Task Data before using this component!!! ",
+}
+```
+"""
+    actual = process_markdown_string(markdown_text)
+    print(f"➡️ ➡️ ➡️  actual: {actual}")
+    print(f"➡️ ➡️ ➡️  expected: {expected}")
     assert actual == expected
