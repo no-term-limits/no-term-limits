@@ -81,7 +81,19 @@ def process_bullet_points(chunk):
     """
     lines = chunk.splitlines()
     updated_lines = []
+    skip_until_closing_backticks = False
     for line in lines:
+        # Toggle the flag if the line contains triple backticks
+        if re.match(r"^```", line):
+            skip_until_closing_backticks = not skip_until_closing_backticks
+            updated_lines.append(line)
+            continue
+
+        # Skip processing if inside a code block
+        if skip_until_closing_backticks:
+            updated_lines.append(line)
+            continue
+
         # if line begins with # (it's a header), skip it
         if line.startswith("#"):
             updated_lines.append(line)
