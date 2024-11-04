@@ -19,8 +19,8 @@ function update_file() {
     return
   fi
   markdown_to_ventilated_prose.py "$file" "$file"
-  gpt-proofread.py "$file"
-  markdown_to_ventilated_prose.py "$file" "$file"
+  # gpt-proofread.py "$file"
+  # markdown_to_ventilated_prose.py "$file" "$file"
 }
 
 # pip install from gpt-requirements.txt in the same directory if a certain enviroment varaible is set

@@ -79,18 +79,19 @@ def process_bullet_points(chunk):
     lines = chunk.splitlines()
     updated_lines = []
     for line in lines:
-        match = re.match(r"^(\s*)([-*]\s+|\d+\.\s+|\*\*\w+\*\*\s+)?(.*)", line)
+        match = re.match(r"^(\s*[-*]\s+)(.*)", line)
         if match:
-            leading_whitespace, bullet, content = match.groups()
-            bullet = bullet or ""
+            bullet, content = match.groups()
+            # Tokenize the content into sentences
             sentences = tokenize_into_sentences(content)
-            sentences = merge_exclamation_sentences(sentences)
-            if sentences:
-                updated_lines.append(leading_whitespace + bullet + sentences[0])
+            # Only process if there are multiple sentences
+            if len(sentences) > 1:
+                # Merge exclamation sentences
+                sentences = merge_exclamation_sentences(sentences)
+                # Join sentences with newline and indentation
+                updated_lines.append(bullet + sentences[0])
                 for sentence in sentences[1:]:
-                    updated_lines.append(
-                        leading_whitespace + " " * len(bullet) + sentence.strip()
-                    )
+                    updated_lines.append(" " * len(bullet) + sentence)
             else:
                 updated_lines.append(line)
         else:

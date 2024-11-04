@@ -171,4 +171,17 @@ def test_process_markdown_string_when_sentences_are_indented():
    So awesome, actually.
 """
     actual = process_markdown_string(markdown_text)
+    print(f"➡️ ➡️ ➡️  actual: {actual}")
+    print(f"➡️ ➡️ ➡️  expected: {expected}")
+    assert actual == expected
+
+
+def test_images_with_exclamation_points():
+    markdown_text = """
+    ![Awesome label](images/great_image_2.png)
+    """
+    expected = """
+    ![Awesome label](images/great_image_2.png)
+"""
+    actual = process_markdown_string(markdown_text)
     assert actual == expected
