@@ -23,6 +23,18 @@ function update_file() {
   markdown_to_ventilated_prose.py "$file" "$file"
 }
 
+# pip install from gpt-requirements.txt in the same directory if a certain enviroment varaible is set
+if [[ "${RUN_PIP_INSTALL:-}" == "true" ]]; then
+  script_dir="$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+  )"
+  pip install -r "${script_dir}/gpt-requirements.txt"
+fi
+
+# run setup script so it doens't have to be run inside ventilate script, which happens a lot
+install_ntlk_dependencies_for_ventilate.py
+
 arg1="${1:-}"
 
 if [[ -d "$arg1" ]]; then

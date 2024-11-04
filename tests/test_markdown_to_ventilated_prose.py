@@ -5,7 +5,7 @@ import pytest
 import nltk
 
 # Add the `bin` directory to the Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '../bin'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../bin"))
 
 from markdown_to_ventilated_prose import (
     tokenize_into_sentences,
@@ -14,8 +14,9 @@ from markdown_to_ventilated_prose import (
     remove_leading_whitespace_before_image_markup,
     ensure_ends_with_newline,
     process_markdown_string,
-    remove_trailing_whitespace
+    remove_trailing_whitespace,
 )
+
 
 # Ensure nltk tokenizer is available
 @pytest.fixture(scope="module", autouse=True)
@@ -25,15 +26,18 @@ def setup_nltk():
     except LookupError:
         nltk.download("punkt")
 
+
 def test_tokenize_into_sentences():
     text = "Hello there! How are you doing? I'm good."
     expected = ["Hello there!", "How are you doing?", "I'm good."]
     assert tokenize_into_sentences(text) == expected
 
+
 def test_merge_exclamation_sentences():
     sentences = ["Hello there!", "!!!", "How are you doing?", "!!!", "I'm good."]
     expected = ["Hello there!!!!", "How are you doing?!!!", "I'm good."]
     assert merge_exclamation_sentences(sentences) == expected
+
 
 def test_add_whitespace_to_headings():
     markdown_text = """
@@ -91,7 +95,11 @@ More text here.
 a = 1
 ```
 """
-    assert add_whitespace_to_headings(markdown_text_with_whitespace) == expected_with_whitespace
+    assert (
+        add_whitespace_to_headings(markdown_text_with_whitespace)
+        == expected_with_whitespace
+    )
+
 
 def test_remove_leading_whitespace_before_image_markup():
     markdown_text = """
@@ -102,20 +110,24 @@ def test_remove_leading_whitespace_before_image_markup():
 """
     assert remove_leading_whitespace_before_image_markup(markdown_text) == expected
 
+
 def test_ensure_ends_with_newline():
     markdown_text = "Some text without a newline"
     expected = "Some text without a newline\n"
     assert ensure_ends_with_newline(markdown_text) == expected
+
 
 def test_remove_trailing_whitespace():
     markdown_text = "This is a line with trailing spaces.   \nThis is another line with trailing spaces.   "
     expected = "This is a line with trailing spaces.\nThis is another line with trailing spaces."
     assert remove_trailing_whitespace(markdown_text) == expected
 
+
 def test_process_markdown_string_with_trailing_spaces():
     markdown_text = "This is a line with trailing spaces.   \nThis is another line with trailing spaces.   "
     expected = "This is a line with trailing spaces.\nThis is another line with trailing spaces.\n"
     assert process_markdown_string(markdown_text) == expected
+
 
 # the two sentences get into the same chunk, which we ignore because of the the jinja, so it doesn't end up ventilating like we would want.
 # def test_process_markdown_string_with_sentences_and_jinja():
@@ -123,8 +135,24 @@ def test_process_markdown_string_with_trailing_spaces():
 #     expected = "This is the first sentence.\nThis is the second sentence.\n{{ jinja_variable }}\n"
 #     assert process_markdown_string(markdown_text) == expected
 
+
 def test_process_markdown_string_with_period_and_spaces():
     markdown_text = "This is the first sentence.   This is the second sentence."
     expected = "This is the first sentence.\nThis is the second sentence.\n"
     assert process_markdown_string(markdown_text) == expected
-    pytest.main()
+    # pytest.main()
+
+
+def test_process_markdown_string_when_bullet_points_are_long_enough_for_multiple_sentences():
+    markdown_text = """
+Hot list:
+    - Awesome thing. It is mega awesome. So awesome, actually
+    - Next list item. Also a great item."""
+    expected = """
+Hot list:
+    - Awesome thing.
+      It is mega awesome.
+      So awesome, actually
+    - Next list item.
+      Also a great item."""
+    assert process_markdown_string(markdown_text) == expected

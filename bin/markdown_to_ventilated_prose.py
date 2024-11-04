@@ -27,9 +27,6 @@ def merge_exclamation_sentences(sentences):
     return sentences
 
 
-nltk.download("punkt_tab")
-
-
 # you gotta before careful, because you do not want to replace the thing that looks like a heading with a newline in this case,
 # since it is actually a python comment, not a heading:
 # ```python
@@ -145,13 +142,16 @@ if __name__ == "__main__":
         # Process the markdown string
         new_markdown_text = process_markdown_string(markdown_text)
 
-        # Write the ventilated prose to the output file
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(new_markdown_text)
-
-        message = "Ventilation success: "
-        if input_file == output_file:
-            message += f"{output_file} updated"
+        if new_markdown_text == markdown_text:
+            print(f"{input_file}: Ventilation success. No updates needed.")
         else:
-            message += f"Output written to {output_file}"
-        print(message)
+            # Write the ventilated prose to the output file
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(new_markdown_text)
+
+            message = "Ventilation success: "
+            if input_file == output_file:
+                message += f"{output_file} updated"
+            else:
+                message += f"Output written to {output_file}"
+            print(message)
