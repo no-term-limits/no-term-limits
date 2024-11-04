@@ -18,10 +18,13 @@ def tokenize_into_sentences(text):
 # find any sentence that is all exclamation marks
 # and add its contents to the previous sentence
 def merge_exclamation_sentences(sentences):
-    i = 1
+    i = 0
     while i < len(sentences):
         if all(char == "!" for char in sentences[i]):
-            sentences[i - 1] += "" + sentences.pop(i)
+            if len(sentences) >= i + 1 and sentences[i + 1].startswith("["):
+                sentences[i] += "" + sentences.pop(i + 1)
+            else:
+                sentences[i - 1] += "" + sentences.pop(i)
         else:
             i += 1
     return sentences
@@ -83,7 +86,7 @@ def process_bullet_points(chunk):
         if line.startswith("#"):
             updated_lines.append(line)
             continue
-        match = re.match(r"^(\s*([-*]|\d+\.)?\s*)(.*)", line)
+        match = re.match(r"^(\s*([-*]|\d+\.)?\s+)(.*)", line)
         if match:
             bullet, content = match.groups()[0], match.groups()[2]
             # Tokenize the content into sentences

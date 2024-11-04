@@ -171,8 +171,6 @@ def test_process_markdown_string_when_sentences_are_indented():
    So awesome, actually.
 """
     actual = process_markdown_string(markdown_text)
-    print(f"➡️ ➡️ ➡️  actual: {actual}")
-    print(f"➡️ ➡️ ➡️  expected: {expected}")
     assert actual == expected
 
 
