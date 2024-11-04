@@ -72,6 +72,33 @@ def ensure_ends_with_newline(markdown_text):
     return markdown_text
 
 
+def process_bullet_points(chunk):
+    """
+    Process bullet points with multiple sentences in a markdown chunk.
+    """
+    lines = chunk.splitlines()
+    updated_lines = []
+    for line in lines:
+        match = re.match(r"^(\s*[-*]\s+)(.*)", line)
+        if match:
+            bullet, content = match.groups()
+            # Tokenize the content into sentences
+            sentences = tokenize_into_sentences(content)
+            # Only process if there are multiple sentences
+            if len(sentences) > 1:
+                # Merge exclamation sentences
+                sentences = merge_exclamation_sentences(sentences)
+                # Join sentences with newline and indentation
+                updated_lines.append(bullet + sentences[0])
+                for sentence in sentences[1:]:
+                    updated_lines.append(" " * len(bullet) + sentence)
+            else:
+                updated_lines.append(line)
+        else:
+            updated_lines.append(line)
+    return "\n".join(updated_lines)
+
+
 def process_markdown_string(markdown_text):
     """
     Process a markdown string and return the ventilated prose.
@@ -95,7 +122,8 @@ def process_markdown_string(markdown_text):
             chunk,
             flags=re.MULTILINE,
         ):
-            potentially_updated_chunks.append(chunk)
+            # Handle bullet points with multiple sentences
+            potentially_updated_chunks.append(process_bullet_points(chunk))
             continue
 
         # tried combining this with the previous regex but i'm apparently a noob
@@ -133,7 +161,7 @@ if __name__ == "__main__":
         print("Usage: python script.py input.md output.md")
     else:
         input_file = sys.argv[1]
-        output_file = sys.argv[2]
+        output_process_bullet_pointsfile = sys.argv[2]
 
         # Read the Markdown file
         with open(input_file, "r", encoding="utf-8") as f:

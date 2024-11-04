@@ -146,13 +146,15 @@ def test_process_markdown_string_with_period_and_spaces():
 def test_process_markdown_string_when_bullet_points_are_long_enough_for_multiple_sentences():
     markdown_text = """
 Hot list:
-    - Awesome thing. It is mega awesome. So awesome, actually
-    - Next list item. Also a great item."""
+  - Awesome thing. It is mega awesome. So awesome, actually.
+  - Next list item. Also a great item."""
     expected = """
 Hot list:
-    - Awesome thing.
-      It is mega awesome.
-      So awesome, actually
-    - Next list item.
-      Also a great item."""
-    assert process_markdown_string(markdown_text) == expected
+  - Awesome thing.
+    It is mega awesome.
+    So awesome, actually.
+  - Next list item.
+    Also a great item.
+"""
+    actual = process_markdown_string(markdown_text)
+    assert actual == expected
