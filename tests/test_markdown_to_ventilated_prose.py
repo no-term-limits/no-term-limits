@@ -28,14 +28,31 @@ def setup_nltk():
 
 
 def test_tokenize_into_sentences():
-    text = "Hello there! How are you doing? I'm good."
-    expected = ["Hello there!", "How are you doing?", "I'm good."]
+    text = "Hello there! How are you doing? I'm good. **External vs. Internal**"
+    expected = [
+        "Hello there!",
+        "How are you doing?",
+        "I'm good.",
+        "**External vs. Internal**",
+    ]
     assert tokenize_into_sentences(text) == expected
 
 
 def test_merge_exclamation_sentences():
-    sentences = ["Hello there!", "!!!", "How are you doing?", "!!!", "I'm good."]
-    expected = ["Hello there!!!!", "How are you doing?!!!", "I'm good."]
+    sentences = [
+        "Hello there!",
+        "!!!",
+        "How are you doing?",
+        "!!!",
+        "I'm good.",
+        "![Awesome label](/awesome/image.png)",
+    ]
+    expected = [
+        "Hello there!!!!",
+        "How are you doing?!!!",
+        "I'm good.",
+        "![Awesome label](/awesome/image.png)",
+    ]
     assert merge_exclamation_sentences(sentences) == expected
 
 
@@ -157,6 +174,23 @@ Hot list:
     Also a great item.
 """
     actual = process_markdown_string(markdown_text)
+    assert actual == expected
+
+
+def test_process_markdown_string_with_problematic_bullet_points():
+    markdown_text = """
+Hot list:
+  - Select the "git" button ![Git button](./images/git.png "Git button")
+  - **Internal vs. External**
+  - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter."""
+    expected = """
+Hot list:
+  - Select the "git" button ![Git button](./images/git.png "Git button")
+  - **Internal vs. External**
+  - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter."""
+    actual = process_markdown_string(markdown_text)
+    print(f"➡️ ➡️ ➡️  actual: {actual}")
+    print(f"➡️ ➡️ ➡️  expected: {expected}")
     assert actual == expected
 
 
