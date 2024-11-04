@@ -185,3 +185,14 @@ def test_images_with_exclamation_points():
 """
     actual = process_markdown_string(markdown_text)
     assert actual == expected
+
+
+def test_weird_header_that_should_remain_intact():
+    markdown_text = """
+### **1. Running SpiffWorkflow in PyCharm**
+    """
+    expected = """
+### **1. Running SpiffWorkflow in PyCharm**
+"""
+    actual = process_markdown_string(markdown_text)
+    assert actual == expected

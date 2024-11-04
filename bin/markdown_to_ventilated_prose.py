@@ -79,9 +79,13 @@ def process_bullet_points(chunk):
     lines = chunk.splitlines()
     updated_lines = []
     for line in lines:
-        match = re.match(r"^(\s*[-*]\s+)(.*)", line)
+        # if line begins with # (it's a header), skip it
+        if line.startswith("#"):
+            updated_lines.append(line)
+            continue
+        match = re.match(r"^(\s*([-*]|\d+\.)?\s*)(.*)", line)
         if match:
-            bullet, content = match.groups()
+            bullet, content = match.groups()[0], match.groups()[2]
             # Tokenize the content into sentences
             sentences = tokenize_into_sentences(content)
             # Only process if there are multiple sentences
