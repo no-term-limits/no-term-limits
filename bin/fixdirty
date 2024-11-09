@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+
+# Run gdirtyrepos and capture the list of directories
+DIRTY_REPOS=$(gdirtyrepos)
+
+# Function to show Git status and then prompt for action
+prompt_action() {
+    local repo="$1"
+    echo -e "\n--- $repo ---"
+    
+    # Automatically display git status
+    echo "Git status:"
+    git -C "$repo" status
+
+    # Prompt for further action
+    while true; do
+        echo -e "\nChoose action for $repo:"
+        echo "[d] Show diffs of updated files"
+        echo "[c] Cat untracked files"
+        echo "[r] Remove all local changes with gitc (dangerous)"
+        echo "[s] Skip this repo"
+        read -rp "Action: " action
+
+        case "$action" in
+            d)
+                echo -e "\nDiffs:"
+                git -C "$repo" diff
+                ;;
+            c)
+                echo -e "\nUntracked files:"
+                git -C "$repo" ls-files --others --exclude-standard | while read -r file; do
+                    echo -e "\n$file:"
+                    cat "$repo/$file"
+                done
+                ;;
+            r)
+                echo "Running gitc to remove all local changes..."
+                (cd "$repo" && gitc)
+                echo "Local changes removed."
+                break
+                ;;
+            s)
+                echo "Skipping."
+                break
+                ;;
+            *)
+                echo "Invalid choice, try again."
+                ;;
+        esac
+    done
+}
+
+# Main loop to iterate through the dirty repositories
+for repo in $DIRTY_REPOS; do
+    prompt_action "$repo"
+done
+

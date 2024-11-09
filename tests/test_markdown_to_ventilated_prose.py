@@ -182,12 +182,14 @@ def test_process_markdown_string_with_problematic_bullet_points():
 Hot list:
   - Select the "git" button ![Git button](./images/git.png "Git button")
   - **Internal vs. External**
-  - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter."""
+  - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter.
+  - The help text "Hot!" will be displayed."""
     expected = """
 Hot list:
   - Select the "git" button ![Git button](./images/git.png "Git button")
   - **Internal vs. External**
   - Type: **sphinx-autobuild . \_build/html -W -a -j auto -n** at the prompt and hit enter.
+  - The help text "Hot!" will be displayed.
 """
     actual = process_markdown_string(markdown_text)
     print(f"➡️ ➡️ ➡️  actual: {actual}")
@@ -249,6 +251,19 @@ def test_process_markdown_string_does_not_screw_up_code_blocks():
 ```
 """
     actual = process_markdown_string(markdown_text)
-    print(f"➡️ ➡️ ➡️  actual: {actual}")
-    print(f"➡️ ➡️ ➡️  expected: {expected}")
     assert actual == expected
+
+
+# def test_process_markdown_string_with_psuedo_header():
+#     markdown_text = """
+# **Escalation Start Event (interrupting):** Sure enough. Yep.
+#     """
+#     expected = """
+# **Escalation Start Event (interrupting):**
+# Sure enough
+# Yep
+# """
+#     actual = process_markdown_string(markdown_text)
+#     print(f"➡️ ➡️ ➡️  actual: {actual}")
+#     print(f"➡️ ➡️ ➡️  expected: {expected}")
+#     assert actual == expected
