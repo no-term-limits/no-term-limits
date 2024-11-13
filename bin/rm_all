@@ -7,3 +7,4 @@ export GET_ALL_DOCKER_IMAGE_TAGS_FOR_DELETION=true
 rm_containers
 rm_images
 rm_volumes
+rm_builder_cache

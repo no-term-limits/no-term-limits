@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
@@ -10,9 +10,9 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: grep recursively in all directories minus .svn and .git. run "cac gre" for full exclusion list
 
 exclusions="--exclude=tags --exclude-dir=.terragrunt-cache"
-if ! grep -qE '\<logs?\>' <<<"$@" ; then
+if ! grep -qE '\<logs?\>' <<<"$@"; then
   exclusions="$exclusions --exclude=*.log"
 fi
-if ! gns $exclusions --exclude-dir={target,coverage,doc,build,.mypy_cache,docs,.nox} "$@" ; then
+if ! gns $exclusions --exclude-dir={target,coverage,build,.mypy_cache,.nox} "$@"; then
   exit 1
 fi
