@@ -21,7 +21,7 @@ if [[ -z "$context" ]]; then
   exit
 fi
 
-if [[ "$context" == "auto_complete_commands" ]]; then
+if [[ "$context" == "auto_complete_commands" || "$context" == "ls" ]]; then
   list_contexts
   exit
 fi
