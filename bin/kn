@@ -15,7 +15,7 @@ if [[ -z "$namespace" ]]; then
   echo "no argument specified. switching to ${namespace} namespace."
 fi
 
-if [[ "$namespace" == "auto_complete_commands" ]]; then
+if [[ "$namespace" == "auto_complete_commands" || "$namespace" == "ls" ]]; then
   kg namespaces -o json | jq -r '.items[] | .metadata.name'
   exit
 fi
