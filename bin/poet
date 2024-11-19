@@ -37,7 +37,11 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   fi
   if [[ -n "$test_name" ]]; then
     # there's no way to to have a test_file and test_name yet, so look up test_file based on test_name
-    test_file=$(grep -lR --exclude=.* --exclude-dir=.* --exclude=_* --exclude-dir=_* "\<$test_name\>" tests/ || echo '')
+    test_dir="tests"
+    if [[ -d "test" ]]; then
+      test_dir="test"
+    fi
+    test_file=$(grep -lR --exclude=.* --exclude-dir=.* --exclude=_* --exclude-dir=_* "\<$test_name\>" "${test_dir}/" || echo '')
     if [[ -z "$test_file" ]]; then
       echo >&2 "ERROR: test_name specified, but it could not be found in any file"
       exit 1
@@ -55,7 +59,11 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   elif [[ -n "$test_file" ]]; then
     args="$test_file $args"
   fi
-  poetry run pytest $args
+  if [[ -f "requirements.txt" && ! -f "pyproject.toml" ]]; then
+    pytest $args
+  else
+    poetry run pytest $args
+  fi
 elif [[ "$command" == "update" ]]; then
   if [[ -z "${1:-}" ]]; then
     echo >&2 "usage: $(basename "$0") [update] [library]"
