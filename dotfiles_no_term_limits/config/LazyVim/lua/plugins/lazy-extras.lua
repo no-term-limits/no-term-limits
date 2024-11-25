@@ -30,7 +30,8 @@ local plugin_config = {
 
 if os.getenv("NO_TERM_LIMITS_DISABLE_COPILOT") == nil then
   -- AI
-  table.insert(plugin_config, { import = "lazyvim.plugins.extras.coding.copilot" })
+  table.insert(plugin_config, { import = "lazyvim.plugins.extras.ai.copilot" })
+  table.insert(plugin_config, { import = "lazyvim.plugins.extras.ai.copilot-chat" })
 end
 
 return plugin_config
