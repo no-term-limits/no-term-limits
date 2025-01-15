@@ -48,12 +48,14 @@ return {
         end,
       },
       -- json seems to NOT work. hot.json is not validated when line two is changed to hot.json, even though <leader>li shows vscode-json-language-server running. the print statements don't work in either yaml or json.
-      jsonls = {
-        on_new_config = function(new_config)
-          new_config.settings.json.schemas = new_config.settings.json.schemas or hot_schemas_to_inject
-          vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
-        end,
-      },
+      -- this causes errors like the following on ubuntu:
+      --    lua/vim/lsp/client.lua:788: Invalid 'data': Cannot convert given Lua table in json files
+      -- jsonls = {
+      --   on_new_config = function(new_config)
+      --     new_config.settings.json.schemas = new_config.settings.json.schemas or hot_schemas_to_inject
+      --     vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
+      --   end,
+      -- },
     },
 
     -- disable cursor word highlighting - we could turn back on if it didn't hide visual mode selected text
