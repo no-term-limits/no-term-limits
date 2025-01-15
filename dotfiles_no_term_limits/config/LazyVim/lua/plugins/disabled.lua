@@ -14,6 +14,7 @@ return {
   -- },
   -- we have our own, very small, snippet collection
   { "rafamadriz/friendly-snippets", enabled = false },
+  { "folke/snacks.nvim", opts = { scroll = { enabled = false } } },
 
   -- get the full list of plugins to potentially disable using <leader>rp
 }
