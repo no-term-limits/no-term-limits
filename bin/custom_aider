@@ -7,21 +7,21 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: aider with custom args to use our azure openai deployment
+# HELP: Aider with custom args to use our Azure OpenAI deployment
 
-# see https://aider.chat/docs/config/adv-model-settings.html for --model-metadata-file info
-#   context window and output tokens for that file came from https://platform.openai.com/docs/models/gpt-4o
-#   costs for that file came from https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/#pricing
+# See https://aider.chat/docs/config/adv-model-settings.html for --model-metadata-file info
+# Context window and output tokens for that file came from https://platform.openai.com/docs/models/gpt-4o
+# Costs for that file came from https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/#pricing
 
-# we just never had any luck with the typescript linter integration so turn it off
-# azure/go-nuts is our deployment. it won't work for you, sorry. :D
+# We just never had any luck with the TypeScript linter integration, so turn it off
+# azure/go-nuts is our deployment. It won't work for you, sorry. :D
 # --map-tokens 1024 is because it does not know about our model and therefore turns off repo map, but it otherwise would have been on for gpt-4o
 
-aider_custom_model_metadata_file="$NO_TERM_LIMITS_PROJECTS_DIR/github/no-term-limits/setup/aider_custom_model_metadata.json"
+aider_metadata_file="$NO_TERM_LIMITS_PROJECTS_DIR/github/no-term-limits/setup/aider_custom_model_metadata.json"
 
-if [[ ! -f "$aider_custom_model_metadata_file" ]]; then
-  >&2 echo "ERROR: missing file: $aider_custom_model_metadata_file"
+if [[ ! -f "$aider_metadata_file" ]]; then
+  >&2 echo "ERROR: Missing file: $aider_metadata_file"
   exit 1
 fi
 
-aider --no-auto-commits --lint-cmd 'typescript:echo' --model azure/go-nuts --model-metadata-file "$aider_custom_model_metadata_file" --map-tokens 1024 "$@"
+aider --no-auto-commits --no-detect-urls --lint-cmd 'typescript:echo' --model azure/go-nuts --model-metadata-file "$aider_metadata_file" --map-tokens 1024 "$@"
