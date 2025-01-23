@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: git log just last commit with no pager
+
+number_of_commits="${1:-}"
+if [[ -z "$number_of_commits" ]]; then
+  number_of_commits=1
+else
+  shift
+fi
+
+git --no-pager log -n "$number_of_commits" "$@"
