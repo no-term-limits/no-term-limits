@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: creates symlink to a file in NO_TERM_LIMITS_PROJECTS_DIR/dotfiles_no_term_limits in the corresponding home dir
+
+file="${1:-}"
+if [[ -z "$file" ]]; then
+  echo "ERROR: please supply a file to copy. This commands assumes you are running in ${NO_TERM_LIMITS_PROJECTS_DIR}."
+  exit 1
+fi
+
+filepath=$(sed -E 's/dotfiles_no_term_limits\///' <<<"$file")
+destination="${HOME}/.${filepath}"
+
+rm -f "$destination"
+ln -s "$(pwd)/$file" "$destination"
