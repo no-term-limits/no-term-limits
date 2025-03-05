@@ -9,7 +9,7 @@ location=$(which "$command" || echo 'COMMAND_NOT_FOUND')
 
 if grep -qE "\/projects\/" <<<"$location" ; then
   cd "$(dirname "$location")/../"
-  $(vim_command) "$location"
+  exec $(vim_command) "$location"
 else
   >&2 echo "ERROR: cannot find '${command}'"
   exit 1

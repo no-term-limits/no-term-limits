@@ -9,7 +9,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: creates a command based on user input. Run "crc -h" for details
 
-if grep -qE '^\-\<h\>$' <<<"$@" ; then
+if grep -qE '^\-\<h\>$' <<<"$@"; then
   echo "usage: crc [command_name] [command_body](optional) [command_help](optional)"
   exit 0
 fi
@@ -31,7 +31,7 @@ function run() {
     echo -e "# HELP: ${command_help}\n\n${command_contents}" >>"$new_command_location"
     chmod +x "$new_command_location"
     if [[ "${NON_INTERACTIVE:-}" != "true" ]]; then
-      $(vim_command) "+normal G^" "$new_command_location"
+      exec $(vim_command) "+normal G^" "$new_command_location"
     fi
   else
     echo "ERROR: command already exists"
