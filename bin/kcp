@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: kubernetes/k8s: copy into a pod
+
+pod_pattern="${1:-}"
+source="${2:-}"
+destination="${3:-}"
+if [[ -z "${3:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [pod_pattern] [source] [destination]"
+  exit 1
+fi
+
+pod=$(kgp_grep "$pod_pattern" | head -n1 | awk '{print $1}')
+k cp "$source" "${pod}:${destination}"

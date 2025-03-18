@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o pipefail
 
-# HELP: kubernetes/k8s
+# HELP: kubernetes/k8s: grep for a given pod
 
 query="$1"
 if [[ -z "${1:-}" ]]; then
