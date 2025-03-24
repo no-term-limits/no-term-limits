@@ -23,14 +23,14 @@ if [[ -n "$items" ]]; then
   fi
 
   item=$(head -n"$cnum" <<<"$items" | tail -n1)
-  echo -e "Found $(wc -l <<<"$items") items:\n$items"
-  echo -e "\nUsing $item"
+  echo >&2 -e "Found $(wc -l <<<"$items") items:\n$items"
+  echo >&2 -e "\nUsing $item"
   if eval "${@:2}"; then
     exit 0
   else
     exit 1
   fi
 else
-  echo "Could not find any matching items"
+  echo >&2 "Could not find any matching items"
   exit 1
 fi
