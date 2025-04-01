@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-# HELP: kubernetes/k8s: resume a k8s cronjob
+# HELP: kubernetes/k8s: resume a k8s cronjob after suspending it.
 
 if [[ -z "$1" ]]; then
   >&2 echo "ERROR: first argument must be app"

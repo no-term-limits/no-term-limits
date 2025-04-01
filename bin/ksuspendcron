@@ -2,7 +2,7 @@
 
 set -eo pipefail
 
-# HELP: kubernetes/k8s: suspend a k8s cronjob from further execution
+# HELP: kubernetes/k8s: suspend a k8s cronjob from further execution. Call kresumecron to resume.
 
 if [[ -z "$1" ]]; then
   >&2 echo "ERROR: first argument must be app"

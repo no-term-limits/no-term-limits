@@ -9,6 +9,6 @@ set -o errtrace -o errexit -o pipefail
 
 # HELP: grev
 
-if ! gre --exclude-dir={vendor*,node_modules,.terraform,.packer.d} "$@"; then
+if ! gre --exclude-dir={vendor*,node_modules,.terraform,.packer.d} --exclude=.aider* "$@"; then
   exit 1
 fi
