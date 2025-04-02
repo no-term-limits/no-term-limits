@@ -59,7 +59,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   elif [[ -n "$test_file" ]]; then
     args="$test_file $args"
   fi
-  if [[ -f "requirements.txt" && ! -f "pyproject.toml" ]]; then
+  if [[ -f "requirements-dev.txt" || -f "requirements.txt" ]] && [[ ! -f "pyproject.toml" ]]; then
     pytest $args
   else
     poetry run pytest $args
