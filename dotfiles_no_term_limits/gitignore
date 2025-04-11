@@ -17,3 +17,4 @@ tmp/**/*
 /t_right
 /t_bottom
 /t.bak
+.aider*
