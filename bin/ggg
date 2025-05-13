@@ -7,6 +7,6 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: Generates random guid and puts in on clipboard
+# HELP: Generates random guid using uuidgen and puts in on clipboard
 
 uuidgen | tr -d '\n' | tr '[A-Z]' '[a-z]' | cbcp && cbpaste && echo
