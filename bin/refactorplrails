@@ -12,17 +12,17 @@ set -o errtrace -o errexit -o pipefail
 originalSnakeCased=$(echo "$1" | perl -pe "s/-/_/g")
 newSnakeCased=$(echo "$2" | perl -pe "s/-/_/g")
 if [[ "$1" != "$originalSnakeCased" ]]; then
-  for file in $(git ls-files | ( grep "$1" | grep -vE "coverage|node_modules" || echo '' )); do
+  for file in $(git ls-files | (grep "$1" | grep -vE "coverage|node_modules|alembic" || echo '')); do
     newfile=$(echo "$file" | sed -e "s/$1/$2/g")
     echo running: git mv "$file" "$newfile"
     git mv "$file" "$newfile"
   done
 fi
 
-for file in $(git ls-files | ( grep "$originalSnakeCased" | grep -vE "coverage|node_modules" | grep -v "/$originalSnakeCased/" || echo ''))
-do
+for file in $(git ls-files | (grep "$originalSnakeCased" | grep -vE "coverage|node_modules|alembic" | grep -v "/$originalSnakeCased/" || echo '')); do
   newfile=$(echo "$file" | sed -e "s/$originalSnakeCased/$newSnakeCased/g")
   echo running: git mv "$file" "$newfile"
+  mkdir -p "$(dirname "$newfile")"
   git mv "$file" "$newfile"
 done
 
