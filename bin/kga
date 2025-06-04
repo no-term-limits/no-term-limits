@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: kubernetes/k8s: get all
+# HELP: kubernetes/k8s: get all. if desperate try: k get "$(for i in $(kubectl api-resources --verbs=list --namespaced -o name); do echo -n "$i,"; done | sed 's/,$//')"
 
 # in terms of the perls at the end:
 # * three newlines anywhere is bad
