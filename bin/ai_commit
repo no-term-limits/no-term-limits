@@ -7,12 +7,27 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: ai commit
-#
-                commit_prompt = f"In the commit message, note fixing the specific lint error and be very terse and only state facts. The error was: {error_code_and_message}. Try to keep it to one short line if possible."
-                # Assuming 'ca commit-only' is safe to run here
-                run_command(
-                    ["ca", "commit-only", "--commit", "--commit-prompt", commit_prompt],
-                    check=True,
-                )
+# HELP: ai commit: Generates a commit message based on local changes and commits them.
 
+git add .
+
+# Get the diff of staged changes.
+# Use --staged which is an alias for --cached.
+GIT_DIFF=$(git diff --staged)
+
+if [ -z "$GIT_DIFF" ]; then
+  echo "No staged changes to commit."
+  exit 0
+fi
+
+# Construct the prompt for the AI to generate a commit message.
+COMMIT_PROMPT="Based on the following diff, please generate a concise and descriptive commit message. The message should follow conventional commit standards if possible.
+
+---
+${GIT_DIFF}
+---
+"
+
+# Use 'ca' (a wrapper for aider) to generate the commit message and commit.
+# commit-only is a model alias with a fast and not overly-powerful model (good for generating a commit message)
+ca commit-only --commit --commit-prompt "$COMMIT_PROMPT"
