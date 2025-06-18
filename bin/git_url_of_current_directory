@@ -11,7 +11,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 git_remote="$(git_remote "${1:-}")"
 url=$(git config --get "remote.${git_remote}.url" | perl -p -e 's/.*@//' | perl -p -e 's/\.git$//' | tr ':' '/' | perl -p -e 's|///|://|')
-
 if ! grep -q 'github.com' <<<"$url"; then
   if grep -q 'bitbucket.org' <<<"$url"; then
     repo=$(get_repo_from_git_remote)
@@ -25,6 +24,8 @@ if ! grep -q 'github.com' <<<"$url"; then
     url=$(perl -p -e 's/^([^\/]+)\/.*/\1/' <<<"$url")
     url="https://${url}/projects/${project}/repos/${repo}"
   fi
+else
+  url=$(sed -E 's|(github\.com)(-[^/]+)?/|\1/|' <<<"$url")
 fi
 
 if ! grep -qE '^http' <<<"$url"; then
