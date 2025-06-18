@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: ai commit
+#
+                commit_prompt = f"In the commit message, note fixing the specific lint error and be very terse and only state facts. The error was: {error_code_and_message}. Try to keep it to one short line if possible."
+                # Assuming 'ca commit-only' is safe to run here
+                run_command(
+                    ["ca", "commit-only", "--commit", "--commit-prompt", commit_prompt],
+                    check=True,
+                )
+
