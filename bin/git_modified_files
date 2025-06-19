@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: return relative paths of git modified files
+
+function hot_realpath() {
+  if type grealpath >/dev/null 2>&1; then
+    grealpath "$@"
+  else
+    realpath "$@"
+  fi
+}
+
+git_root=$(git rev-parse --show-toplevel)
+git diff --name-only | while read -r file; do
+  hot_realpath --relative-to="$PWD" "$git_root/$file"
+done
