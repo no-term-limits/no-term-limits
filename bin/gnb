@@ -10,3 +10,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: git: git checkout a new feature branch
 
 git checkout -b "$1"
+
+# assume second arg is remote and it needs to push to it
+if [[ -n "${2:-}" ]]; then
+  git push -u "$2" "$1"
+fi
