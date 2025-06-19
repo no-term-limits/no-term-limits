@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: find a given pattern git history
+
+FILE_PATH="$1"
+PATTERN="$2"
+
+# Get all commits that touched the file
+COMMITS=$(git log --pretty=format:%H -- "$FILE_PATH")
+
+# Iterate over each commit
+for COMMIT in $COMMITS; do
+  # Show the diff for the file in that commit (suppress errors for deletions)
+  CONTENT=$(git show "${COMMIT}" -- "$FILE_PATH" 2>/dev/null || true)
+
+  # If we got content, check for pattern
+  if echo "$CONTENT" | grep -qE "$PATTERN"; then
+    echo "Match found in commit: $COMMIT"
+    echo "Matching lines:"
+    echo "$CONTENT" | grep -nE "$PATTERN"
+    echo "---"
+  fi
+done
