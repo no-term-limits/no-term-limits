@@ -65,7 +65,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
     if [[ -f pyproject.toml ]] && ! grep -Eq tool.poetry pyproject.toml; then
       uv run pytest $args
     else
-      poetry run pytest $args
+      pytest $args
     fi
   fi
 elif [[ "$command" == "update" ]]; then
