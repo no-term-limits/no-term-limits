@@ -62,8 +62,12 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   if [[ -f "requirements-dev.txt" || -f "requirements.txt" ]] && [[ ! -f "pyproject.toml" ]]; then
     pytest $args
   else
-    if [[ -f pyproject.toml ]] && ! grep -Eq tool.poetry pyproject.toml; then
-      uv run pytest $args
+    if [[ -f pyproject.toml ]]; then
+      if grep -Eq tool.poetry pyproject.toml; then
+        poetry run pytest $args
+      else
+        uv run pytest $args
+      fi
     else
       pytest $args
     fi

@@ -10,7 +10,12 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: if you want the version of a file from a different git branch, use this
 
 branch_to_grab_files_from="${1:-}"
+if [[ -z "${2:-}" ]]; then
+  >&2 echo "usage: $(basename "$0") [source_branch] [file1] [file2] ..."
+  exit 1
+fi
+shift
 
-for file in "${@:2}"; do
+for file in "${@}"; do
   git restore -s "$branch_to_grab_files_from" -- "$file"
 done
