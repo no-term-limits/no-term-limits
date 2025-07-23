@@ -18,3 +18,4 @@ tmp/**/*
 /t_bottom
 /t.bak
 .aider*
+.claude
