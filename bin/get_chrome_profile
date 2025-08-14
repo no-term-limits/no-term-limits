@@ -15,7 +15,7 @@ if [[ -z "${1:-}" ]]; then
   exit 1
 fi
 
-profile_arg=""
+profile=""
 if command -v google-chrome >/dev/null; then
   result=$(grep -Rl "$pattern" ${HOME}/.config/google-chrome/Profile* | head -n1 || echo '')
   if [[ -n "$result" ]]; then
