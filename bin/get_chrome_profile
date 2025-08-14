@@ -17,7 +17,7 @@ fi
 
 profile=""
 if command -v google-chrome >/dev/null; then
-  result=$(grep -Rl "$pattern" ${HOME}/.config/google-chrome/Profile* | head -n1 || echo '')
+  result=$(grep -Rl "$@" ${HOME}/.config/google-chrome/Profile* | head -n1 || echo '')
   if [[ -n "$result" ]]; then
     profile=$(sed -E 's/.*\/(Profile [0-9]+).*/\1/' <<<"$result")
   fi
