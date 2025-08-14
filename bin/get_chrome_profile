@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: takes a pattern and searches ~/.config/google-chrome for it to find the correct profile
+
+pattern="${1:-}"
+if [[ -z "${1:-}" ]]; then
+  echo >&2 "usage: $(basename "$0") [pattern]"
+  exit 1
+fi
+
+profile_arg=""
+if command -v google-chrome >/dev/null; then
+  result=$(grep -Rl "$pattern" ${HOME}/.config/google-chrome/Profile* | head -n1 || echo '')
+  if [[ -n "$result" ]]; then
+    profile=$(sed -E 's/.*\/(Profile [0-9]+).*/\1/' <<<"$result")
+  fi
+fi
+echo "$profile"
