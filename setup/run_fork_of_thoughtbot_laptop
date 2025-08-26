@@ -94,13 +94,6 @@ function install_vim_from_source() {
 }
 
 function get_additional_apt_keys() {
-  # kubectl
-  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-  echo "deb http://apt.kubernetes.io/ kubernetes-jammy main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-  # ubuntu 18.04 for openssl1.0
-  # echo "deb http://security.ubuntu.com/ubuntu bionic-security main" | sudo tee /etc/apt/sources.list.d/bionic-security.list
-
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   sudo apt-key fingerprint 0EBFCD88
   sudo add-apt-repository -y \
@@ -456,7 +449,8 @@ else
   add_user_to_docker_group
 
   install_stern
-  install_kubectl
+  # TODO: update kubectl installation for installation without xenial repo
+  # install_kubectl
   install_github_cli
 fi
 
