@@ -9,6 +9,8 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: assemble a pairing command and copy to clipboard. Attempts to use the hostname as the ssh target and will fall back to ip if it can't be resoved. Set NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX if hostname can be used but a hostname suffix is required.
 
+interface="${1:-tailscale0}"
+
 domain="$(hostname | tr '[:upper:]' '[:lower:]')"
 if [[ -n "${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX:-}" ]]; then
   domain="${domain}.${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX}"
@@ -16,7 +18,7 @@ fi
 ssh_target="$domain"
 
 # try to find vpn ip
-ip_from_ifconfig=$( (ifconfig | grep netmask | grep "inet 10\." || echo '') | awk '{print $2}' | head -n 1)
+ip_from_ifconfig=$( (ip -o -4 addr list | grep "$interface" | head -n 1 || echo '') | awk '{print $4}' | awk -F '/' '{print $1}')
 
 # if that fails, find public ip from ifconfig.me
 if [[ -z "$ip_from_ifconfig" ]]; then
@@ -31,7 +33,7 @@ fi
 if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]]; then
   commands_to_copy=""
 
-  while read -r pair_user ; do
+  while read -r pair_user; do
     if [[ "$pair_user" != "$(whoami)" ]]; then
       commands_to_copy="${commands_to_copy}ssh -o \"StrictHostKeyChecking=no\" $pair_user@${ssh_target}:::"
     fi
