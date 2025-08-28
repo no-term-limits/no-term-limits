@@ -9,7 +9,10 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: assemble a pairing command and copy to clipboard. Attempts to use the hostname as the ssh target and will fall back to ip if it can't be resoved. Set NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX if hostname can be used but a hostname suffix is required.
 
-interface="${1:-tailscale0}"
+interfaces="${@}"
+if [[ -z "$interfaces" ]]; then
+  interfaces="tailscale0 utun4"
+fi
 
 domain="$(hostname | tr '[:upper:]' '[:lower:]')"
 if [[ -n "${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX:-}" ]]; then
@@ -17,8 +20,15 @@ if [[ -n "${NO_TERM_LIMITS_DEFAULT_HOSTNAME_SUFFIX:-}" ]]; then
 fi
 ssh_target="$domain"
 
+for interface in $interfaces; do
+  config_for_interface=$(ifconfig "$interface" 2>/dev/null || echo '')
+  if [[ -n "$config_for_interface" ]]; then
+    break
+  fi
+done
+
 # try to find vpn ip
-ip_from_ifconfig=$( (ip -o -4 addr list | grep "$interface" | head -n 1 || echo '') | awk '{print $4}' | awk -F '/' '{print $1}')
+ip_from_ifconfig=$( (grep -E '\<inet\>' <<<"$config_for_interface" | head -n 1 || echo '') | awk '{print $2}')
 
 # if that fails, find public ip from ifconfig.me
 if [[ -z "$ip_from_ifconfig" ]]; then
