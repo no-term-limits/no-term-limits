@@ -28,7 +28,7 @@ if [ "$(wc -l <<<"$tmp_containers")" -gt 1 ]; then
   >&2 echo -e "Found $(wc -l <<<"$found_containers") containers:\n$found_containers"
   >&2 echo -e "\nUsing $found_container"
 
-  awk '{print $1}' <<< "$found_container"
+  awk '{print $1}' <<<"$found_container"
 else
-  awk '{print $1}' <<< "$tmp_containers"
+  awk '{print $1}' <<<"$tmp_containers"
 fi
