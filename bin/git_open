@@ -28,6 +28,20 @@ git_url=$(git_url_of_current_directory)
 git_root="$(git rev-parse --show-toplevel)"
 relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+|/|g')
 
+project_path=$(perl -p -e "s|${NO_TERM_LIMITS_PROJECTS_DIR}||" <<<"$git_root")
+dir_count=$(perl -p -e 's|/| |g' <<<"$project_path" | wc -w)
+project_name=""
+profile_arg=""
+if [[ "$dir_count" -gt 2 ]]; then
+  project_name=$(awk -F '/' '{print $3}' <<<"$project_path")
+  if [[ "$project_name" != "sartography" ]]; then
+    profile=$(get_chrome_profile "${project_name}")
+    if [[ -n "$profile" ]]; then
+      profile_arg="--profile-directory=${profile}"
+    fi
+  fi
+fi
+
 if grep -q 'github.com' <<<"$git_url"; then
   url_path="/tree/${branch}${relative_file}"
   if [[ -n "$line_number" ]]; then
@@ -48,4 +62,4 @@ else
   fi
 fi
 
-open_url "${url_path}"
+open_url "${url_path}" "$profile_arg"

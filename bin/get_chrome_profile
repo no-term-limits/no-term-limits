@@ -9,17 +9,26 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: takes a pattern and searches ~/.config/google-chrome for it to find the correct profile
 
-pattern="${1:-}"
+profile_name="${1:-}"
 if [[ -z "${1:-}" ]]; then
-  echo >&2 "usage: $(basename "$0") [pattern]"
+  echo >&2 "usage: $(basename "$0") [profile_name]"
   exit 1
 fi
 
+script_dir="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+
 profile=""
 if command -v google-chrome >/dev/null; then
-  result=$(grep -Rl "$@" ${HOME}/.config/google-chrome/Profile* | head -n1 || echo '')
+  config_file="${HOME}/.config/google-chrome/Local State"
+  if ${script_dir}/is_mac; then
+    config_file="${HOME}/Library/Application Support/Google/Chrome/Local State"
+  fi
+  result=$(jq -r '.profile.info_cache | to_entries[] | select(.value.name == "'"$profile_name"'")' "$config_file")
   if [[ -n "$result" ]]; then
-    profile=$(sed -E 's/.*\/(Profile [0-9]+).*/\1/' <<<"$result")
+    profile=$(jq -r .key <<<"$result")
   fi
 fi
 echo "$profile"
