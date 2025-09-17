@@ -34,11 +34,9 @@ project_name=""
 profile_arg=""
 if [[ "$dir_count" -gt 2 ]]; then
   project_name=$(awk -F '/' '{print $3}' <<<"$project_path")
-  if [[ "$project_name" != "sartography" ]]; then
-    profile=$(get_chrome_profile "${project_name}")
-    if [[ -n "$profile" ]]; then
-      profile_arg="--profile-directory=${profile}"
-    fi
+  profile=$(get_chrome_profile "${project_name}")
+  if [[ -n "$profile" ]]; then
+    profile_arg="--profile-directory=${profile}"
   fi
 fi
 
