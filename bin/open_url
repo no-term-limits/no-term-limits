@@ -10,6 +10,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: open a url in a web browser
 
 if [[ -n "${2:-}" ]]; then
+  mac_chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   if command -v google-chrome >/dev/null; then
     profile_arg=""
     if ! grep 'profile-directory' <<<"$@"; then
@@ -18,6 +19,8 @@ if [[ -n "${2:-}" ]]; then
     google-chrome "$profile_arg" "$@"
   elif command -v chromium-browser >/dev/null; then
     chromium-browser "$@"
+  elif [[ -f "$mac_chrome" ]]; then
+    "$mac_chrome" "$@"
   else
     echo >&2 "ERROR: Extra options were passed in but cannot be used. Currently chromium-browser needs to be installed to use these options. OPTIONS PASSED IN: '$*'"
     exit 1

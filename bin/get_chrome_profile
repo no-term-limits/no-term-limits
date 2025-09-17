@@ -21,14 +21,12 @@ script_dir="$(
 )"
 
 profile=""
-if command -v google-chrome >/dev/null; then
-  config_file="${HOME}/.config/google-chrome/Local State"
-  if ${script_dir}/is_mac; then
-    config_file="${HOME}/Library/Application Support/Google/Chrome/Local State"
-  fi
-  result=$(jq -r '.profile.info_cache | to_entries[] | select(.value.name == "'"$profile_name"'")' "$config_file")
-  if [[ -n "$result" ]]; then
-    profile=$(jq -r .key <<<"$result")
-  fi
+config_file="${HOME}/.config/google-chrome/Local State"
+if ${script_dir}/is_mac; then
+  config_file="${HOME}/Library/Application Support/Google/Chrome/Local State"
+fi
+result=$(jq -r '.profile.info_cache | to_entries[] | select(.value.name == "'"$profile_name"'")' "$config_file")
+if [[ -n "$result" ]]; then
+  profile=$(jq -r .key <<<"$result")
 fi
 echo "$profile"
