@@ -45,8 +45,14 @@ function AddImportForTermUnderCursor()
       -- Get the current buffer content
       local current_content = vim.fn.getline(1, "$")
 
-      -- Insert the Lua string at the beginning of the table
-      table.insert(current_content, 1, desiredImportExpression)
+      -- Check if the first line is from __future__ import annotations
+      local insert_position = 1
+      if current_content[1] and current_content[1]:match("from __future__ import annotations") then
+        insert_position = 2
+      end
+
+      -- Insert the import at the appropriate position
+      table.insert(current_content, insert_position, desiredImportExpression)
 
       -- Set the modified content back to the buffer
       vim.fn.setline(1, current_content)
