@@ -19,4 +19,5 @@ if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]] ; then
   fi
 fi
 
+# Clean up zellij-specific state files
 rm -f /var/tmp/no_term_limits_pair_session_owner

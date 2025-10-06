@@ -25,7 +25,7 @@ fi
 function create_stuff() {
   user_array=$(sed -E 's/,/ /g' <<<"$user_csv_string")
   for pair_user in ${user_array} ; do
-    create_wemux_user "$pair_user"
+    create_zellij_user "$pair_user"
   done
 }
 

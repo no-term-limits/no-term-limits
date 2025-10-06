@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP: create a system user for pairing with SSH key setup
+
+pair_user="${1:-}"
+ssh_command="${2:-}"
+
+if [[ -z "$pair_user" ]]; then
+  >&2 echo "ERROR: usage: $(basename "$0") [pair_user] [optional_ssh_command]"
+  exit 1
+fi
+
+function create_pair_user() {
+  local pair_user="$1"
+
+  # not sure why removing the user from admin group makes it stop working even when the user is in the staff group
+  # and /tmp/wemux-wemux is owned by the group staff
+  if is_mac; then
+    sudo sysadminctl -addUser "$pair_user" -fullName "$pair_user" -admin -home "$pair_user_dir"
+    sudo dscl . -append /Groups/staff GroupMembership $pair_user
+
+    # otherwise it's owned by $USER:wheel, a more powerful group
+    if [[ -e /tmp/wemux-wemux ]]; then
+      sudo chown "$(echo $USER):staff" /tmp/wemux-wemux
+    fi
+  else
+    if ! id -u "$pair_user" >/dev/null ; then
+      sudo useradd --create-home "$pair_user"
+    fi
+  fi
+  sudo mkdir -p "$pair_user_dir/.ssh"
+
+}
+
+if [[ "$pair_user" != "$(whoami)" ]]; then
+  if is_mac; then
+    pair_user_dir="/Users/${pair_user}"
+  else
+    pair_user_dir="/home/${pair_user}"
+  fi
+  create_pair_user "$pair_user" "$pair_user_dir"
+
+  echo "adding user to authorized keys: ${pair_user}"
+  ssh_public_keys=""
+  if command -v get_ssh_public_key_from_username >/dev/null ; then
+    ssh_public_keys=$(get_ssh_public_key_from_username "$pair_user")
+  fi
+
+  if [[ -z "$ssh_public_keys" ]]; then
+    ssh_public_keys="$(curl --fail "https://github.com/${pair_user}.keys")"
+  fi
+  if [[ -z "$ssh_public_keys" ]]; then
+    >&2 echo "ERROR: Could not grab ssh public key for '${pair_user}'. Check github username or add get_ssh_public_key_from_username command to your PATH"
+    exit 1
+  fi
+
+  rm -f /tmp/temp_auth_content
+  while read -r ssh_public_key; do
+    if [[ -n "$ssh_public_key" ]]; then
+      cleaned_key=$(tr '\r' ' ' <<<"$ssh_public_key" | tr '\n' ' ')
+      if [[ -n "${ssh_command:-}" ]]; then
+        echo "command=\". ~/.bashrc; ${ssh_command}\" ${cleaned_key}" >> /tmp/temp_auth_content
+      else
+        echo "${cleaned_key}" >> /tmp/temp_auth_content
+      fi
+    else
+      >&2 echo "$(print_color red)WARNING: Could not find ssh key for $pair_user. The user will need to add one at https://github.com/${pair_user}.keys$(print_color)"
+    fi
+  done <<<"${ssh_public_keys}"
+
+  # Set up PATH for both tmux and zellij
+  extra_paths="/usr/local/bin"
+  if [[ -f /opt/homebrew/bin/tmux ]] ; then
+    extra_paths="$extra_paths:/opt/homebrew/bin"
+  fi
+  if [[ -f /opt/homebrew/bin/zellij ]] ; then
+    extra_paths="$extra_paths:/opt/homebrew/bin"
+  fi
+  echo "export PATH=\"${extra_paths}:\$PATH\"" > /tmp/tmp_bashrc
+  sudo mv /tmp/tmp_bashrc "$pair_user_dir/.bashrc"
+  sudo mv /tmp/temp_auth_content "$pair_user_dir/.ssh/authorized_keys"
+  sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
+  sudo chown -R "$pair_user" "$pair_user_dir" || echo 'failed to chown everything, but hopefully it chowned enough'
+
+  echo "$pair_user" >>/var/tmp/no_term_limits_wemux_ssh_users
+fi
