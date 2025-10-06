@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP: set up your computer to allow a remote pair partner to join temporarily. Defaults to getting the ssh public for a user from github. Add a get_ssh_public_key_from_username command for custom ssh keys if github will not work for that user.
+
+if [[ -n "${1:-}" ]]; then
+  user_csv_string="$1"
+  echo "allow pair access for bitbucket server user: ${user_csv_string}"
+else
+  user_csv_string="${NO_TERM_LIMITS_DEFAULT_PAIR_USER_CSV_STRING:-}"
+  echo "defaulting to allowing pair access for bitbucket server user: ${user_csv_string}"
+fi
+
+if [[ -z "$user_csv_string" ]]; then
+  >&2 echo "ERROR: Did not receive any users. Please provide a csv string of users."
+  exit 1
+fi
+
+function create_stuff() {
+  user_array=$(sed -E 's/,/ /g' <<<"$user_csv_string")
+  for pair_user in ${user_array} ; do
+    create_wemux_user "$pair_user"
+  done
+}
+
+# install_and_configure_wemux
+stop_pairing
+
+rm -f /var/tmp/no_term_limits_wemux_ssh_users
+rm -f /var/tmp/no_term_limits_pair_session_owner
+create_stuff
+
+# none of this works without ssh access
+if is_mac; then
+  sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+fi
+
+get_pair_command

@@ -18,3 +18,5 @@ if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]] ; then
     done <<<"$wemux_ssh_users"
   fi
 fi
+
+rm -f /var/tmp/no_term_limits_pair_session_owner

@@ -65,10 +65,14 @@ function delete_stuff() {
   # fi
 }
 
-function wemux_kick_pair_user() {
-  local wemux_pair_user="$1"
-  if grep -q "$wemux_pair_user" <<<"$(wemux users)"; then
-    wemux kick "$wemux_pair_user"
+function zellij_kick_pair_user() {
+  local pair_user="$1"
+  # Kill any zellij sessions for the pair user
+  pids=$(pgrep -u "$pair_user" zellij 2>/dev/null || echo '')
+  if [[ -n "$pids" ]]; then
+    while read -r pid ; do
+      sudo kill "$pid" || echo ''
+    done<<<"$pids"
   fi
 }
 
@@ -116,7 +120,7 @@ if [[ "$wemux_pair_user" != "$(whoami)" ]]; then
     exit 1
   fi
 
-  wemux_kick_pair_user "$wemux_pair_user"
+  zellij_kick_pair_user "$wemux_pair_user"
   delete_stuff "$wemux_pair_user" "$pair_user_dir"
   hot_sed -Ei "/\b$wemux_pair_user\b/d" /var/tmp/no_term_limits_wemux_ssh_users
 fi

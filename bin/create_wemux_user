@@ -64,19 +64,19 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   while read -r ssh_public_key; do
     if [[ -n "$ssh_public_key" ]]; then
       cleaned_key=$(tr '\r' ' ' <<<"$ssh_public_key" | tr '\n' ' ')
-      if [[ "${NO_TERM_LIMITS_FORCE_WEMUX:-}" != "false" ]]; then
-        echo "command=\". ~/.bashrc; /usr/local/bin/wemux pair\" ${cleaned_key}" >> /tmp/temp_auth_content
+      if [[ "${NO_TERM_LIMITS_FORCE_ZELLIJ:-}" != "false" ]]; then
+        echo "command=\". ~/.bashrc; /usr/local/bin/join_pair_session\" ${cleaned_key}" >> /tmp/temp_auth_content
       else
         echo "${cleaned_key}" >> /tmp/temp_auth_content
       fi
     else
-      >&2 echo "$(print_color red)WARNING: Could not find ssh key for $pair_user. The user will need to add one at https://stash.trstone.com/plugins/servlet/ssh/account/keys$(print_color)"
+      >&2 echo "$(print_color red)WARNING: Could not find ssh key for $pair_user. The user will need to add one at https://github.com/${pair_user}/keys$(print_color)"
     fi
   done <<<"${ssh_public_keys}"
 
-  # because the wemux script refers to tmux without the full absolute path and therefore, with a command in authorized_keys, it fails
+  # because the zellij script may need additional paths
   extra_paths="/usr/local/bin"
-  if [[ -f /opt/homebrew/bin/tmux ]] ; then
+  if [[ -f /opt/homebrew/bin/zellij ]] ; then
     extra_paths="$extra_paths:/opt/homebrew/bin"
   fi
   echo "export PATH=\"${extra_paths}:\$PATH\"" > /tmp/tmp_bashrc
@@ -85,9 +85,8 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
   sudo chown -R "$pair_user" "$pair_user_dir" || echo 'failed to chown everything, but hopefully it chowned enough'
 
-  # tmux 3.3+ requires this command but it does not exist before
-  # that version so ignore the failure
-  tmux server-access -a "$pair_user" || echo ''
+  # Store the original user for the join_pair_session script
+  echo "$(whoami)" > /var/tmp/no_term_limits_pair_session_owner
 
   echo "$pair_user" >>/var/tmp/no_term_limits_wemux_ssh_users
 fi
