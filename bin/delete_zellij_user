@@ -122,5 +122,13 @@ if [[ "$zellij_pair_user" != "$(whoami)" ]]; then
 
   zellij_kick_pair_user "$zellij_pair_user"
   delete_stuff "$zellij_pair_user" "$pair_user_dir"
+  
+  # Clean up sudoers.d file
+  sudoers_file="/etc/sudoers.d/${zellij_pair_user}_allow_pair"
+  if [[ -f "$sudoers_file" ]]; then
+    echo "removing sudoers file: $sudoers_file"
+    sudo rm -f "$sudoers_file"
+  fi
+  
   hot_sed -Ei "/\b$zellij_pair_user\b/d" /var/tmp/no_term_limits_wemux_ssh_users
 fi

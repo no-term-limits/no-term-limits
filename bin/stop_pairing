@@ -21,3 +21,17 @@ fi
 
 # Clean up zellij-specific state files
 rm -f /var/tmp/no_term_limits_pair_session_owner
+
+# Clean up any remaining sudoers.d files for pair users
+if [[ -f /var/tmp/no_term_limits_wemux_ssh_users ]] ; then
+  wemux_ssh_users=$(</var/tmp/no_term_limits_wemux_ssh_users)
+  if [[ -n "$wemux_ssh_users" ]] ; then
+    while read -r pair_user ; do
+      sudoers_file="/etc/sudoers.d/${pair_user}_allow_pair"
+      if [[ -f "$sudoers_file" ]]; then
+        echo "removing sudoers file for $pair_user: $sudoers_file"
+        sudo rm -f "$sudoers_file"
+      fi
+    done <<<"$wemux_ssh_users"
+  fi
+fi

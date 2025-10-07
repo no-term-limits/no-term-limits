@@ -67,17 +67,32 @@ EOF
   sudo chmod +x "$pair_user_dir/bin/join_pair_session"
   sudo chown "$pair_user:staff" "$pair_user_dir/bin/join_pair_session" 2>/dev/null || sudo chown "$pair_user" "$pair_user_dir/bin/join_pair_session"
 
-  # Update authorized_keys to use the pair user's script if forced
+  # Create sudoers.d file to allow pair user to run their join script
+  sudoers_file="/etc/sudoers.d/${pair_user}_allow_pair"
+  cat > /tmp/sudoers_content << EOF
+# Allow ${pair_user} to run their join_pair_session script as root
+${pair_user} ALL = (root) NOPASSWD: ${pair_user_dir}/bin/join_pair_session
+EOF
+  
+  sudo mv /tmp/sudoers_content "$sudoers_file"
+  sudo chmod 440 "$sudoers_file"
+  if is_mac; then
+    sudo chown root:wheel "$sudoers_file"
+  else
+    sudo chown root:root "$sudoers_file"
+  fi
+
+  # Update authorized_keys to use sudo with full path if forced
   if [[ "${NO_TERM_LIMITS_FORCE_ZELLIJ:-}" != "false" ]]; then
     # Read current authorized_keys and update it
     temp_auth_file="/tmp/temp_auth_zellij_${pair_user}"
     sudo cp "$pair_user_dir/.ssh/authorized_keys" "$temp_auth_file"
     sudo chmod 644 "$temp_auth_file"  # Make it readable
     
-    # Replace any existing keys with command pointing to user's bin
+    # Replace any existing keys with command pointing to sudo script
     while IFS= read -r line; do
       if [[ "$line" =~ ^ssh- ]] || [[ "$line" =~ ^ecdsa- ]] || [[ "$line" =~ ^ed25519- ]]; then
-        echo "command=\". ~/.bashrc; ~/bin/join_pair_session\" $line"
+        echo "command=\"sudo ${pair_user_dir}/bin/join_pair_session\" $line"
       else
         echo "$line"
       fi
