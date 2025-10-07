@@ -12,7 +12,7 @@ if [[ -f "${custom_configs}" ]]; then
   export ZELLIJ_CONFIG_FILE="$custom_configs"
 fi
 
-zellij ka || echo ''
-zellij da || echo ''
+zellij ka -y || echo ''
+zellij da -y || echo ''
 
 zellij -l "${HOME}/.config/zellij/layouts/custom_layout.hdl" attach --create pair
