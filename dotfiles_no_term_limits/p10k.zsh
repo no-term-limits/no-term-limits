@@ -1543,7 +1543,7 @@
   function prompt_no_term_limits_kubecontext() {
     if [[ -z "${ZELLIJ:-}" ]] && [[ -z "${TMUX:-}" ]] && which kube_ps1 > /dev/null 2>&1 ; then
       p10k segment -f 159 -i "$(kube_ps1)"
-    else
+    else if [[ -z "${ZELLIJ:-}" ]] ; then
       p10k segment -f 159 -i "$(kn_for_prompt p10k)"
     fi
   }
