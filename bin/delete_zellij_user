@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -Eeuo pipefail
+
+# HELP: delete a single zellij pair user
+
+zellij_pair_user="$1"
+
+if [[ -z "$zellij_pair_user" ]]; then
+  >&2 echo "ERROR: usage $(basename "$0") [zellij_pair_user]"
+  exit 1
+fi
+
+if ! grep -qE "\<$zellij_pair_user\>" /var/tmp/no_term_limits_wemux_ssh_users ; then
+  >&2 echo "ERROR: Could not find '$zellij_pair_user' in /var/tmp/no_term_limits_wemux_ssh_users"
+  exit 1
+fi
+
+function user_exists() {
+  local zellij_pair_user="$1"
+  local pair_user_dir="$2"
+
+  if is_mac; then
+    dscl . list "$pair_user_dir"  > /dev/null 2>&1
+  else
+    id -u "$zellij_pair_user"
+  fi
+}
+
+function delete_stuff() {
+  local zellij_pair_user="$1"
+  local pair_user_dir="$2"
+
+  if is_mac; then
+    while get_a_group_the_user_is_in_and_remove_user_from_group "$zellij_pair_user"; do
+      echo > /dev/null
+    done
+  fi
+
+  if user_exists "$zellij_pair_user" "$pair_user_dir" ; then
+
+    # remove all processes for pair user to ensure we can fully cleanup
+    pids=$(ps -u "$zellij_pair_user" -o 'pid=' || echo '')
+    if [[ -n "$pids" ]]; then
+      while read -r pid ; do
+        sudo kill "$pid" || echo ''
+      done<<<"$pids"
+    fi
+
+    echo "deleting $zellij_pair_user user"
+    if is_mac; then
+      sudo dscl . -delete "$pair_user_dir"
+    else
+      sudo userdel --remove "$zellij_pair_user"
+    fi
+  fi
+  # if [[ -d "$pair_user_dir" ]]; then
+  #   echo "deleting $zellij_pair_user user home directory"
+  #   sudo rm -rf "$pair_user_dir"
+  # fi
+}
+
+function zellij_kick_pair_user() {
+  local pair_user="$1"
+  # Kill any zellij sessions for the pair user
+  pids=$(pgrep -u "$pair_user" zellij 2>/dev/null || echo '')
+  if [[ -n "$pids" ]]; then
+    while read -r pid ; do
+      sudo kill "$pid" || echo ''
+    done<<<"$pids"
+  fi
+}
+
+### MAC SPECIFIC FUNCTIONS
+function remote_user_from_group() {
+  local zellij_pair_user="$1"
+  local group="$2"
+  if [[ -n "$group" ]]; then
+    echo "deleting $zellij_pair_user from group $group"
+    sudo dscl . -delete "/Groups/$group" GroupMembership "$zellij_pair_user"
+  fi
+}
+
+function get_a_group_the_user_is_in_and_remove_user_from_group() {
+  local zellij_pair_user="$1"
+  group="$(random_group_the_user_is_in "$zellij_pair_user")"
+  if [[ -n "$group" ]]; then
+    remote_user_from_group "$zellij_pair_user" "$group"
+    return 0
+  else
+    return 1
+  fi
+}
+
+function groups_for_user() {
+  local zellij_pair_user="$1"
+  dscl . search /Groups GroupMembership "$zellij_pair_user" | grep = | awk '{print $1}'
+}
+
+function random_group_the_user_is_in() {
+  local zellij_pair_user="$1"
+  groups_for_user "$zellij_pair_user" | head -n 1
+}
+###############################
+
+if [[ "$zellij_pair_user" != "$(whoami)" ]]; then
+  if is_mac; then
+    pair_user_dir="/Users/${zellij_pair_user}"
+  else
+    pair_user_dir="/home/${zellij_pair_user}"
+  fi
+
+  if grep -q "$(whoami)" <<<"$zellij_pair_user" || grep -q "$(whoami)" <<<"$pair_user_dir"; then
+    >&2 echo "Given pair user - '${zellij_pair_user}' - and / or pair user home directory - '${pair_user_dir}' - contains current user '$(whoami)'. Will NOT delete."
+    exit 1
+  fi
+
+  zellij_kick_pair_user "$zellij_pair_user"
+  delete_stuff "$zellij_pair_user" "$pair_user_dir"
+  
+  # Clean up sudoers.d file
+  sudoers_file="/etc/sudoers.d/${zellij_pair_user}_allow_pair"
+  if [[ -f "$sudoers_file" ]]; then
+    echo "removing sudoers file: $sudoers_file"
+    sudo rm -f "$sudoers_file"
+  fi
+  
+  hot_sed -Ei "/\b$zellij_pair_user\b/d" /var/tmp/no_term_limits_wemux_ssh_users
+fi

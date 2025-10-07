@@ -7,7 +7,7 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -Eeuo pipefail
 
-# HELP: delete a single wemux pair user
+# HELP: create a wemux pair user with tmux/wemux support
 
 pair_user="${1:-}"
 
@@ -16,78 +16,15 @@ if [[ -z "$pair_user" ]]; then
   exit 1
 fi
 
-function create_pair_user() {
-  local pair_user="$1"
-
-  # not sure why removing the user from admin group makes it stop working even when the user is in the staff group
-  # and /tmp/wemux-wemux is owned by the group staff
-  if is_mac; then
-    sudo sysadminctl -addUser "$pair_user" -fullName "$pair_user" -admin -home "$pair_user_dir"
-    sudo dscl . -append /Groups/staff GroupMembership $pair_user
-
-    # otherwise it's owned by $USER:wheel, a more powerful group
-    if [[ -e /tmp/wemux-wemux ]]; then
-      sudo chown "$(echo $USER):staff" /tmp/wemux-wemux
-    fi
-  else
-    if ! id -u "$pair_user" >/dev/null ; then
-      sudo useradd --create-home "$pair_user"
-    fi
-  fi
-  sudo mkdir -p "$pair_user_dir/.ssh"
-
-}
-
 if [[ "$pair_user" != "$(whoami)" ]]; then
-  if is_mac; then
-    pair_user_dir="/Users/${pair_user}"
+  # Use the generic user creation script with wemux command
+  if [[ "${NO_TERM_LIMITS_FORCE_WEMUX:-}" != "false" ]]; then
+    create_user_for_pairing "$pair_user" "/usr/local/bin/wemux pair"
   else
-    pair_user_dir="/home/${pair_user}"
+    create_user_for_pairing "$pair_user"
   fi
-  create_pair_user "$pair_user" "$pair_user_dir"
-
-  echo "adding user to authorized keys: ${pair_user}"
-  ssh_public_keys=""
-  if command -v get_ssh_public_key_from_username >/dev/null ; then
-    ssh_public_keys=$(get_ssh_public_key_from_username "$pair_user")
-  fi
-
-  if [[ -z "$ssh_public_keys" ]]; then
-    ssh_public_keys="$(curl --fail "https://github.com/${pair_user}.keys")"
-  fi
-  if [[ -z "$ssh_public_keys" ]]; then
-    >&2 echo "ERROR: Could not grab ssh public key for '${pair_user}'. Check github username or add get_ssh_public_key_from_username command to your PATH"
-    exit 1
-  fi
-
-  rm -f /tmp/temp_auth_content
-  while read -r ssh_public_key; do
-    if [[ -n "$ssh_public_key" ]]; then
-      cleaned_key=$(tr '\r' ' ' <<<"$ssh_public_key" | tr '\n' ' ')
-      if [[ "${NO_TERM_LIMITS_FORCE_WEMUX:-}" != "false" ]]; then
-        echo "command=\". ~/.bashrc; /usr/local/bin/wemux pair\" ${cleaned_key}" >> /tmp/temp_auth_content
-      else
-        echo "${cleaned_key}" >> /tmp/temp_auth_content
-      fi
-    else
-      >&2 echo "$(print_color red)WARNING: Could not find ssh key for $pair_user. The user will need to add one at https://stash.trstone.com/plugins/servlet/ssh/account/keys$(print_color)"
-    fi
-  done <<<"${ssh_public_keys}"
-
-  # because the wemux script refers to tmux without the full absolute path and therefore, with a command in authorized_keys, it fails
-  extra_paths="/usr/local/bin"
-  if [[ -f /opt/homebrew/bin/tmux ]] ; then
-    extra_paths="$extra_paths:/opt/homebrew/bin"
-  fi
-  echo "export PATH=\"${extra_paths}:\$PATH\"" > /tmp/tmp_bashrc
-  sudo mv /tmp/tmp_bashrc "$pair_user_dir/.bashrc"
-  sudo mv /tmp/temp_auth_content "$pair_user_dir/.ssh/authorized_keys"
-  sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
-  sudo chown -R "$pair_user" "$pair_user_dir" || echo 'failed to chown everything, but hopefully it chowned enough'
 
   # tmux 3.3+ requires this command but it does not exist before
   # that version so ignore the failure
   tmux server-access -a "$pair_user" || echo ''
-
-  echo "$pair_user" >>/var/tmp/no_term_limits_wemux_ssh_users
 fi
