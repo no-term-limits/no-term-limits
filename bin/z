@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+custom_configs="${HOME}/.config/zellij/custom.kdl"
+if [[ -f "${custom_configs}" ]]; then
+  export ZELLIJ_CONFIG_FILE="$custom_configs"
+fi
+
+zellij ka
+zellij da
+
+zellij -l "${HOME}/.config/zellij/layouts/custom_layout.hdl" attach --create pair
