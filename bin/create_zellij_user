@@ -17,13 +17,74 @@ if [[ -z "$pair_user" ]]; then
 fi
 
 if [[ "$pair_user" != "$(whoami)" ]]; then
-  # Use the generic user creation script with zellij join command
-  if [[ "${NO_TERM_LIMITS_FORCE_ZELLIJ:-}" != "false" ]]; then
-    create_user_for_pairing "$pair_user" "/usr/local/bin/join_pair_session"
-  else
-    create_user_for_pairing "$pair_user"
+  # Find zellij binary path
+  zellij_path=""
+  for potential_path in /usr/local/bin/zellij /opt/homebrew/bin/zellij $(which zellij 2>/dev/null || echo ""); do
+    if [[ -x "$potential_path" ]]; then
+      zellij_path="$potential_path"
+      break
+    fi
+  done
+  
+  if [[ -z "$zellij_path" ]]; then
+    >&2 echo "ERROR: Could not find zellij binary"
+    exit 1
   fi
 
-  # Store the original user for the join_pair_session script
-  echo "$(whoami)" > /var/tmp/no_term_limits_pair_session_owner
+  # Get pair user directory
+  if is_mac; then
+    pair_user_dir="/Users/${pair_user}"
+  else
+    pair_user_dir="/home/${pair_user}"
+  fi
+
+  # Create the user first without SSH command
+  create_user_for_pairing "$pair_user"
+
+  # Create bin directory in pair user's home
+  sudo mkdir -p "$pair_user_dir/bin"
+
+  # Create dynamic join_pair_session script with hardcoded values
+  cat > /tmp/join_pair_session_script << EOF
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '\${2}' in \${0} script at line: \${1}."
+  exit "\$2"
+}
+trap 'error_handler \${LINENO} \$?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# Hardcoded original user and zellij path
+original_user="$(whoami)"
+zellij_path="$zellij_path"
+
+exec sudo -u "\$original_user" "\$zellij_path" attach pair
+EOF
+
+  # Move script to pair user's bin directory and set permissions
+  sudo mv /tmp/join_pair_session_script "$pair_user_dir/bin/join_pair_session"
+  sudo chmod +x "$pair_user_dir/bin/join_pair_session"
+  sudo chown "$pair_user:staff" "$pair_user_dir/bin/join_pair_session" 2>/dev/null || sudo chown "$pair_user" "$pair_user_dir/bin/join_pair_session"
+
+  # Update authorized_keys to use the pair user's script if forced
+  if [[ "${NO_TERM_LIMITS_FORCE_ZELLIJ:-}" != "false" ]]; then
+    # Read current authorized_keys and update it
+    temp_auth_file="/tmp/temp_auth_zellij_${pair_user}"
+    sudo cp "$pair_user_dir/.ssh/authorized_keys" "$temp_auth_file"
+    
+    # Replace any existing keys with command pointing to user's bin
+    while IFS= read -r line; do
+      if [[ "$line" =~ ^ssh- ]] || [[ "$line" =~ ^ecdsa- ]] || [[ "$line" =~ ^ed25519- ]]; then
+        echo "command=\". ~/.bashrc; ~/bin/join_pair_session\" $line"
+      else
+        echo "$line"
+      fi
+    done < "$temp_auth_file" > /tmp/updated_auth_content
+    
+    sudo mv /tmp/updated_auth_content "$pair_user_dir/.ssh/authorized_keys"
+    sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
+    sudo chown "$pair_user" "$pair_user_dir/.ssh/authorized_keys"
+    rm -f "$temp_auth_file"
+  fi
 fi
