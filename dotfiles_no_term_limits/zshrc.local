@@ -43,7 +43,8 @@ PATH=".git/safe/../../bin:$PATH"
 export PATH=/usr/local/sbin:$PATH
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
-export EDITOR=vim
+export EDITOR=v
+export VISUAL=v
 
 # HACK: Ignore shell being set to Xsession on login on Ubuntu since that is not the correct shell
 if [[ -z "$NO_TERM_LIMITS_CURRENT_SHELL" ]] || [[ "$NO_TERM_LIMITS_CURRENT_SHELL" == "Xsession" ]] ; then
