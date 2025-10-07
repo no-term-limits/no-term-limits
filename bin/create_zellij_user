@@ -25,7 +25,7 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
       break
     fi
   done
-  
+
   if [[ -z "$zellij_path" ]]; then
     >&2 echo "ERROR: Could not find zellij binary"
     exit 1
@@ -45,7 +45,7 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   sudo mkdir -p "$pair_user_dir/bin"
 
   # Create dynamic join_pair_session script with hardcoded values
-  cat > /tmp/join_pair_session_script << EOF
+  cat >/tmp/join_pair_session_script <<EOF
 #!/usr/bin/env bash
 
 function error_handler() {
@@ -59,7 +59,13 @@ set -o errtrace -o errexit -o nounset -o pipefail
 original_user="$(whoami)"
 zellij_path="$zellij_path"
 
-exec sudo -u "\$original_user" "\$zellij_path" attach pair
+xdg_var=""
+if [[ -d "/run/user" ]]; then
+  user_id=$(id -u)
+  xdg_var="XDG_RUNTIME_DIR=/run/user/\${user_id} "
+fi
+
+exec sudo su - "\$original_user" -c "\${xdg_var}\${zellij_path} attach pair"
 EOF
 
   # Move script to pair user's bin directory and set permissions
@@ -69,11 +75,11 @@ EOF
 
   # Create sudoers.d file to allow pair user to run their join script
   sudoers_file="/etc/sudoers.d/${pair_user}_allow_pair"
-  cat > /tmp/sudoers_content << EOF
+  cat >/tmp/sudoers_content <<EOF
 # Allow ${pair_user} to run their join_pair_session script as root
 ${pair_user} ALL = (root) NOPASSWD: ${pair_user_dir}/bin/join_pair_session
 EOF
-  
+
   sudo mv /tmp/sudoers_content "$sudoers_file"
   sudo chmod 440 "$sudoers_file"
   if is_mac; then
@@ -87,8 +93,8 @@ EOF
     # Read current authorized_keys and update it
     temp_auth_file="/tmp/temp_auth_zellij_${pair_user}"
     sudo cp "$pair_user_dir/.ssh/authorized_keys" "$temp_auth_file"
-    sudo chmod 644 "$temp_auth_file"  # Make it readable
-    
+    sudo chmod 644 "$temp_auth_file" # Make it readable
+
     # Replace any existing keys with command pointing to sudo script
     while IFS= read -r line; do
       if [[ "$line" =~ ^ssh- ]] || [[ "$line" =~ ^ecdsa- ]] || [[ "$line" =~ ^ed25519- ]]; then
@@ -96,11 +102,12 @@ EOF
       else
         echo "$line"
       fi
-    done < "$temp_auth_file" > /tmp/updated_auth_content
-    
+    done <"$temp_auth_file" >/tmp/updated_auth_content
+
     sudo mv /tmp/updated_auth_content "$pair_user_dir/.ssh/authorized_keys"
     sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
     sudo chown "$pair_user" "$pair_user_dir/.ssh/authorized_keys"
     sudo rm -f "$temp_auth_file"
   fi
 fi
+
