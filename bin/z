@@ -17,4 +17,4 @@ if [[ "${1:-}" == "--trash-old-sessions" ]]; then
   zellij da -y || echo ''
 fi
 
-VISUAL=v EDITOR=v zellij -l "${HOME}/.config/zellij/layouts/custom_layout.hdl" attach --create pair
+zellij -l "${HOME}/.config/zellij/layouts/custom_layout.hdl" attach --create pair
