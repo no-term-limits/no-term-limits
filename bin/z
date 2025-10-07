@@ -12,7 +12,9 @@ if [[ -f "${custom_configs}" ]]; then
   export ZELLIJ_CONFIG_FILE="$custom_configs"
 fi
 
-zellij ka -y || echo ''
-zellij da -y || echo ''
+if [[ "$1" == "--trash-old-sessions" ]]; then
+  zellij ka -y || echo ''
+  zellij da -y || echo ''
+fi
 
 zellij -l "${HOME}/.config/zellij/layouts/custom_layout.hdl" attach --create pair
