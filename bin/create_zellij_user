@@ -72,6 +72,7 @@ EOF
     # Read current authorized_keys and update it
     temp_auth_file="/tmp/temp_auth_zellij_${pair_user}"
     sudo cp "$pair_user_dir/.ssh/authorized_keys" "$temp_auth_file"
+    sudo chmod 644 "$temp_auth_file"  # Make it readable
     
     # Replace any existing keys with command pointing to user's bin
     while IFS= read -r line; do
@@ -85,6 +86,6 @@ EOF
     sudo mv /tmp/updated_auth_content "$pair_user_dir/.ssh/authorized_keys"
     sudo chmod 600 "$pair_user_dir/.ssh/authorized_keys"
     sudo chown "$pair_user" "$pair_user_dir/.ssh/authorized_keys"
-    rm -f "$temp_auth_file"
+    sudo rm -f "$temp_auth_file"
   fi
 fi
