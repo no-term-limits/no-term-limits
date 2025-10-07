@@ -12,7 +12,7 @@ if [[ -f "${custom_configs}" ]]; then
   export ZELLIJ_CONFIG_FILE="$custom_configs"
 fi
 
-if [[ "$1" == "--trash-old-sessions" ]]; then
+if [[ "${1:-}" == "--trash-old-sessions" ]]; then
   zellij ka -y || echo ''
   zellij da -y || echo ''
 fi
