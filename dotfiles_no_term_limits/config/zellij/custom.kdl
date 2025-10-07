@@ -1,0 +1,6 @@
+// only required if mouse_mode is enabled on Ubuntu
+// copy_command "xclip -selection clipboard" // x11
+
+auto_layout false
+show_startup_tips false
+mouse_mode false
