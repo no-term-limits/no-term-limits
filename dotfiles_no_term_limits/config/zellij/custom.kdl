@@ -4,3 +4,22 @@
 auto_layout false
 show_startup_tips false
 mouse_mode false
+
+keybinds {
+  shared_except "locked" {
+    bind "H" { Resize "Increase left"; }
+    bind "J" { Resize "Increase down"; }
+    bind "K" { Resize "Increase up"; }
+    bind "L" { Resize "Increase right"; }
+
+    bind "Alt h" { MoveFocus "left"; }
+    bind "Alt j" { MoveFocus "down"; }
+    bind "Alt k" { MoveFocus "up"; }
+    bind "Alt l" { MoveFocus "right"; }
+
+    bind "Alt t" { NewTab; SwitchToMode "normal"; }
+
+    bind "Alt -" { NewPane "down"; SwitchToMode "normal"; }
+    bind "Alt \\" { NewPane; SwitchToMode "normal"; } // instead of pipe directly
+  }
+}
