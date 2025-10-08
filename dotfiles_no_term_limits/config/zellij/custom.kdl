@@ -7,10 +7,10 @@ mouse_mode false
 
 keybinds {
   shared_except "locked" {
-    bind "Alt left" { Resize "Increase left"; }
-    bind "Alt down" { Resize "Increase down"; }
-    bind "Alt up" { Resize "Increase up"; }
-    bind "Alt right" { Resize "Increase right"; }
+    bind "Alt H" { Resize "Increase left"; }
+    bind "Alt J" { Resize "Increase down"; }
+    bind "Alt K" { Resize "Increase up"; }
+    bind "Alt L" { Resize "Increase right"; }
 
     bind "Alt h" { MoveFocus "left"; }
     bind "Alt j" { MoveFocus "down"; }
