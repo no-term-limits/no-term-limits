@@ -18,5 +18,5 @@ if [[ -n "${TMUX:-}" ]] && command -v wemux >/dev/null; then
     (grep -vE '(error connecting|connected.*:)' <<<"$wemux_users_output" || echo '') | perl -p -e 's/^ +\d+\. (.*)/\1/' | hot_sed -E "/\<$(whoami)\>/d" | sort | uniq
   fi
 elif [[ -n "${ZELLIJ:-}" ]]; then
-  users | tr " " "\n" | sort | uniq | grep -vE "(root|$(whoami))"
+  users | tr " " "\n" | sort | uniq | (grep -vE "(root|$(whoami))" || echo '')
 fi
