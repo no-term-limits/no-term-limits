@@ -6,3 +6,9 @@
 # bold_italic.family = "Cascadia Code PL"
 
 size = 16.0
+
+[window]
+
+# for MacOS.
+# not sure if it works on linux.
+option_as_alt = "Both"
