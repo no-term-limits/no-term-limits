@@ -58,6 +58,7 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # Hardcoded original user and zellij path
 original_user="$(whoami)"
 zellij_path="$zellij_path"
+home="$HOME"
 
 xdg_var=""
 if [[ -d "/run/user" ]]; then
@@ -65,7 +66,7 @@ if [[ -d "/run/user" ]]; then
   xdg_var="XDG_RUNTIME_DIR=/run/user/\${user_id} "
 fi
 
-exec sudo su - "\$original_user" -c "\${xdg_var}\${zellij_path} attach pair"
+exec sudo su - "\$original_user" -c "\${xdg_var}\${zellij_path} --config \${home}/.config/zellij/custom.kdl  attach pair"
 EOF
 
   # Move script to pair user's bin directory and set permissions
@@ -110,4 +111,3 @@ EOF
     sudo rm -f "$temp_auth_file"
   fi
 fi
-

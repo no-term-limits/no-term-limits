@@ -1,9 +1,10 @@
-// only required if mouse_mode is enabled on Ubuntu
+// only required if mouse_mode is enabled on Ubuntu and using gnome-terminal
 // copy_command "xclip -selection clipboard" // x11
 
 auto_layout false
 show_startup_tips false
-mouse_mode false
+// mouse_mode false
+mirror_session true
 
 keybinds {
   shared_except "locked" {
