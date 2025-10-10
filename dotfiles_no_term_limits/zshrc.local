@@ -206,11 +206,12 @@ function ra() {
   source "${HOME}/.zshrc"
 }
 
+# try mise for now instead of asdf
 # load asdf
-if [[ -f "$HOME/.asdf/asdf.sh" ]]
-then
-  source "$HOME/.asdf/asdf.sh"
-fi
+# if [[ -f "$HOME/.asdf/asdf.sh" ]]
+# then
+#   source "$HOME/.asdf/asdf.sh"
+# fi
 
 if [[ -f ~/.local/bin/mise ]]; then
   eval "$(~/.local/bin/mise activate zsh)"
