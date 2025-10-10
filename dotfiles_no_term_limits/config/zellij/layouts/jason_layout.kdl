@@ -33,7 +33,7 @@ layout {
         command_pair_users_interval    "10"
 
         command_kn_command "kn_for_prompt"
-        command_kn_format   "#[bg=#8A8A8A,fg=#380D05,bold]{stdout} {stderr}"
+        command_kn_format   "#[bg=#8A8A8A,fg=#6E1101,bold]{stdout} {stderr}"
         command_kn_rendermode "static"
         command_kn_interval    "10"
       }
