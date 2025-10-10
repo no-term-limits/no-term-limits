@@ -1,0 +1,99 @@
+
+layout {
+  cwd "${HOME}/projects/github/sartography"
+
+  default_tab_template {
+    // Default tabs:
+    // pane size=1 borderless=true {
+    //   plugin location="zellij:compact-bar"
+    // }
+    pane size=1 borderless=true {
+      plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+        format_left "{tabs}"
+        format_center "{mode} #[fg=#89B4FA,bold]{session}"
+        format_right  "{command_kn} {command_pair_users}"
+        format_space  ""
+
+        border_enabled  "false"
+        hide_frame_for_single_pane "false"
+
+        tab_normal   "#[fg=#F5DBD7] {name} "
+        tab_active   "#[fg=#E8644F,bold,italic,bg=#C7D1F2] {name} "
+
+        command_pair_users_command "currently_connected_paired_users"
+        command_pair_users_format   "#[fg=green] {stdout} {stderr}"
+        command_pair_users_rendermode "static"
+        command_pair_users_interval    "10"
+
+        command_kn_command "kn_for_prompt"
+        command_kn_format   "#[fg=red] {stdout} {stderr}"
+        command_kn_rendermode "static"
+        command_kn_interval    "10"
+      }
+    }
+    children
+    pane size=1 borderless=true {
+      plugin location="status-bar"
+    }
+  }
+
+  tab name="backend" cwd="spiff-arena/spiffworkflow-backend" {
+    pane split_direction="vertical" {
+      pane
+      pane
+    }
+  }
+
+  tab name="frontend" cwd="spiff-arena/spiffworkflow-frontend" {
+    pane split_direction="vertical" {
+      pane
+      pane
+    }
+  }
+
+  tab name="sample-civitos" {
+    pane split_direction="horizontal" {
+      pane split_direction="vertical" {
+        pane cwd="sample-process-models"
+        pane cwd="sample-process-models"
+      }
+      pane split_direction="vertical" {
+        pane cwd="civitos-process-models"
+        pane cwd="civitos-process-models"
+      }
+    }
+  }
+
+  tab name="infra-onboarding" {
+    pane split_direction="horizontal" {
+      pane split_direction="vertical" {
+        pane cwd="infra"
+        pane cwd="infra"
+      }
+      pane split_direction="vertical" {
+        pane cwd="onboarding"
+        pane cwd="onboarding"
+      }
+    }
+  }
+
+  tab name="civitos-api" cwd="../civitos/civitos-api" {
+    pane split_direction="vertical" {
+      pane
+      pane
+    }
+  }
+
+  tab name="civitos-app-terraform" {
+    pane split_direction="horizontal" {
+      pane split_direction="vertical" {
+        pane cwd="../civitos/civitos-app"
+        pane cwd="../civitos/civitos-app"
+      }
+      pane split_direction="vertical" {
+        pane cwd="../civitos/civitos-terraform"
+        pane cwd="../civitos/civitos-terraform"
+      }
+    }
+  }
+}
