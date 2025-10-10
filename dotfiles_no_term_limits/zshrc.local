@@ -212,6 +212,10 @@ then
   source "$HOME/.asdf/asdf.sh"
 fi
 
+if [[ -f ~/.local/bin/mise ]]; then
+  eval "$(~/.local/bin/mise activate zsh)"
+fi
+
 if command -v setopt > /dev/null; then
   setopt HISTIGNORESPACE
   setopt rm_star_silent
