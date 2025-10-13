@@ -28,7 +28,7 @@ currently_connected_paired_users=""
 if command -v get_pair_users_for_git_commit_message >/dev/null; then
   currently_connected_paired_users=$(get_pair_users_for_git_commit_message)
 else
-  currently_connected_paired_users=$(currently_connected_paired_users | (grep -v "\<$(whoami)\>" | tr '\n' ' ' | perl -p -e 's/ *$//' || echo ''))
+  currently_connected_paired_users=$(currently_connected_paired_users | (hot_sed -E "s/\<$(whoami)\>//" | perl -p -e 's/ *$//' || echo ''))
 fi
 
 if [[ -n "$currently_connected_paired_users" ]]; then
