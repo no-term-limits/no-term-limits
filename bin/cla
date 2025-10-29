@@ -96,7 +96,6 @@ export PROJECT_BASENAME
 # Auto-inject AWS_BEARER_TOKEN_BEDROCK for container hooks
 if [[ -n "${AWS_BEARER_TOKEN_BEDROCK-}" ]]; then
   export AWS_BEARER_TOKEN_BEDROCK
-  export CLAUDE_CODE_USE_BEDROCK=1
 else
   echo "⚠️  warning: AWS_BEARER_TOKEN_BEDROCK not set on host; container hooks won't see it" >&2
 fi
