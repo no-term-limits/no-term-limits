@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
+
+# cla — run any folder inside your global Claude devcontainer config (no VS Code required)
+# Always uses: ~/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla/.devcontainer
+
+# --- CONFIG --------------------------------------------------------
+DC_BIN="${DC_BIN:-devcontainer}" # CLI: npm i -g @devcontainers/cli or brew install devcontainer
+ENGINE="${ENGINE:-docker}"       # or set ENGINE=podman
+GLOBAL_CONF="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla"
+CONF_WS="$GLOBAL_CONF" # Always use global config, never local
+
+# --- ARG PARSING ---------------------------------------------------
+DOTENV=""
+ENVS=()
+RUN_CMD=""
+USE_SHELL=1
+
+usage() {
+  cat <<'EOF'
+cla — launch the global Claude devcontainer for the current directory
+
+Usage:
+  cla                         # bring up container & open a shell
+  cla -- cmd                  # run a one-off command instead of interactive shell
+  cla --env KEY=VALUE         # inject literal env
+  cla --dotenv FILE           # load KEY=VALUE pairs from file
+  cla --podman | --docker     # choose engine (default: docker)
+  cla -h | --help             # show this help
+EOF
+}
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+want_help() { [[ "${1-}" == "-h" || "${1-}" == "--help" ]]; }
+
+if want_help "${1-}"; then
+  usage
+  exit 0
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --podman)
+    ENGINE="podman"
+    shift
+    ;;
+  --docker)
+    ENGINE="docker"
+    shift
+    ;;
+  --dotenv)
+    DOTENV="${2:?}"
+    shift 2
+    ;;
+  --env)
+    ENVS+=("${2:?}")
+    shift 2
+    ;;
+  --)
+    shift
+    RUN_CMD="$*"
+    USE_SHELL=0
+    break
+    ;;
+  *)
+    RUN_CMD="$*"
+    USE_SHELL=0
+    break
+    ;;
+  esac
+done
+
+# --- PRE-FLIGHT ----------------------------------------------------
+command -v "$DC_BIN" >/dev/null 2>&1 || die "devcontainer CLI not found. Install via npm or brew."
+[[ -f "$CONF_WS/.devcontainer/devcontainer.json" ]] || die "missing devcontainer.json at $CONF_WS/.devcontainer"
+
+# Determine workspace (always current dir)
+PROJECT_PATH="$(pwd)"
+PROJECT_BASENAME="$(basename "$PROJECT_PATH")"
+
+# Export envs consumed by ${localEnv:...} BEFORE 'up'
+export PROJECT_PATH
+export PROJECT_BASENAME
+
+# Auto-inject AWS_BEARER_TOKEN_BEDROCK for container hooks
+if [[ -n "${AWS_BEARER_TOKEN_BEDROCK-}" ]]; then
+  export AWS_BEARER_TOKEN_BEDROCK
+  export CLAUDE_CODE_USE_BEDROCK=1
+else
+  echo "⚠️  warning: AWS_BEARER_TOKEN_BEDROCK not set on host; container hooks won't see it" >&2
+fi
+
+# --- BUILD RUNTIME PRELUDE -----------------------------------------
+EXPORTS=() # <-- initialize to satisfy 'set -u'
+
+# dotenv first
+if [[ -n "$DOTENV" ]]; then
+  [[ -f "$DOTENV" ]] || die "dotenv file not found: $DOTENV"
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    key="${line%%=*}"
+    val="${line#*=}"
+    EXPORTS+=("export $key=$(printf '%q' "$val")")
+  done <"$DOTENV"
+fi
+
+# manual --env KEY=VALUE
+for kv in "${ENVS[@]}"; do
+  [[ "$kv" == *"="* ]] || die "--env expects KEY=VALUE (got: $kv)"
+  key="${kv%%=*}"
+  val="${kv#*=}"
+  EXPORTS+=("export $key=$(printf '%q' "$val")")
+done
+
+# Compose prelude for container exec
+PRELUDE=""
+if ((${#EXPORTS[@]} > 0)); then
+  PRELUDE=$(printf '%s; ' "${EXPORTS[@]}")
+fi
+
+# --- START CONTAINER -----------------------------------------------
+UP_ARGS=(up --workspace-folder "$CONF_WS")
+if [[ "$ENGINE" != "docker" ]]; then
+  UP_ARGS=(--docker-path "$ENGINE" "${UP_ARGS[@]}")
+fi
+"$DC_BIN" "${UP_ARGS[@]}" >/dev/null
+
+# --- EXEC INSIDE CONTAINER -----------------------------------------
+if [[ $USE_SHELL -eq 1 ]]; then
+  "$DC_BIN" exec --workspace-folder "$CONF_WS" bash -lc "${PRELUDE} exec \"\${SHELL:-bash}\""
+else
+  [[ -n "$RUN_CMD" ]] || die "no command provided after --"
+  "$DC_BIN" exec --workspace-folder "$CONF_WS" bash -lc "${PRELUDE} $RUN_CMD"
+fi
