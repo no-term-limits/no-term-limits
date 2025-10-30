@@ -70,6 +70,7 @@ for domain in \
     "sentry.io" \
     "statsig.anthropic.com" \
     "statsig.com" \
+    "bedrock-runtime.us-east-1.amazonaws.com" \
     "marketplace.visualstudio.com" \
     "vscode.blob.core.windows.net" \
     "update.code.visualstudio.com"; do

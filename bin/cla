@@ -7,8 +7,6 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
-
 # cla — run any folder inside your global Claude devcontainer config (no VS Code required)
 # Always uses: ~/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla/.devcontainer
 
@@ -23,6 +21,7 @@ DOTENV=""
 ENVS=()
 RUN_CMD=""
 USE_SHELL=1
+RECREATE=0 # if 1, we pass --remove-existing-container
 
 usage() {
   cat <<'EOF'
@@ -34,6 +33,7 @@ Usage:
   cla --env KEY=VALUE         # inject literal env
   cla --dotenv FILE           # load KEY=VALUE pairs from file
   cla --podman | --docker     # choose engine (default: docker)
+  cla --recreate              # force re-create the devcontainer (refresh containerEnv)
   cla -h | --help             # show this help
 EOF
 }
@@ -67,6 +67,10 @@ while [[ $# -gt 0 ]]; do
     ENVS+=("${2:?}")
     shift 2
     ;;
+  --recreate)
+    RECREATE=1
+    shift
+    ;;
   --)
     shift
     RUN_CMD="$*"
@@ -93,6 +97,9 @@ PROJECT_BASENAME="$(basename "$PROJECT_PATH")"
 export PROJECT_PATH
 export PROJECT_BASENAME
 
+# Always set these so container hooks see them at create/start time
+export CLAUDE_CODE_USE_BEDROCK=1
+
 # Auto-inject AWS_BEARER_TOKEN_BEDROCK for container hooks
 if [[ -n "${AWS_BEARER_TOKEN_BEDROCK-}" ]]; then
   export AWS_BEARER_TOKEN_BEDROCK
@@ -101,7 +108,7 @@ else
 fi
 
 # --- BUILD RUNTIME PRELUDE -----------------------------------------
-EXPORTS=() # <-- initialize to satisfy 'set -u'
+EXPORTS=() # init for set -u
 
 # dotenv first
 if [[ -n "$DOTENV" ]]; then
@@ -122,6 +129,12 @@ for kv in "${ENVS[@]}"; do
   EXPORTS+=("export $key=$(printf '%q' "$val")")
 done
 
+# (Optional) also export for the runtime shell (not strictly needed, but nice)
+EXPORTS+=("export CLAUDE_CODE_USE_BEDROCK=1")
+if [[ -n "${AWS_BEARER_TOKEN_BEDROCK-}" ]]; then
+  EXPORTS+=("export AWS_BEARER_TOKEN_BEDROCK=$(printf '%q' "$AWS_BEARER_TOKEN_BEDROCK")")
+fi
+
 # Compose prelude for container exec
 PRELUDE=""
 if ((${#EXPORTS[@]} > 0)); then
@@ -133,6 +146,10 @@ UP_ARGS=(up --workspace-folder "$CONF_WS")
 if [[ "$ENGINE" != "docker" ]]; then
   UP_ARGS=(--docker-path "$ENGINE" "${UP_ARGS[@]}")
 fi
+if ((RECREATE == 1)); then
+  UP_ARGS+=(--remove-existing-container)
+fi
+
 "$DC_BIN" "${UP_ARGS[@]}" >/dev/null
 
 # --- EXEC INSIDE CONTAINER -----------------------------------------
