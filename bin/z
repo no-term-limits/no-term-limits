@@ -22,7 +22,7 @@ args=""
 if [[ "${1:-}" == "--new" ]]; then
   shift
 else
-  args=" -l ${HOME}/.config/zellij/layouts/custom_layout.hdl attach --create pair"
+  args=" -l ${HOME}/.config/zellij/layouts/custom_layout.kdl attach --create pair"
 fi
 
 zellij $args "$@"
