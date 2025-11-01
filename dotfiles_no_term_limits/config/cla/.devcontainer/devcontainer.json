@@ -50,7 +50,8 @@
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
     "AWS_BEARER_TOKEN_BEDROCK": "${localEnv:AWS_BEARER_TOKEN_BEDROCK}",
     "CLAUDE_CODE_USE_BEDROCK": "1",
-    "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "UV_PROJECT_ENVIRONMENT": "/home/node/.venv"
   },
   "workspaceMount": "source=${localEnv:PROJECT_PATH},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
