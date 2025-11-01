@@ -80,10 +80,21 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 
 # Install Claude
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
+
+# Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Create claude-dev wrapper script
+# Add uv to PATH for the node user
+ENV PATH="/home/node/.local/bin:$PATH"
+
+# Install Playwright globally using uv tool as node user
+RUN uv tool install playwright
+
+# Install Chromium with system dependencies as root
 USER root
+RUN /home/node/.local/bin/playwright install --with-deps chromium
+
+# Create claude-dev wrapper script
 RUN echo '#!/bin/bash\nexec claude --dangerously-skip-permissions --allow-dangerously-skip-permissions --permission-mode bypassPermissions --debug "$@"' > /usr/local/bin/claude-dev && \
   chmod +x /usr/local/bin/claude-dev
 USER node
