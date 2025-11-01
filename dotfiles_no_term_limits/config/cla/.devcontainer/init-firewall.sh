@@ -71,6 +71,7 @@ for domain in \
     "statsig.anthropic.com" \
     "statsig.com" \
     "bedrock-runtime.us-east-1.amazonaws.com" \
+    "files.pythonhosted.org" \
     "marketplace.visualstudio.com" \
     "vscode.blob.core.windows.net" \
     "update.code.visualstudio.com"; do
