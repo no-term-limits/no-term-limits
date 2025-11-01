@@ -82,6 +82,11 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Create claude-dev wrapper script
+USER root
+RUN echo '#!/bin/bash\nexec claude --dangerously-skip-permissions --allow-dangerously-skip-permissions --permission-mode bypassPermissions --debug "$@"' > /usr/local/bin/claude-dev && \
+  chmod +x /usr/local/bin/claude-dev
+USER node
 
 # Copy and set up firewall script
 COPY init-firewall.sh /usr/local/bin/
