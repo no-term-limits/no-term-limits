@@ -26,7 +26,7 @@ branch=$(git_branch)
 git_url=$(git_url_of_current_directory)
 
 git_root="$(git rev-parse --show-toplevel)"
-relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+|/|g')
+relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+||g')
 
 project_path=$(perl -p -e "s|${NO_TERM_LIMITS_PROJECTS_DIR}||" <<<"$git_root")
 dir_count=$(perl -p -e 's|/| |g' <<<"$project_path" | wc -w)
@@ -41,14 +41,14 @@ if [[ "$dir_count" -gt 2 ]]; then
 fi
 
 if grep -q 'github.com' <<<"$git_url"; then
-  url_path="/tree/${branch}${relative_file}"
+  url_path="/tree/${branch}/${relative_file}"
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#L${line_number}"
   fi
   url_path="${git_url}${url_path}"
 elif grep -q 'bitbucket.org' <<<"$git_url"; then
   commit_hash=$(git rev-parse --verify HEAD)
-  url_path="${git_url}src/${commit_hash}${relative_file}?at=${branch}"
+  url_path="${git_url}src/${commit_hash}/${relative_file}?at=${branch}"
   if [[ -n "$line_number" ]]; then
     url_path="${url_path}#lines-${line_number}"
   fi
