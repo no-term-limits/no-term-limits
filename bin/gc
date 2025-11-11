@@ -7,7 +7,16 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
+# HELP: git: popular: runs git add, git commit, and gpush. see also gcu and gcd.
+# If paired users are connected through wemux it will add them to the commit
+# message as collaborators as well.
+#
+# Behavior controls:
+# - NO_TERM_LIMITS_RUN_GIT_ADD: controls what to add before commit
+#     all      (default) - git add .
+#     updated             - git add -u
+#     patch               - add untracked, then git add -p
+# - GC_NO_VERIFY: if set to a non-empty value, runs git commit with --no-verify
 
 commit_message="$*"
 
@@ -51,7 +60,12 @@ elif [[ "$NO_TERM_LIMITS_RUN_GIT_ADD" == "patch" ]]; then
   git add -p
 fi
 
-git commit -m "$commit_message"
+if [[ "${GC_NO_VERIFY:-}" == "true" ]]; then
+  git commit --no-verify -m "$commit_message"
+else
+  git commit -m "$commit_message"
+fi
+
 echo "committed. ctrl+c in next ${sleep_period} seconds to abort gpush"
 sleep "$sleep_period"
 
