@@ -16,7 +16,15 @@ fi
 old=$1
 new=$2
 file=""
-files=$( (grep "$old" . -lrE --exclude-dir='vendor' --exclude-dir='.svn' --exclude-dir='.git' --exclude-dir='log' --exclude-dir='node_modules' --exclude-dir='target' --exclude-dir=doc --exclude-dir=manifests --exclude-dir=coverage || echo '') | uniq)
+
+# Check if rg (ripgrep) is available
+if command -v rg >/dev/null 2>&1; then
+  # Use ripgrep - it respects .gitignore by default and searches git-tracked files
+  files=$( (rg "$old" -l || echo '') | uniq)
+else
+  # Fall back to grep, but only search git-tracked files
+  files=$( (git ls-files | xargs grep "$old" -lE || echo '') | uniq)
+fi
 
 if [[ -n "$files" ]]; then
   old=$(echo $old | sed -E 's/\(/\(/g' | sed -E 's/\)/\)/g')
