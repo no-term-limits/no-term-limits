@@ -2,12 +2,17 @@
 
 set -e
 
-# HELP: run a command until it fails. tries 3 times by default (set ATTEMPTS=100)
+# HELP: run a command until it fails. tries 3 times by default (set ATTEMPTS=100 or pass number as first arg)
 
 if [[ -z "$ATTEMPTS" ]]; then
   attempts=3
 else
   attempts=$ATTEMPTS
+fi
+
+if grep -qE '^[0-9]+$' <<<"${1:-}"; then
+  attempts="$1"
+  shift
 fi
 
 for i in $(eval "echo {1..$attempts}"); do
