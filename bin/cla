@@ -11,16 +11,16 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # Always uses: ~/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla/.devcontainer
 
 # --- CONFIG --------------------------------------------------------
-DC_BIN="${DC_BIN:-devcontainer}" # CLI: npm i -g @devcontainers/cli or brew install devcontainer
-ENGINE="${ENGINE:-docker}"       # or set ENGINE=podman
-GLOBAL_CONF="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla"
+dc_bin="${DC_BIN:-devcontainer}" # CLI: npm i -g @devcontainers/cli or brew install devcontainer
+engine="${ENGINE:-docker}"       # or set ENGINE=podman
+global_conf="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla"
 
 # --- ARG PARSING ---------------------------------------------------
-DOTENV=""
-ENVS=()
-RUN_CMD=""
-USE_SHELL=1
-RECREATE=0 # if 1, we pass --remove-existing-container
+dotenv=""
+envs=()
+run_cmd=""
+use_shell=1
+recreate=0 # if 1, we pass --remove-existing-container
 
 usage() {
   cat <<'EOF'
@@ -51,42 +51,42 @@ fi
 while [[ $# -gt 0 ]]; do
   case "$1" in
   --podman)
-    ENGINE="podman"
+    engine="podman"
     shift
     ;;
   --docker)
-    ENGINE="docker"
+    engine="docker"
     shift
     ;;
   --dotenv)
-    DOTENV="${2:?}"
+    dotenv="${2:?}"
     shift 2
     ;;
   --env)
-    ENVS+=("${2:?}")
+    envs+=("${2:?}")
     shift 2
     ;;
   --recreate)
-    RECREATE=1
+    recreate=1
     shift
     ;;
   --)
     shift
-    RUN_CMD="$*"
-    USE_SHELL=0
+    run_cmd="$*"
+    use_shell=0
     break
     ;;
   *)
-    RUN_CMD="$*"
-    USE_SHELL=0
+    run_cmd="$*"
+    use_shell=0
     break
     ;;
   esac
 done
 
 # --- PRE-FLIGHT ----------------------------------------------------
-command -v "$DC_BIN" >/dev/null 2>&1 || die "devcontainer CLI not found. Install via npm or brew."
-[[ -f "$GLOBAL_CONF/.devcontainer/devcontainer.json" ]] || die "missing devcontainer.json at $GLOBAL_CONF/.devcontainer"
+command -v "$dc_bin" >/dev/null 2>&1 || die "devcontainer CLI not found. Install via npm or brew."
+[[ -f "$global_conf/.devcontainer/devcontainer.json" ]] || die "missing devcontainer.json at $global_conf/.devcontainer"
 
 # Determine workspace (always current dir)
 PROJECT_PATH="$(pwd)"
@@ -107,58 +107,58 @@ else
 fi
 
 # --- BUILD RUNTIME PRELUDE -----------------------------------------
-EXPORTS=() # init for set -u
+exports=() # init for set -u
 
 # dotenv first
-if [[ -n "$DOTENV" ]]; then
-  [[ -f "$DOTENV" ]] || die "dotenv file not found: $DOTENV"
+if [[ -n "$dotenv" ]]; then
+  [[ -f "$dotenv" ]] || die "dotenv file not found: $dotenv"
   while IFS= read -r line; do
     [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
     key="${line%%=*}"
     val="${line#*=}"
-    EXPORTS+=("export $key=$(printf '%q' "$val")")
-  done <"$DOTENV"
+    exports+=("export $key=$(printf '%q' "$val")")
+  done <"$dotenv"
 fi
 
 # manual --env KEY=VALUE
-for kv in "${ENVS[@]}"; do
+for kv in "${envs[@]}"; do
   [[ "$kv" == *"="* ]] || die "--env expects KEY=VALUE (got: $kv)"
   key="${kv%%=*}"
   val="${kv#*=}"
-  EXPORTS+=("export $key=$(printf '%q' "$val")")
+  exports+=("export $key=$(printf '%q' "$val")")
 done
 
 # (Optional) also export for the runtime shell (not strictly needed, but nice)
-EXPORTS+=("export CLAUDE_CODE_USE_BEDROCK=1")
+exports+=("export CLAUDE_CODE_USE_BEDROCK=1")
 if [[ -n "${AWS_BEARER_TOKEN_BEDROCK-}" ]]; then
-  EXPORTS+=("export AWS_BEARER_TOKEN_BEDROCK=$(printf '%q' "$AWS_BEARER_TOKEN_BEDROCK")")
+  exports+=("export AWS_BEARER_TOKEN_BEDROCK=$(printf '%q' "$AWS_BEARER_TOKEN_BEDROCK")")
 fi
 
 # Compose prelude for container exec
-PRELUDE=""
-if ((${#EXPORTS[@]} > 0)); then
-  PRELUDE=$(printf '%s; ' "${EXPORTS[@]}")
+prelude=""
+if ((${#exports[@]} > 0)); then
+  prelude=$(printf '%s; ' "${exports[@]}")
 fi
 
 # --- START CONTAINER -----------------------------------------------
 # Use --workspace-folder to specify the workspace and --override-config to use our global config
-UP_ARGS=(up --workspace-folder "$PROJECT_PATH" --override-config "$GLOBAL_CONF/.devcontainer/devcontainer.json" --id-label "devcontainer.local_folder=${PROJECT_PATH}")
-if [[ "$ENGINE" != "docker" ]]; then
-  UP_ARGS=(--docker-path "$ENGINE" "${UP_ARGS[@]}")
+up_args=(up --workspace-folder "$PROJECT_PATH" --override-config "$global_conf/.devcontainer/devcontainer.json" --id-label "devcontainer.local_folder=${PROJECT_PATH}")
+if [[ "$engine" != "docker" ]]; then
+  up_args=(--docker-path "$engine" "${up_args[@]}")
 fi
-if ((RECREATE == 1)); then
-  UP_ARGS+=(--remove-existing-container)
+if ((recreate == 1)); then
+  up_args+=(--remove-existing-container)
 fi
 
 # Run the devcontainer up command
-"$DC_BIN" "${UP_ARGS[@]}" >/dev/null
+"$dc_bin" "${up_args[@]}" >/dev/null
 
 # --- EXEC INSIDE CONTAINER -----------------------------------------
-EXEC_ARGS=(exec --workspace-folder "$PROJECT_PATH" --override-config "$GLOBAL_CONF/.devcontainer/devcontainer.json")
+exec_args=(exec --workspace-folder "$PROJECT_PATH" --override-config "$global_conf/.devcontainer/devcontainer.json")
 
-if [[ $USE_SHELL -eq 1 ]]; then
-  "$DC_BIN" "${EXEC_ARGS[@]}" bash -lc "${PRELUDE} exec \"\${SHELL:-bash}\""
+if [[ $use_shell -eq 1 ]]; then
+  "$dc_bin" "${exec_args[@]}" bash -lc "${prelude} exec \"\${SHELL:-bash}\""
 else
-  [[ -n "$RUN_CMD" ]] || die "no command provided after --"
-  "$DC_BIN" "${EXEC_ARGS[@]}" bash -lc "${PRELUDE} $RUN_CMD"
+  [[ -n "$run_cmd" ]] || die "no command provided after --"
+  "$dc_bin" "${exec_args[@]}" bash -lc "${prelude} $run_cmd"
 fi
