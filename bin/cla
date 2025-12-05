@@ -14,7 +14,6 @@ set -o errtrace -o errexit -o nounset -o pipefail
 DC_BIN="${DC_BIN:-devcontainer}" # CLI: npm i -g @devcontainers/cli or brew install devcontainer
 ENGINE="${ENGINE:-docker}"       # or set ENGINE=podman
 GLOBAL_CONF="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/cla"
-CONF_WS="$GLOBAL_CONF" # Always use global config, never local
 
 # --- ARG PARSING ---------------------------------------------------
 DOTENV=""
@@ -87,7 +86,7 @@ done
 
 # --- PRE-FLIGHT ----------------------------------------------------
 command -v "$DC_BIN" >/dev/null 2>&1 || die "devcontainer CLI not found. Install via npm or brew."
-[[ -f "$CONF_WS/.devcontainer/devcontainer.json" ]] || die "missing devcontainer.json at $CONF_WS/.devcontainer"
+[[ -f "$GLOBAL_CONF/.devcontainer/devcontainer.json" ]] || die "missing devcontainer.json at $GLOBAL_CONF/.devcontainer"
 
 # Determine workspace (always current dir)
 PROJECT_PATH="$(pwd)"
@@ -142,7 +141,8 @@ if ((${#EXPORTS[@]} > 0)); then
 fi
 
 # --- START CONTAINER -----------------------------------------------
-UP_ARGS=(up --workspace-folder "$CONF_WS")
+# Use --workspace-folder to specify the workspace and --override-config to use our global config
+UP_ARGS=(up --workspace-folder "$PROJECT_PATH" --override-config "$GLOBAL_CONF/.devcontainer/devcontainer.json" --id-label "devcontainer.local_folder=${PROJECT_PATH}")
 if [[ "$ENGINE" != "docker" ]]; then
   UP_ARGS=(--docker-path "$ENGINE" "${UP_ARGS[@]}")
 fi
@@ -150,12 +150,15 @@ if ((RECREATE == 1)); then
   UP_ARGS+=(--remove-existing-container)
 fi
 
+# Run the devcontainer up command
 "$DC_BIN" "${UP_ARGS[@]}" >/dev/null
 
 # --- EXEC INSIDE CONTAINER -----------------------------------------
+EXEC_ARGS=(exec --workspace-folder "$PROJECT_PATH" --override-config "$GLOBAL_CONF/.devcontainer/devcontainer.json")
+
 if [[ $USE_SHELL -eq 1 ]]; then
-  "$DC_BIN" exec --workspace-folder "$CONF_WS" bash -lc "${PRELUDE} exec \"\${SHELL:-bash}\""
+  "$DC_BIN" "${EXEC_ARGS[@]}" bash -lc "${PRELUDE} exec \"\${SHELL:-bash}\""
 else
   [[ -n "$RUN_CMD" ]] || die "no command provided after --"
-  "$DC_BIN" exec --workspace-folder "$CONF_WS" bash -lc "${PRELUDE} $RUN_CMD"
+  "$DC_BIN" "${EXEC_ARGS[@]}" bash -lc "${PRELUDE} $RUN_CMD"
 fi
