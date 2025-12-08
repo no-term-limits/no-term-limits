@@ -84,8 +84,26 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# --- AUTO-INSTALL DEVCONTAINER CLI ---------------------------------
+if ! command -v "$dc_bin" >/dev/null 2>&1; then
+  echo "⚠️  devcontainer CLI not found. Attempting to install..." >&2
+  
+  if command -v npm >/dev/null 2>&1; then
+    echo "📦 Installing via npm (global)..." >&2
+    npm install -g @devcontainers/cli
+  else
+    die "devcontainer CLI not found and npm is not available. Please install npm first."
+  fi
+  
+  # Verify installation succeeded
+  if ! command -v "$dc_bin" >/dev/null 2>&1; then
+    die "devcontainer CLI installation failed. Please install manually: npm i -g @devcontainers/cli"
+  fi
+  
+  echo "✅ devcontainer CLI installed successfully!" >&2
+fi
+
 # --- PRE-FLIGHT ----------------------------------------------------
-command -v "$dc_bin" >/dev/null 2>&1 || die "devcontainer CLI not found. Install via npm or brew."
 [[ -f "$global_conf/.devcontainer/devcontainer.json" ]] || die "missing devcontainer.json at $global_conf/.devcontainer"
 
 # Determine workspace (always current dir)
