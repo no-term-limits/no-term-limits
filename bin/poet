@@ -20,7 +20,12 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   args="$@"
   test_name=''
   test_file=''
-  if grep -Eq "^test_" <<<"$command"; then
+  
+  # Check if command is already a pytest path specification (contains ::)
+  if grep -q "::" <<<"$command"; then
+    # It's already a full pytest path, use it directly
+    args="$command $args"
+  elif grep -Eq "^test_" <<<"$command"; then
     test_name="$command"
   elif grep -Eq "^test.*py$" <<<"$command" && [[ -f "${command:-}" ]]; then
     test_file="$command"
@@ -35,6 +40,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
       fi
     fi
   fi
+  
   if [[ -n "$test_name" ]]; then
     # there's no way to to have a test_file and test_name yet, so look up test_file based on test_name
     test_dir="tests"
@@ -59,6 +65,7 @@ if [[ "$command" == "test" ]] || [[ "$command" == "t" ]] || grep -Eq "^test" <<<
   elif [[ -n "$test_file" ]]; then
     args="$test_file $args"
   fi
+  
   if [[ -f "requirements-dev.txt" || -f "requirements.txt" ]] && [[ ! -f "pyproject.toml" ]]; then
     pytest $args
   else
