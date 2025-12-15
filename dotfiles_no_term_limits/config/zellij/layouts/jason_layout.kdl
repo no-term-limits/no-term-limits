@@ -84,7 +84,7 @@ layout {
     }
   }
 
-  tab name="civitos-api" cwd="../civitos/civitos-api" {
+  tab name="civitos-api" cwd="../civitos/civitos/api" {
     pane split_direction="vertical" {
       pane
       pane
@@ -94,12 +94,12 @@ layout {
   tab name="civitos-app-terraform" {
     pane split_direction="horizontal" {
       pane split_direction="vertical" {
-        pane cwd="../civitos/civitos-app"
-        pane cwd="../civitos/civitos-app"
+        pane cwd="../civitos/civitos/app"
+        pane cwd="../civitos/civitos/app"
       }
       pane split_direction="vertical" {
-        pane cwd="../civitos/civitos-terraform"
-        pane cwd="../civitos/civitos-terraform"
+        pane cwd="../civitos/civitos/terraform"
+        pane cwd="../civitos/civitos/terraform"
       }
     }
   }
