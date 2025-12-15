@@ -30,6 +30,6 @@ keybinds {
     bind "Alt 9" { GoToTab 9; SwitchToMode "normal"; }
 
     bind "Alt -" { NewPane "down"; SwitchToMode "normal"; }
-    bind "Alt \\" { NewPane; SwitchToMode "normal"; } // instead of pipe directly
+    bind "Alt \\" { NewPane "right"; SwitchToMode "normal"; } // instead of pipe directly
   }
 }
