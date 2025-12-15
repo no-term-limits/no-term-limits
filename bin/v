@@ -1,2 +1,15 @@
-#!/bin/bash
-NVIM_APPNAME=LazyVim nvim "$@"
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+args="$@"
+if [[ -z "${2:-}" ]] && grep -qE ':[0-9]+(:|$)' <<<"$1"; then
+  args=$(awk -F ':' '{print $1}' <<<"$1")
+fi
+
+NVIM_APPNAME=LazyVim nvim $args
