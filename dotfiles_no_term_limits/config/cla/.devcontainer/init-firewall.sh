@@ -37,6 +37,17 @@ iptables -A INPUT -p tcp --sport 22 -m state --state ESTABLISHED -j ACCEPT
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
 
+# Allow all TCP connections to host.docker.internal (IPv4 only)
+echo "Resolving host.docker.internal..."
+# Use getent ahostsv4 to get only IPv4 addresses, then extract the first IP
+HOST_DOCKER_INTERNAL_IP=$(getent ahostsv4 host.docker.internal 2>/dev/null | awk '{print $1; exit}' || true)
+if [ -n "$HOST_DOCKER_INTERNAL_IP" ]; then
+    echo "Allowing all TCP connections to host.docker.internal ($HOST_DOCKER_INTERNAL_IP)"
+    iptables -A OUTPUT -p tcp -d "$HOST_DOCKER_INTERNAL_IP" -j ACCEPT
+else
+    echo "Warning: Could not resolve host.docker.internal to IPv4 - skipping host rules"
+fi
+
 # Create ipset with CIDR support
 ipset create allowed-domains hash:net
 
