@@ -13,4 +13,4 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: git: git branch files (gbf), gets files that have been modified by this branch relative to default branch
 
 default_git_branch=$(basename $(git symbolic-ref refs/remotes/origin/HEAD))
-git --no-pager diff --name-only "origin/$default_git_branch" "$@"
+git --no-pager diff --name-only --relative "origin/$default_git_branch" "$@"
