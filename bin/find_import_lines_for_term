@@ -12,7 +12,10 @@ set -o errtrace -o errexit -o nounset -o pipefail
 file_with_term="${1:-}"
 term="${2:-}"
 
-if ! command -v rg > /dev/null; then
+echo "HEY: $file_with_term" >/tmp/file.txt
+echo "TERM: $file_with_term" >>/tmp/file.txt
+
+if ! command -v rg >/dev/null; then
   >&2 echo "ERROR: this program requires ripgrep"
   exit 1
 fi
@@ -23,12 +26,12 @@ if [[ -z "${2:-}" ]]; then
 fi
 
 desired_import_expression="import .*\b${term}\b"
-if grep -q "$desired_import_expression" "$file_with_term"; then
+if grep -qE "\b$desired_import_expression\b" "$file_with_term"; then
   >&2 echo "ERROR: '${desired_import_expression}' already exists in this file"
   exit 1
 fi
 
-if grep -q '\.py$' <<< "$file_with_term"; then
+if grep -q '\.py$' <<<"$file_with_term"; then
   # find python imports matching the term, sort by most unique matches, and take the most popular version
   # the awk gets all but the first field/column, because the count is in the first column
   # the sed is making it so we can search for Task and this still finds it despite the line importing multiple things:

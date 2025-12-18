@@ -27,7 +27,7 @@ function AddImportForTermUnderCursor()
   local fullFilePath = vim.fn.expand("%:p")
   local wordUnderCursor = vim.fn.expand("<cword>")
 
-  local importExpressionToSearchFor = "import " .. wordUnderCursor
+  local importExpressionToSearchFor = "import \\<" .. wordUnderCursor .. "\\>"
 
   -- Look in other files in the current project and find the import for the word under the cursor
   if vim.fn.search(importExpressionToSearchFor, "nw") == 0 then
