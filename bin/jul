@@ -1,0 +1,295 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# dependencies = [
+#   "requests",
+#   "rich",
+# ]
+# ///
+"""
+Jules API CLI wrapper - interact with Jules sessions and apply code changes.
+
+Usage:
+    jul list-sessions [--limit N]
+    jul list-activities <session_id> [--limit N]
+    jul apply-artifacts <session_id>
+"""
+
+import os
+import sys
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Optional
+
+import requests
+from rich.console import Console
+from rich.table import Table
+from rich import print as rprint
+
+console = Console()
+
+JULES_API_BASE = "https://jules.googleapis.com/v1alpha"
+
+
+def get_api_key() -> str:
+    """Get the Jules API key from environment."""
+    api_key = os.environ.get("JULES_API_KEY")
+    if not api_key:
+        console.print("[red]Error: JULES_API_KEY environment variable not set[/red]")
+        sys.exit(1)
+    return api_key
+
+
+def make_request(endpoint: str, params: Optional[dict] = None) -> dict:
+    """Make a GET request to the Jules API."""
+    api_key = get_api_key()
+    url = f"{JULES_API_BASE}/{endpoint}"
+    headers = {"x-goog-api-key": api_key}
+    
+    try:
+        response = requests.get(url, headers=headers, params=params or {})
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        console.print(f"[red]API request failed: {e}[/red]")
+        sys.exit(1)
+
+
+def list_sessions(limit: int = 30):
+    """List all sessions."""
+    console.print("[bold]Fetching sessions...[/bold]")
+    
+    data = make_request("sessions", params={"pageSize": limit})
+    sessions = data.get("sessions", [])
+    
+    if not sessions:
+        console.print("[yellow]No sessions found[/yellow]")
+        return
+    
+    table = Table(title="Jules Sessions")
+    table.add_column("Session ID", style="cyan")
+    table.add_column("Title", style="green")
+    table.add_column("State", style="yellow")
+    table.add_column("Created", style="blue")
+    
+    for session in sessions:
+        session_id = session.get("name", "").replace("sessions/", "")
+        title = session.get("title", "N/A")
+        state = session.get("state", "UNKNOWN")
+        created = session.get("createTime", "N/A")
+        table.add_row(session_id, title, state, created)
+    
+    console.print(table)
+
+
+def list_activities(session_id: str, limit: int = 60):
+    """List activities for a session."""
+    console.print(f"[bold]Fetching activities for session {session_id}...[/bold]")
+    
+    endpoint = f"sessions/{session_id}/activities"
+    data = make_request(endpoint, params={"pageSize": limit})
+    activities = data.get("activities", [])
+    
+    if not activities:
+        console.print("[yellow]No activities found[/yellow]")
+        return
+    
+    table = Table(title=f"Activities for Session {session_id}")
+    table.add_column("Activity ID", style="cyan")
+    table.add_column("Originator", style="green")
+    table.add_column("Type", style="yellow")
+    table.add_column("Has Artifacts", style="magenta")
+    table.add_column("Created", style="blue")
+    
+    for activity in activities:
+        activity_id = activity.get("id", "N/A")
+        originator = activity.get("originator", "N/A")
+        
+        # Determine activity type
+        activity_type = "unknown"
+        if "agentMessaged" in activity:
+            activity_type = "agent_message"
+        elif "userMessaged" in activity:
+            activity_type = "user_message"
+        elif "planGenerated" in activity:
+            activity_type = "plan_generated"
+        elif "planApproved" in activity:
+            activity_type = "plan_approved"
+        elif "progressUpdated" in activity:
+            activity_type = "progress_updated"
+        elif "sessionCompleted" in activity:
+            activity_type = "session_completed"
+        elif "sessionFailed" in activity:
+            activity_type = "session_failed"
+        
+        has_artifacts = "✓" if activity.get("artifacts") else ""
+        created = activity.get("createTime", "N/A")
+        
+        table.add_row(activity_id, originator, activity_type, has_artifacts, created)
+    
+    console.print(table)
+    
+    # Show summary of artifacts
+    artifact_count = sum(1 for a in activities if a.get("artifacts"))
+    if artifact_count > 0:
+        console.print(f"\n[green]Found {artifact_count} activities with artifacts[/green]")
+
+
+def apply_git_patch(patch_content: str, base_commit: Optional[str] = None) -> bool:
+    """Apply a git patch to the current repository."""
+    # Check if we're in a git repository
+    try:
+        subprocess.run(
+            ["git", "rev-parse", "--git-dir"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+    except subprocess.CalledProcessError:
+        console.print("[red]Error: Not in a git repository[/red]")
+        return False
+    
+    # Optionally check base commit
+    if base_commit:
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            current_commit = result.stdout.strip()
+            if not current_commit.startswith(base_commit[:7]):
+                console.print(
+                    f"[yellow]Warning: Current commit {current_commit[:7]} "
+                    f"doesn't match base commit {base_commit[:7]}[/yellow]"
+                )
+        except subprocess.CalledProcessError:
+            pass
+    
+    # Write patch to temporary file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.patch', delete=False) as f:
+        f.write(patch_content)
+        patch_file = f.name
+    
+    try:
+        # Apply the patch
+        result = subprocess.run(
+            ["git", "apply", "--verbose", patch_file],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            console.print("[green]✓ Patch applied successfully[/green]")
+            if result.stdout:
+                console.print(result.stdout)
+            return True
+        else:
+            console.print("[red]✗ Failed to apply patch[/red]")
+            if result.stderr:
+                console.print(f"[red]{result.stderr}[/red]")
+            return False
+    finally:
+        # Clean up temporary file
+        Path(patch_file).unlink(missing_ok=True)
+
+
+def apply_artifacts(session_id: str):
+    """Find all activities with git patch artifacts and apply them."""
+    console.print(f"[bold]Fetching activities for session {session_id}...[/bold]")
+    
+    endpoint = f"sessions/{session_id}/activities"
+    data = make_request(endpoint, params={"pageSize": 100})
+    activities = data.get("activities", [])
+    
+    if not activities:
+        console.print("[yellow]No activities found[/yellow]")
+        return
+    
+    # Find activities with changeSet artifacts
+    patches_to_apply = []
+    for activity in activities:
+        artifacts = activity.get("artifacts", [])
+        for artifact in artifacts:
+            if "changeSet" in artifact:
+                change_set = artifact["changeSet"]
+                git_patch = change_set.get("gitPatch")
+                if git_patch:
+                    patches_to_apply.append({
+                        "activity_id": activity.get("id"),
+                        "base_commit": git_patch.get("baseCommitId"),
+                        "patch": git_patch.get("unidiffPatch"),
+                        "commit_message": git_patch.get("suggestedCommitMessage"),
+                    })
+    
+    if not patches_to_apply:
+        console.print("[yellow]No git patches found in activities[/yellow]")
+        return
+    
+    console.print(f"\n[bold]Found {len(patches_to_apply)} git patch(es) to apply[/bold]\n")
+    
+    # Apply each patch
+    success_count = 0
+    for i, patch_info in enumerate(patches_to_apply, 1):
+        console.print(f"[bold]Patch {i}/{len(patches_to_apply)}[/bold]")
+        console.print(f"Activity ID: {patch_info['activity_id']}")
+        if patch_info['commit_message']:
+            console.print(f"Suggested commit message: {patch_info['commit_message']}")
+        console.print()
+        
+        if apply_git_patch(patch_info['patch'], patch_info['base_commit']):
+            success_count += 1
+        console.print()
+    
+    # Summary
+    console.print(f"[bold]Summary:[/bold] {success_count}/{len(patches_to_apply)} patches applied successfully")
+    
+    if success_count > 0:
+        console.print("\n[green]Changes have been applied to your working directory.[/green]")
+        console.print("[yellow]Review the changes with 'git diff' and commit when ready.[/yellow]")
+
+
+def main():
+    """Main CLI entry point."""
+    if len(sys.argv) < 2:
+        console.print(__doc__)
+        sys.exit(1)
+    
+    command = sys.argv[1]
+    
+    if command == "list-sessions":
+        limit = 30
+        if len(sys.argv) > 2 and sys.argv[2] == "--limit" and len(sys.argv) > 3:
+            limit = int(sys.argv[3])
+        list_sessions(limit)
+    
+    elif command == "list-activities":
+        if len(sys.argv) < 3:
+            console.print("[red]Error: session_id required[/red]")
+            console.print("Usage: jul list-activities <session_id> [--limit N]")
+            sys.exit(1)
+        
+        session_id = sys.argv[2]
+        limit = 60
+        if len(sys.argv) > 3 and sys.argv[3] == "--limit" and len(sys.argv) > 4:
+            limit = int(sys.argv[4])
+        list_activities(session_id, limit)
+    
+    elif command == "apply-artifacts":
+        if len(sys.argv) < 3:
+            console.print("[red]Error: session_id required[/red]")
+            console.print("Usage: jul apply-artifacts <session_id>")
+            sys.exit(1)
+        
+        session_id = sys.argv[2]
+        apply_artifacts(session_id)
+    
+    else:
+        console.print(f"[red]Unknown command: {command}[/red]")
+        console.print(__doc__)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
