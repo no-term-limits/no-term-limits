@@ -9,9 +9,9 @@
 Jules API CLI wrapper - interact with Jules sessions and apply code changes.
 
 Usage:
-    jul list-sessions [--limit N]
-    jul list-activities <session_id> [--limit N]
-    jul apply-artifacts <session_id>
+    jul session list [--limit N]
+    jul activity list <session_id> [--limit N]
+    jul apply <session_id>
 """
 
 import os
@@ -196,7 +196,7 @@ def apply_git_patch(patch_content: str, base_commit: Optional[str] = None) -> bo
 
 
 def apply_artifacts(session_id: str):
-    """Find all activities with git patch artifacts and apply them."""
+    """Find the last activity with git patch artifacts and apply it."""
     console.print(f"[bold]Fetching activities for session {session_id}...[/bold]")
     
     endpoint = f"sessions/{session_id}/activities"
@@ -207,47 +207,41 @@ def apply_artifacts(session_id: str):
         console.print("[yellow]No activities found[/yellow]")
         return
     
-    # Find activities with changeSet artifacts
-    patches_to_apply = []
-    for activity in activities:
+    # Find the LAST activity with a changeSet artifact (most recent iteration)
+    last_patch = None
+    for activity in reversed(activities):  # Process in reverse to find the last one
         artifacts = activity.get("artifacts", [])
         for artifact in artifacts:
             if "changeSet" in artifact:
                 change_set = artifact["changeSet"]
                 git_patch = change_set.get("gitPatch")
                 if git_patch:
-                    patches_to_apply.append({
+                    last_patch = {
                         "activity_id": activity.get("id"),
                         "base_commit": git_patch.get("baseCommitId"),
                         "patch": git_patch.get("unidiffPatch"),
                         "commit_message": git_patch.get("suggestedCommitMessage"),
-                    })
+                    }
+                    break
+        if last_patch:
+            break
     
-    if not patches_to_apply:
+    if not last_patch:
         console.print("[yellow]No git patches found in activities[/yellow]")
         return
     
-    console.print(f"\n[bold]Found {len(patches_to_apply)} git patch(es) to apply[/bold]\n")
+    console.print(f"\n[bold]Applying the most recent patch from the session[/bold]\n")
+    console.print(f"Activity ID: {last_patch['activity_id']}")
+    if last_patch['commit_message']:
+        console.print(f"Suggested commit message: {last_patch['commit_message']}")
+    console.print()
     
-    # Apply each patch
-    success_count = 0
-    for i, patch_info in enumerate(patches_to_apply, 1):
-        console.print(f"[bold]Patch {i}/{len(patches_to_apply)}[/bold]")
-        console.print(f"Activity ID: {patch_info['activity_id']}")
-        if patch_info['commit_message']:
-            console.print(f"Suggested commit message: {patch_info['commit_message']}")
-        console.print()
-        
-        if apply_git_patch(patch_info['patch'], patch_info['base_commit']):
-            success_count += 1
-        console.print()
-    
-    # Summary
-    console.print(f"[bold]Summary:[/bold] {success_count}/{len(patches_to_apply)} patches applied successfully")
-    
-    if success_count > 0:
+    # Apply the patch
+    if apply_git_patch(last_patch['patch'], last_patch['base_commit']):
         console.print("\n[green]Changes have been applied to your working directory.[/green]")
         console.print("[yellow]Review the changes with 'git diff' and commit when ready.[/yellow]")
+    else:
+        console.print("\n[red]Failed to apply patch[/red]")
 
 
 def main():
@@ -258,28 +252,48 @@ def main():
     
     command = sys.argv[1]
     
-    if command == "list-sessions":
-        limit = 30
-        if len(sys.argv) > 2 and sys.argv[2] == "--limit" and len(sys.argv) > 3:
-            limit = int(sys.argv[3])
-        list_sessions(limit)
-    
-    elif command == "list-activities":
+    if command == "session":
         if len(sys.argv) < 3:
-            console.print("[red]Error: session_id required[/red]")
-            console.print("Usage: jul list-activities <session_id> [--limit N]")
+            console.print("[red]Error: subcommand required[/red]")
+            console.print("Usage: jul session list [--limit N]")
             sys.exit(1)
         
-        session_id = sys.argv[2]
-        limit = 60
-        if len(sys.argv) > 3 and sys.argv[3] == "--limit" and len(sys.argv) > 4:
-            limit = int(sys.argv[4])
-        list_activities(session_id, limit)
+        subcommand = sys.argv[2]
+        if subcommand == "list":
+            limit = 30
+            if len(sys.argv) > 3 and sys.argv[3] == "--limit" and len(sys.argv) > 4:
+                limit = int(sys.argv[4])
+            list_sessions(limit)
+        else:
+            console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
+            sys.exit(1)
     
-    elif command == "apply-artifacts":
+    elif command == "activity":
+        if len(sys.argv) < 3:
+            console.print("[red]Error: subcommand required[/red]")
+            console.print("Usage: jul activity list <session_id> [--limit N]")
+            sys.exit(1)
+        
+        subcommand = sys.argv[2]
+        if subcommand == "list":
+            if len(sys.argv) < 4:
+                console.print("[red]Error: session_id required[/red]")
+                console.print("Usage: jul activity list <session_id> [--limit N]")
+                sys.exit(1)
+            
+            session_id = sys.argv[3]
+            limit = 60
+            if len(sys.argv) > 4 and sys.argv[4] == "--limit" and len(sys.argv) > 5:
+                limit = int(sys.argv[5])
+            list_activities(session_id, limit)
+        else:
+            console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
+            sys.exit(1)
+    
+    elif command == "apply":
         if len(sys.argv) < 3:
             console.print("[red]Error: session_id required[/red]")
-            console.print("Usage: jul apply-artifacts <session_id>")
+            console.print("Usage: jul apply <session_id>")
             sys.exit(1)
         
         session_id = sys.argv[2]
