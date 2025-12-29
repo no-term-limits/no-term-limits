@@ -10,18 +10,23 @@ Jules API CLI wrapper - interact with Jules sessions and apply code changes.
 
 Usage:
     jul session list [--limit N]
-    jul session create --prompt "task description" --source "sources/github-org-repo" [options]
-    jul activity list <session_id> [--limit N]
-    jul apply [<session_id>]
+    jul session create --prompt "task description" [--source "sources/github-org-repo"] [options]
+    jul activity list <session_id | N> [--limit N]
+    jul source list
+    jul apply [<session_id> | N]
 
 Session create options:
     --prompt TEXT           Required. The task description for Jules to execute
-    --source TEXT           Required. Source repository (e.g., "sources/github-myorg-myrepo")
+    --source TEXT           Source repository (auto-detected if only one source exists)
     --branch TEXT           Starting branch (default: "main")
     --title TEXT            Optional title for the session
     --require-plan-approval Enable plan approval requirement
     --no-require-plan-approval Disable plan approval requirement (default)
     --auto-create-pr        Automatically create PR when ready
+
+Apply options:
+    <session_id>            Specific session ID to apply
+    N                       Single digit 1-9: Nth most recent session (1 = latest, 2 = second to last)
 """
 
 import os
@@ -78,16 +83,101 @@ def make_request(endpoint: str, method: str = "GET", params: Optional[dict] = No
         sys.exit(1)
 
 
-def get_latest_session_id() -> Optional[str]:
-    """Get the most recent session ID."""
-    data = make_request("sessions", method="GET", params={"pageSize": 1})
+def get_session_id_by_index(index: int = 1) -> Optional[str]:
+    """Get session ID by index (1 = most recent, 2 = second most recent, etc.)."""
+    data = make_request("sessions", method="GET", params={"pageSize": index})
     sessions = data.get("sessions", [])
     
-    if not sessions:
+    if len(sessions) < index:
         return None
     
-    session_name = sessions[0].get("name", "")
-    return session_name.replace("sessions/", "")
+    # Use the 'id' field directly if available, otherwise extract from 'name'
+    session = sessions[index - 1]
+    session_id = session.get("id")
+    if session_id:
+        return session_id
+    
+    # Fallback: extract from name field (format: "sessions/{id}")
+    session_name = session.get("name", "")
+    if session_name.startswith("sessions/"):
+        return session_name[9:]  # len("sessions/") == 9
+    
+    return session_name if session_name else None
+
+
+def resolve_session_id(session_ref: str) -> Optional[str]:
+    """Resolve a session reference to an actual session ID.
+    
+    Accepts either:
+    - A direct session ID
+    - Single digit 1-9: Nth most recent session (1-indexed)
+    
+    Returns None if index is invalid or session not found.
+    """
+    # Single digit = index into recent sessions
+    if len(session_ref) == 1 and session_ref.isdigit():
+        index = int(session_ref)
+        if index < 1 or index > 9:
+            return None
+        return get_session_id_by_index(index)
+    return session_ref
+
+
+def resolve_session_id_from_args(session_ref: str) -> str:
+    """Resolve session reference and exit with error if not found."""
+    is_index = len(session_ref) == 1 and session_ref.isdigit()
+    
+    if is_index:
+        index = int(session_ref)
+        console.print(f"[bold]Fetching session #{index} (most recent = 1)...[/bold]")
+    
+    session_id = resolve_session_id(session_ref)
+    
+    if not session_id:
+        if is_index:
+            console.print(f"[red]Error: Could not find session at index {session_ref}[/red]")
+        else:
+            console.print(f"[red]Error: Invalid session reference: {session_ref}[/red]")
+        sys.exit(1)
+    
+    if is_index:
+        console.print(f"[green]Using session: {session_id}[/green]\n")
+    
+    return session_id
+
+
+def get_sources() -> list:
+    """Get list of available sources."""
+    data = make_request("sources", method="GET", params={"pageSize": 100})
+    return data.get("sources", [])
+
+
+def list_sources():
+    """List all available sources."""
+    console.print("[bold]Fetching sources...[/bold]")
+    
+    sources = get_sources()
+    
+    if not sources:
+        console.print("[yellow]No sources found[/yellow]")
+        return
+    
+    table = Table(title="Available Sources")
+    table.add_column("Source Name", style="cyan")
+    table.add_column("Display Name", style="green")
+    table.add_column("Type", style="yellow")
+    
+    for source in sources:
+        source_name = source.get("name", "N/A")
+        display_name = source.get("displayName", "N/A")
+        # Determine type from the source structure
+        source_type = "unknown"
+        if "githubRepoSource" in source:
+            source_type = "GitHub"
+        
+        table.add_row(source_name, display_name, source_type)
+    
+    console.print(table)
 
 
 def list_sessions(limit: int = 30):
@@ -230,9 +320,17 @@ def apply_git_patch(patch_content: str, base_commit: Optional[str] = None) -> bo
         Path(patch_file).unlink(missing_ok=True)
 
 
+def get_default_source() -> Optional[str]:
+    """Get the default source if only one exists."""
+    sources = get_sources()
+    if len(sources) == 1:
+        return sources[0].get("name")
+    return None
+
+
 def create_session(
     prompt: str,
-    source: str,
+    source: Optional[str],
     branch: str = "main",
     title: Optional[str] = None,
     require_plan_approval: bool = False,
@@ -240,6 +338,23 @@ def create_session(
 ):
     """Create a new Jules session."""
     console.print("[bold]Creating new session...[/bold]")
+    
+    # Auto-detect source if not provided
+    if not source:
+        source = get_default_source()
+        if source:
+            console.print(f"[green]Auto-detected source: {source}[/green]")
+        else:
+            sources = get_sources()
+            if not sources:
+                console.print("[red]Error: No sources available. Add a source first.[/red]")
+                sys.exit(1)
+            else:
+                console.print("[red]Error: --source is required (multiple sources available)[/red]")
+                console.print("Available sources:")
+                for s in sources:
+                    console.print(f"  - {s.get('name')}")
+                sys.exit(1)
     
     # Build request body
     request_body = {
@@ -396,14 +511,23 @@ def main():
             # Validate required arguments
             if not prompt:
                 console.print("[red]Error: --prompt is required[/red]")
-                console.print("Usage: jul session create --prompt TEXT --source TEXT [options]")
-                sys.exit(1)
-            if not source:
-                console.print("[red]Error: --source is required[/red]")
-                console.print("Usage: jul session create --prompt TEXT --source TEXT [options]")
+                console.print("Usage: jul session create --prompt TEXT [--source TEXT] [options]")
                 sys.exit(1)
             
             create_session(prompt, source, branch, title, require_plan_approval, auto_create_pr)
+        else:
+            console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
+            sys.exit(1)
+    
+    elif command == "source":
+        if len(sys.argv) < 3:
+            console.print("[red]Error: subcommand required[/red]")
+            console.print("Usage: jul source list")
+            sys.exit(1)
+        
+        subcommand = sys.argv[2]
+        if subcommand == "list":
+            list_sources()
         else:
             console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
             sys.exit(1)
@@ -418,10 +542,10 @@ def main():
         if subcommand == "list":
             if len(sys.argv) < 4:
                 console.print("[red]Error: session_id required[/red]")
-                console.print("Usage: jul activity list <session_id> [--limit N]")
+                console.print("Usage: jul activity list <session_id | N> [--limit N]")
                 sys.exit(1)
             
-            session_id = sys.argv[3]
+            session_id = resolve_session_id_from_args(sys.argv[3])
             limit = 60
             if len(sys.argv) > 4 and sys.argv[4] == "--limit" and len(sys.argv) > 5:
                 limit = int(sys.argv[5])
@@ -431,16 +555,7 @@ def main():
             sys.exit(1)
     
     elif command == "apply":
-        if len(sys.argv) >= 3:
-            session_id = sys.argv[2]
-        else:
-            console.print("[bold]No session_id provided, fetching latest session...[/bold]")
-            session_id = get_latest_session_id()
-            if not session_id:
-                console.print("[red]Error: No sessions found[/red]")
-                sys.exit(1)
-            console.print(f"[green]Using latest session: {session_id}[/green]\n")
-        
+        session_id = resolve_session_id_from_args(sys.argv[2] if len(sys.argv) >= 3 else "1")
         apply_artifacts(session_id)
     
     else:
