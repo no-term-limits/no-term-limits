@@ -11,7 +11,7 @@ Jules API CLI wrapper - interact with Jules sessions and apply code changes.
 Usage:
     jul session list [--limit N]
     jul activity list <session_id> [--limit N]
-    jul apply <session_id>
+    jul apply [<session_id>]
 """
 
 import os
@@ -53,6 +53,18 @@ def make_request(endpoint: str, params: Optional[dict] = None) -> dict:
     except requests.exceptions.RequestException as e:
         console.print(f"[red]API request failed: {e}[/red]")
         sys.exit(1)
+
+
+def get_latest_session_id() -> Optional[str]:
+    """Get the most recent session ID."""
+    data = make_request("sessions", params={"pageSize": 1})
+    sessions = data.get("sessions", [])
+    
+    if not sessions:
+        return None
+    
+    session_name = sessions[0].get("name", "")
+    return session_name.replace("sessions/", "")
 
 
 def list_sessions(limit: int = 30):
@@ -291,12 +303,16 @@ def main():
             sys.exit(1)
     
     elif command == "apply":
-        if len(sys.argv) < 3:
-            console.print("[red]Error: session_id required[/red]")
-            console.print("Usage: jul apply <session_id>")
-            sys.exit(1)
+        if len(sys.argv) >= 3:
+            session_id = sys.argv[2]
+        else:
+            console.print("[bold]No session_id provided, fetching latest session...[/bold]")
+            session_id = get_latest_session_id()
+            if not session_id:
+                console.print("[red]Error: No sessions found[/red]")
+                sys.exit(1)
+            console.print(f"[green]Using latest session: {session_id}[/green]\n")
         
-        session_id = sys.argv[2]
         apply_artifacts(session_id)
     
     else:
