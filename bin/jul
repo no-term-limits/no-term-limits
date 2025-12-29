@@ -201,15 +201,18 @@ def list_sessions(limit: int = 30):
     table = Table(title="Jules Sessions")
     table.add_column("Session ID", style="cyan")
     table.add_column("Title", style="green")
+    table.add_column("Branch", style="magenta")
     table.add_column("State", style="yellow")
     table.add_column("Created", style="blue")
     
     for session in sessions:
         session_id = session.get("name", "").replace("sessions/", "")
         title = session.get("title", "N/A")
+        source_context = session.get("sourceContext", {})
+        branch = source_context.get("githubRepoContext", {}).get("startingBranch", "N/A")
         state = session.get("state", "UNKNOWN")
         created = session.get("createTime", "N/A")
-        table.add_row(session_id, title, state, created)
+        table.add_row(session_id, title, branch, state, created)
     
     console.print(table)
 
