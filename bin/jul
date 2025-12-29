@@ -19,6 +19,28 @@ import requests
 from rich.console import Console
 from rich.table import Table
 
+
+class AliasedGroup(click.Group):
+    """A click Group that allows unique prefix matching for commands."""
+
+    def get_command(self, ctx, cmd_name):
+        # First try exact match
+        rv = click.Group.get_command(self, ctx, cmd_name)
+        if rv is not None:
+            return rv
+        # Find all commands that start with the prefix
+        matches = [x for x in self.list_commands(ctx) if x.startswith(cmd_name)]
+        if not matches:
+            return None
+        elif len(matches) == 1:
+            return click.Group.get_command(self, ctx, matches[0])
+        ctx.fail(f"Ambiguous command '{cmd_name}': could be {', '.join(sorted(matches))}")
+
+    def resolve_command(self, ctx, args):
+        # Always return the full command name for help
+        _, cmd, args = super().resolve_command(ctx, args)
+        return cmd.name if cmd else None, cmd, args
+
 console = Console()
 
 JULES_API_BASE = "https://jules.googleapis.com/v1alpha"
@@ -431,13 +453,13 @@ def apply_artifacts(session_id: str):
         console.print("\n[red]Failed to apply patch[/red]")
 
 
-@click.group()
+@click.group(cls=AliasedGroup)
 def cli():
     """Jules API CLI - interact with Jules sessions and apply code changes."""
     pass
 
 
-@cli.group()
+@cli.group(cls=AliasedGroup)
 def session():
     """Manage Jules sessions."""
     pass
@@ -469,7 +491,7 @@ def session_create(prompt, source, branch, title, require_plan_approval, auto_cr
     create_session(prompt, source, branch, title, require_plan_approval, auto_create_pr)
 
 
-@cli.group()
+@cli.group(cls=AliasedGroup)
 def source():
     """Manage sources."""
     pass
@@ -481,7 +503,7 @@ def source_list():
     list_sources()
 
 
-@cli.group()
+@cli.group(cls=AliasedGroup)
 def activity():
     """Manage session activities."""
     pass
