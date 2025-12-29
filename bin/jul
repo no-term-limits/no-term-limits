@@ -1,45 +1,23 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # dependencies = [
+#   "click",
 #   "requests",
 #   "rich",
 # ]
 # ///
-"""
-Jules API CLI wrapper - interact with Jules sessions and apply code changes.
-
-Usage:
-    jul session list [--limit N]
-    jul session create --prompt "task description" [--source "sources/github-org-repo"] [options]
-    jul activity list <session_id | N> [--limit N]
-    jul source list
-    jul apply [<session_id> | N]
-
-Session create options:
-    --prompt TEXT           Required. The task description for Jules to execute
-    --source TEXT           Source repository (auto-detected if only one source exists)
-    --branch TEXT           Starting branch (default: "main")
-    --title TEXT            Optional title for the session
-    --require-plan-approval Enable plan approval requirement
-    --no-require-plan-approval Disable plan approval requirement (default)
-    --auto-create-pr        Automatically create PR when ready
-
-Apply options:
-    <session_id>            Specific session ID to apply
-    N                       Single digit 1-9: Nth most recent session (1 = latest, 2 = second to last)
-"""
+"""Jules API CLI wrapper - interact with Jules sessions and apply code changes."""
 
 import os
-import sys
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional
 
+import click
 import requests
 from rich.console import Console
 from rich.table import Table
-from rich import print as rprint
 
 console = Console()
 
@@ -55,7 +33,7 @@ def get_api_key() -> str:
     return api_key
 
 
-def make_request(endpoint: str, method: str = "GET", params: Optional[dict] = None, json_data: Optional[dict] = None) -> dict:
+def make_request(endpoint: str, method: str = "GET", params: Optional[dict] = None, json_data: Optional[dict] = None) -> Optional[dict]:
     """Make a request to the Jules API."""
     api_key = get_api_key()
     url = f"{JULES_API_BASE}/{endpoint}"
@@ -68,10 +46,12 @@ def make_request(endpoint: str, method: str = "GET", params: Optional[dict] = No
             response = requests.get(url, headers=headers, params=params or {})
         elif method == "POST":
             response = requests.post(url, headers=headers, json=json_data)
+        elif method == "DELETE":
+            response = requests.delete(url, headers=headers)
         else:
             raise ValueError(f"Unsupported method: {method}")
         response.raise_for_status()
-        return response.json()
+        return response.json() if response.text else None
     except requests.exceptions.RequestException as e:
         console.print(f"[red]API request failed: {e}[/red]")
         if hasattr(e, 'response') and e.response is not None:
@@ -135,10 +115,9 @@ def resolve_session_id_from_args(session_ref: str) -> str:
     
     if not session_id:
         if is_index:
-            console.print(f"[red]Error: Could not find session at index {session_ref}[/red]")
+            raise click.ClickException(f"Could not find session at index {session_ref}")
         else:
-            console.print(f"[red]Error: Invalid session reference: {session_ref}[/red]")
-        sys.exit(1)
+            raise click.ClickException(f"Invalid session reference: {session_ref}")
     
     if is_index:
         console.print(f"[green]Using session: {session_id}[/green]\n")
@@ -178,6 +157,12 @@ def list_sources():
         table.add_row(source_name, display_name, source_type)
     
     console.print(table)
+
+
+def delete_session(session_id: str):
+    """Delete a session."""
+    make_request(f"sessions/{session_id}", method="DELETE")
+    console.print(f"[green]✓ Session {session_id} deleted[/green]")
 
 
 def list_sessions(limit: int = 30):
@@ -347,14 +332,10 @@ def create_session(
         else:
             sources = get_sources()
             if not sources:
-                console.print("[red]Error: No sources available. Add a source first.[/red]")
-                sys.exit(1)
+                raise click.ClickException("No sources available. Add a source first.")
             else:
-                console.print("[red]Error: --source is required (multiple sources available)[/red]")
-                console.print("Available sources:")
-                for s in sources:
-                    console.print(f"  - {s.get('name')}")
-                sys.exit(1)
+                source_list = "\n".join(f"  - {s.get('name')}" for s in sources)
+                raise click.ClickException(f"--source is required (multiple sources available)\nAvailable sources:\n{source_list}")
     
     # Build request body
     request_body = {
@@ -450,119 +431,76 @@ def apply_artifacts(session_id: str):
         console.print("\n[red]Failed to apply patch[/red]")
 
 
-def main():
-    """Main CLI entry point."""
-    if len(sys.argv) < 2:
-        console.print(__doc__)
-        sys.exit(1)
-    
-    command = sys.argv[1]
-    
-    if command == "session":
-        if len(sys.argv) < 3:
-            console.print("[red]Error: subcommand required[/red]")
-            console.print("Usage: jul session list [--limit N]")
-            console.print("       jul session create --prompt TEXT --source TEXT [options]")
-            sys.exit(1)
-        
-        subcommand = sys.argv[2]
-        if subcommand == "list":
-            limit = 30
-            if len(sys.argv) > 3 and sys.argv[3] == "--limit" and len(sys.argv) > 4:
-                limit = int(sys.argv[4])
-            list_sessions(limit)
-        elif subcommand == "create":
-            # Parse arguments for create command
-            args = sys.argv[3:]
-            prompt = None
-            source = None
-            branch = "main"
-            title = None
-            require_plan_approval = False
-            auto_create_pr = False
-            
-            i = 0
-            while i < len(args):
-                if args[i] == "--prompt" and i + 1 < len(args):
-                    prompt = args[i + 1]
-                    i += 2
-                elif args[i] == "--source" and i + 1 < len(args):
-                    source = args[i + 1]
-                    i += 2
-                elif args[i] == "--branch" and i + 1 < len(args):
-                    branch = args[i + 1]
-                    i += 2
-                elif args[i] == "--title" and i + 1 < len(args):
-                    title = args[i + 1]
-                    i += 2
-                elif args[i] == "--require-plan-approval":
-                    require_plan_approval = True
-                    i += 1
-                elif args[i] == "--no-require-plan-approval":
-                    require_plan_approval = False
-                    i += 1
-                elif args[i] == "--auto-create-pr":
-                    auto_create_pr = True
-                    i += 1
-                else:
-                    console.print(f"[red]Unknown argument: {args[i]}[/red]")
-                    sys.exit(1)
-            
-            # Validate required arguments
-            if not prompt:
-                console.print("[red]Error: --prompt is required[/red]")
-                console.print("Usage: jul session create --prompt TEXT [--source TEXT] [options]")
-                sys.exit(1)
-            
-            create_session(prompt, source, branch, title, require_plan_approval, auto_create_pr)
-        else:
-            console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
-            sys.exit(1)
-    
-    elif command == "source":
-        if len(sys.argv) < 3:
-            console.print("[red]Error: subcommand required[/red]")
-            console.print("Usage: jul source list")
-            sys.exit(1)
-        
-        subcommand = sys.argv[2]
-        if subcommand == "list":
-            list_sources()
-        else:
-            console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
-            sys.exit(1)
-    
-    elif command == "activity":
-        if len(sys.argv) < 3:
-            console.print("[red]Error: subcommand required[/red]")
-            console.print("Usage: jul activity list <session_id> [--limit N]")
-            sys.exit(1)
-        
-        subcommand = sys.argv[2]
-        if subcommand == "list":
-            if len(sys.argv) < 4:
-                console.print("[red]Error: session_id required[/red]")
-                console.print("Usage: jul activity list <session_id | N> [--limit N]")
-                sys.exit(1)
-            
-            session_id = resolve_session_id_from_args(sys.argv[3])
-            limit = 60
-            if len(sys.argv) > 4 and sys.argv[4] == "--limit" and len(sys.argv) > 5:
-                limit = int(sys.argv[5])
-            list_activities(session_id, limit)
-        else:
-            console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
-            sys.exit(1)
-    
-    elif command == "apply":
-        session_id = resolve_session_id_from_args(sys.argv[2] if len(sys.argv) >= 3 else "1")
-        apply_artifacts(session_id)
-    
-    else:
-        console.print(f"[red]Unknown command: {command}[/red]")
-        console.print(__doc__)
-        sys.exit(1)
+@click.group()
+def cli():
+    """Jules API CLI - interact with Jules sessions and apply code changes."""
+    pass
+
+
+@cli.group()
+def session():
+    """Manage Jules sessions."""
+    pass
+
+
+@session.command("list")
+@click.option("--limit", default=30, help="Maximum number of sessions to list")
+def session_list(limit):
+    """List all sessions."""
+    list_sessions(limit)
+
+
+@session.command("delete")
+@click.argument("session_ref")
+def session_delete(session_ref):
+    """Delete a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
+    delete_session(resolve_session_id_from_args(session_ref))
+
+
+@session.command("create")
+@click.option("--prompt", required=True, help="Task description for Jules")
+@click.option("--source", help="Source repository (auto-detected if only one)")
+@click.option("--branch", default="main", help="Starting branch")
+@click.option("--title", help="Optional title for the session")
+@click.option("--require-plan-approval/--no-require-plan-approval", default=False)
+@click.option("--auto-create-pr", is_flag=True, help="Automatically create PR when ready")
+def session_create(prompt, source, branch, title, require_plan_approval, auto_create_pr):
+    """Create a new Jules session."""
+    create_session(prompt, source, branch, title, require_plan_approval, auto_create_pr)
+
+
+@cli.group()
+def source():
+    """Manage sources."""
+    pass
+
+
+@source.command("list")
+def source_list():
+    """List all available sources."""
+    list_sources()
+
+
+@cli.group()
+def activity():
+    """Manage session activities."""
+    pass
+
+
+@activity.command("list")
+@click.argument("session_ref")
+@click.option("--limit", default=60, help="Maximum number of activities to list")
+def activity_list(session_ref, limit):
+    """List activities for a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
+    list_activities(resolve_session_id_from_args(session_ref), limit)
+
+
+@cli.command()
+@click.argument("session_ref", default="1")
+def apply(session_ref):
+    """Apply git patches from a session. SESSION_REF can be an ID or 1-9 for Nth most recent (default: 1)."""
+    apply_artifacts(resolve_session_id_from_args(session_ref))
 
 
 if __name__ == "__main__":
-    main()
+    cli()
