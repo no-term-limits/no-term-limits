@@ -85,16 +85,19 @@ def make_request(endpoint: str, method: str = "GET", params: Optional[dict] = No
         sys.exit(1)
 
 
-def get_session_id_by_index(index: int = 1) -> Optional[str]:
-    """Get session ID by index (1 = most recent, 2 = second most recent, etc.)."""
+def get_session_by_index(index: int = 1) -> Optional[dict]:
+    """Get session by index (1 = most recent, 2 = second most recent, etc.)."""
     data = make_request("sessions", method="GET", params={"pageSize": index})
     sessions = data.get("sessions", [])
     
     if len(sessions) < index:
         return None
     
-    # Use the 'id' field directly if available, otherwise extract from 'name'
-    session = sessions[index - 1]
+    return sessions[index - 1]
+
+
+def get_session_id(session: dict) -> str:
+    """Extract session ID from a session dict."""
     session_id = session.get("id")
     if session_id:
         return session_id
@@ -104,45 +107,58 @@ def get_session_id_by_index(index: int = 1) -> Optional[str]:
     if session_name.startswith("sessions/"):
         return session_name[9:]  # len("sessions/") == 9
     
-    return session_name if session_name else None
+    return session_name if session_name else ""
 
 
-def resolve_session_id(session_ref: str) -> Optional[str]:
-    """Resolve a session reference to an actual session ID.
+def resolve_session(session_ref: str) -> tuple[str, Optional[dict]]:
+    """Resolve a session reference to (session_id, session_info).
     
     Accepts either:
     - A direct session ID
     - Single digit 1-9: Nth most recent session (1-indexed)
     
-    Returns None if index is invalid or session not found.
+    Returns (session_id, session_dict) or (session_ref, None) for direct IDs.
     """
     # Single digit = index into recent sessions
     if len(session_ref) == 1 and session_ref.isdigit():
         index = int(session_ref)
         if index < 1 or index > 9:
-            return None
-        return get_session_id_by_index(index)
-    return session_ref
+            return (session_ref, None)
+        session = get_session_by_index(index)
+        if session:
+            return (get_session_id(session), session)
+        return (session_ref, None)
+    return (session_ref, None)
+
+
+def format_session_info(session: dict) -> str:
+    """Format session info for display."""
+    title = session.get("title", "")
+    source_context = session.get("sourceContext", {})
+    branch = source_context.get("githubRepoContext", {}).get("startingBranch", "")
+    parts = []
+    if title:
+        parts.append(f'"{title}"')
+    if branch:
+        parts.append(f"[{branch}]")
+    return " ".join(parts) if parts else ""
 
 
 def resolve_session_id_from_args(session_ref: str) -> str:
     """Resolve session reference and exit with error if not found."""
     is_index = len(session_ref) == 1 and session_ref.isdigit()
     
-    if is_index:
-        index = int(session_ref)
-        console.print(f"[bold]Fetching session #{index} (most recent = 1)...[/bold]")
+    session_id, session_info = resolve_session(session_ref)
     
-    session_id = resolve_session_id(session_ref)
+    if is_index and not session_info:
+        raise click.ClickException(f"Could not find session #{session_ref}")
     
-    if not session_id:
-        if is_index:
-            raise click.ClickException(f"Could not find session at index {session_ref}")
+    if session_info:
+        info_str = format_session_info(session_info)
+        if info_str:
+            console.print(f"[green]Session #{session_ref}: {info_str}[/green]")
         else:
-            raise click.ClickException(f"Invalid session reference: {session_ref}")
-    
-    if is_index:
-        console.print(f"[green]Using session: {session_id}[/green]\n")
+            console.print(f"[green]Session #{session_ref}: {session_id}[/green]")
     
     return session_id
 
@@ -181,10 +197,11 @@ def list_sources():
     console.print(table)
 
 
-def delete_session(session_id: str):
+def delete_session(session_id: str, quiet: bool = False):
     """Delete a session."""
     make_request(f"sessions/{session_id}", method="DELETE")
-    console.print(f"[green]✓ Session {session_id} deleted[/green]")
+    if not quiet:
+        console.print(f"[green]✓ Session {session_id} deleted[/green]")
 
 
 def list_sessions(limit: int = 30):
@@ -479,7 +496,9 @@ def session_list(limit):
 @click.argument("session_ref")
 def session_delete(session_ref):
     """Delete a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
-    delete_session(resolve_session_id_from_args(session_ref))
+    session_id = resolve_session_id_from_args(session_ref)
+    delete_session(session_id, quiet=True)
+    console.print(f"[green]✓ Deleted[/green]")
 
 
 @session.command("create")
