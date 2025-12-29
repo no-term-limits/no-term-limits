@@ -10,8 +10,18 @@ Jules API CLI wrapper - interact with Jules sessions and apply code changes.
 
 Usage:
     jul session list [--limit N]
+    jul session create --prompt "task description" --source "sources/github-org-repo" [options]
     jul activity list <session_id> [--limit N]
     jul apply [<session_id>]
+
+Session create options:
+    --prompt TEXT           Required. The task description for Jules to execute
+    --source TEXT           Required. Source repository (e.g., "sources/github-myorg-myrepo")
+    --branch TEXT           Starting branch (default: "main")
+    --title TEXT            Optional title for the session
+    --require-plan-approval Enable plan approval requirement
+    --no-require-plan-approval Disable plan approval requirement (default)
+    --auto-create-pr        Automatically create PR when ready
 """
 
 import os
@@ -40,24 +50,37 @@ def get_api_key() -> str:
     return api_key
 
 
-def make_request(endpoint: str, params: Optional[dict] = None) -> dict:
-    """Make a GET request to the Jules API."""
+def make_request(endpoint: str, method: str = "GET", params: Optional[dict] = None, json_data: Optional[dict] = None) -> dict:
+    """Make a request to the Jules API."""
     api_key = get_api_key()
     url = f"{JULES_API_BASE}/{endpoint}"
     headers = {"x-goog-api-key": api_key}
+    if json_data:
+        headers["Content-Type"] = "application/json"
     
     try:
-        response = requests.get(url, headers=headers, params=params or {})
+        if method == "GET":
+            response = requests.get(url, headers=headers, params=params or {})
+        elif method == "POST":
+            response = requests.post(url, headers=headers, json=json_data)
+        else:
+            raise ValueError(f"Unsupported method: {method}")
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
         console.print(f"[red]API request failed: {e}[/red]")
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_data = e.response.json()
+                console.print(f"[red]Error details: {error_data}[/red]")
+            except:
+                console.print(f"[red]Response: {e.response.text}[/red]")
         sys.exit(1)
 
 
 def get_latest_session_id() -> Optional[str]:
     """Get the most recent session ID."""
-    data = make_request("sessions", params={"pageSize": 1})
+    data = make_request("sessions", method="GET", params={"pageSize": 1})
     sessions = data.get("sessions", [])
     
     if not sessions:
@@ -71,7 +94,7 @@ def list_sessions(limit: int = 30):
     """List all sessions."""
     console.print("[bold]Fetching sessions...[/bold]")
     
-    data = make_request("sessions", params={"pageSize": limit})
+    data = make_request("sessions", method="GET", params={"pageSize": limit})
     sessions = data.get("sessions", [])
     
     if not sessions:
@@ -99,7 +122,7 @@ def list_activities(session_id: str, limit: int = 60):
     console.print(f"[bold]Fetching activities for session {session_id}...[/bold]")
     
     endpoint = f"sessions/{session_id}/activities"
-    data = make_request(endpoint, params={"pageSize": limit})
+    data = make_request(endpoint, method="GET", params={"pageSize": limit})
     activities = data.get("activities", [])
     
     if not activities:
@@ -207,12 +230,68 @@ def apply_git_patch(patch_content: str, base_commit: Optional[str] = None) -> bo
         Path(patch_file).unlink(missing_ok=True)
 
 
+def create_session(
+    prompt: str,
+    source: str,
+    branch: str = "main",
+    title: Optional[str] = None,
+    require_plan_approval: bool = False,
+    auto_create_pr: bool = False
+):
+    """Create a new Jules session."""
+    console.print("[bold]Creating new session...[/bold]")
+    
+    # Build request body
+    request_body = {
+        "prompt": prompt,
+        "sourceContext": {
+            "source": source,
+            "githubRepoContext": {
+                "startingBranch": branch
+            }
+        },
+        "requirePlanApproval": require_plan_approval
+    }
+    
+    if title:
+        request_body["title"] = title
+    
+    if auto_create_pr:
+        request_body["automationMode"] = "AUTO_CREATE_PR"
+    
+    # Make the request
+    data = make_request("sessions", method="POST", json_data=request_body)
+    
+    # Display the created session
+    session_name = data.get("name", "")
+    session_id = data.get("id", "")
+    session_title = data.get("title", "N/A")
+    session_state = data.get("state", "UNKNOWN")
+    session_url = data.get("url", "")
+    
+    console.print("\n[green]✓ Session created successfully![/green]\n")
+    
+    table = Table(show_header=False)
+    table.add_column("Field", style="cyan")
+    table.add_column("Value", style="white")
+    
+    table.add_row("Session ID", session_id)
+    table.add_row("Name", session_name)
+    table.add_row("Title", session_title)
+    table.add_row("State", session_state)
+    table.add_row("URL", session_url)
+    
+    console.print(table)
+    console.print(f"\n[yellow]You can view this session at: {session_url}[/yellow]")
+    console.print(f"[yellow]To apply changes later, run: jul apply {session_id}[/yellow]")
+
+
 def apply_artifacts(session_id: str):
     """Find the last activity with git patch artifacts and apply it."""
     console.print(f"[bold]Fetching activities for session {session_id}...[/bold]")
     
     endpoint = f"sessions/{session_id}/activities"
-    data = make_request(endpoint, params={"pageSize": 100})
+    data = make_request(endpoint, method="GET", params={"pageSize": 100})
     activities = data.get("activities", [])
     
     if not activities:
@@ -268,6 +347,7 @@ def main():
         if len(sys.argv) < 3:
             console.print("[red]Error: subcommand required[/red]")
             console.print("Usage: jul session list [--limit N]")
+            console.print("       jul session create --prompt TEXT --source TEXT [options]")
             sys.exit(1)
         
         subcommand = sys.argv[2]
@@ -276,6 +356,54 @@ def main():
             if len(sys.argv) > 3 and sys.argv[3] == "--limit" and len(sys.argv) > 4:
                 limit = int(sys.argv[4])
             list_sessions(limit)
+        elif subcommand == "create":
+            # Parse arguments for create command
+            args = sys.argv[3:]
+            prompt = None
+            source = None
+            branch = "main"
+            title = None
+            require_plan_approval = False
+            auto_create_pr = False
+            
+            i = 0
+            while i < len(args):
+                if args[i] == "--prompt" and i + 1 < len(args):
+                    prompt = args[i + 1]
+                    i += 2
+                elif args[i] == "--source" and i + 1 < len(args):
+                    source = args[i + 1]
+                    i += 2
+                elif args[i] == "--branch" and i + 1 < len(args):
+                    branch = args[i + 1]
+                    i += 2
+                elif args[i] == "--title" and i + 1 < len(args):
+                    title = args[i + 1]
+                    i += 2
+                elif args[i] == "--require-plan-approval":
+                    require_plan_approval = True
+                    i += 1
+                elif args[i] == "--no-require-plan-approval":
+                    require_plan_approval = False
+                    i += 1
+                elif args[i] == "--auto-create-pr":
+                    auto_create_pr = True
+                    i += 1
+                else:
+                    console.print(f"[red]Unknown argument: {args[i]}[/red]")
+                    sys.exit(1)
+            
+            # Validate required arguments
+            if not prompt:
+                console.print("[red]Error: --prompt is required[/red]")
+                console.print("Usage: jul session create --prompt TEXT --source TEXT [options]")
+                sys.exit(1)
+            if not source:
+                console.print("[red]Error: --source is required[/red]")
+                console.print("Usage: jul session create --prompt TEXT --source TEXT [options]")
+                sys.exit(1)
+            
+            create_session(prompt, source, branch, title, require_plan_approval, auto_create_pr)
         else:
             console.print(f"[red]Unknown subcommand: {subcommand}[/red]")
             sys.exit(1)
