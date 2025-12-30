@@ -8,6 +8,7 @@
 # ///
 """Jules API CLI wrapper - interact with Jules sessions and apply code changes."""
 
+import json
 import os
 import subprocess
 import tempfile
@@ -167,6 +168,11 @@ def get_sources() -> list:
     """Get list of available sources."""
     data = make_request("sources", method="GET", params={"pageSize": 100})
     return data.get("sources", [])
+
+
+def print_json(data):
+    """Pretty print JSON data."""
+    console.print(json.dumps(data, indent=2))
 
 
 def list_repos():
@@ -484,6 +490,13 @@ def session_list(limit):
     list_sessions(limit)
 
 
+@session.command("detail")
+@click.argument("session_ref")
+def session_detail(session_ref):
+    """Show session details as JSON. SESSION_REF can be an ID or 1-9 for Nth most recent."""
+    print_json(make_request(f"sessions/{resolve_session_id_from_args(session_ref)}"))
+
+
 @session.command("delete")
 @click.argument("session_ref")
 def session_delete(session_ref):
@@ -517,6 +530,13 @@ def repo_list():
     list_repos()
 
 
+@repo.command("detail")
+@click.argument("source_name")
+def repo_detail(source_name):
+    """Show source details as JSON."""
+    print_json(make_request(source_name))
+
+
 @cli.group(cls=AliasedGroup)
 def activity():
     """Manage session activities."""
@@ -529,6 +549,15 @@ def activity():
 def activity_list(session_ref, limit):
     """List activities for a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
     list_activities(resolve_session_id_from_args(session_ref), limit)
+
+
+@activity.command("detail")
+@click.argument("session_ref")
+@click.argument("activity_id")
+def activity_detail(session_ref, activity_id):
+    """Show activity details as JSON."""
+    session_id = resolve_session_id_from_args(session_ref)
+    print_json(make_request(f"sessions/{session_id}/activities/{activity_id}"))
 
 
 @cli.command()
