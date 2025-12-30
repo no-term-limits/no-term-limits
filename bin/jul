@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import tempfile
+import webbrowser
 from pathlib import Path
 from typing import Optional
 
@@ -495,6 +496,14 @@ def session_list(limit):
 def session_detail(session_ref):
     """Show session details as JSON. SESSION_REF can be an ID or 1-9 for Nth most recent."""
     print_json(make_request(f"sessions/{resolve_session_id_from_args(session_ref)}"))
+
+
+@session.command("open")
+@click.argument("session_ref", default="1")
+def session_open(session_ref):
+    """Open session in browser. SESSION_REF can be an ID or 1-9 for Nth most recent (default: 1)."""
+    data = make_request(f"sessions/{resolve_session_id_from_args(session_ref)}")
+    webbrowser.open(data.get("url", ""))
 
 
 @session.command("delete")
