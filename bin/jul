@@ -506,10 +506,10 @@ def session_open(session_ref):
     webbrowser.open(data.get("url", ""))
 
 
-@session.command("delete")
+@session.command("rm")
 @click.argument("session_ref")
-def session_delete(session_ref):
-    """Delete a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
+def session_rm(session_ref):
+    """Remove/delete a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
     session_id = resolve_session_id_from_args(session_ref)
     delete_session(session_id, quiet=True)
     console.print(f"[green]✓ Deleted[/green]")
