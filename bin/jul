@@ -169,30 +169,22 @@ def get_sources() -> list:
     return data.get("sources", [])
 
 
-def list_sources():
-    """List all available sources."""
-    console.print("[bold]Fetching sources...[/bold]")
+def list_repos():
+    """List all available repos."""
+    console.print("[bold]Fetching repos (sources)...[/bold]")
     
     sources = get_sources()
     
     if not sources:
-        console.print("[yellow]No sources found[/yellow]")
+        console.print("[yellow]No repos found[/yellow]")
         return
     
     table = Table(title="Available Sources")
-    table.add_column("Source Name", style="cyan")
-    table.add_column("Display Name", style="green")
-    table.add_column("Type", style="yellow")
+    table.add_column("Source", style="cyan")
     
     for source in sources:
         source_name = source.get("name", "N/A")
-        display_name = source.get("displayName", "N/A")
-        # Determine type from the source structure
-        source_type = "unknown"
-        if "githubRepoSource" in source:
-            source_type = "GitHub"
-        
-        table.add_row(source_name, display_name, source_type)
+        table.add_row(source_name)
     
     console.print(table)
 
@@ -514,15 +506,15 @@ def session_create(prompt, source, branch, title, require_plan_approval, auto_cr
 
 
 @cli.group(cls=AliasedGroup)
-def source():
-    """Manage sources."""
+def repo():
+    """Manage repos."""
     pass
 
 
-@source.command("list")
-def source_list():
-    """List all available sources."""
-    list_sources()
+@repo.command("list")
+def repo_list():
+    """List all available repos."""
+    list_repos()
 
 
 @cli.group(cls=AliasedGroup)
