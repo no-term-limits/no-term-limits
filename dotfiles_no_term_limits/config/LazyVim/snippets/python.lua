@@ -8,6 +8,9 @@ end
 return {
   s("d", t("import pdb; pdb.set_trace()")),
   s("fa", t("from __future__ import annotations")),
+  s("lo", {
+    t({ "import logging", "logger = logging.getLogger(__name__)" }),
+  }),
   s(
     "cl",
     fmt(

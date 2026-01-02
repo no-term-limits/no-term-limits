@@ -5,7 +5,7 @@ return {
     snippets = { preset = "luasnip" },
     -- ensure you have the `snippets` source (enabled by default)
     sources = {
-      default = { "lsp", "path", "snippets", "buffer" },
+      default = { "snippets", "lsp", "path", "buffer" },
     },
     keymap = {
       preset = "enter",
