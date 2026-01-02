@@ -25,23 +25,39 @@ from rich.table import Table
 class AliasedGroup(click.Group):
     """A click Group that allows unique prefix matching for commands."""
 
-    def get_command(self, ctx, cmd_name):
+    def resolve_command(self, ctx, args):
+        if not args:
+            return super().resolve_command(ctx, args)
+        
+        cmd_name = args[0]
+        remaining_args = args[1:]
+        
         # First try exact match
-        rv = click.Group.get_command(self, ctx, cmd_name)
-        if rv is not None:
-            return rv
+        cmd = click.Group.get_command(self, ctx, cmd_name)
+        if cmd is not None:
+            return cmd.name, cmd, remaining_args
+        
         # Find all commands that start with the prefix
         matches = [x for x in self.list_commands(ctx) if x.startswith(cmd_name)]
+        
         if not matches:
-            return None
+            return super().resolve_command(ctx, args)
         elif len(matches) == 1:
-            return click.Group.get_command(self, ctx, matches[0])
+            cmd = click.Group.get_command(self, ctx, matches[0])
+            return matches[0], cmd, remaining_args
+        
+        # Multiple matches - check if we have more args and can disambiguate
+        if remaining_args:
+            # Prefer groups over commands when there are more args
+            group_matches = [
+                m for m in matches 
+                if isinstance(click.Group.get_command(self, ctx, m), click.Group)
+            ]
+            if len(group_matches) == 1:
+                cmd = click.Group.get_command(self, ctx, group_matches[0])
+                return group_matches[0], cmd, remaining_args
+        
         ctx.fail(f"Ambiguous command '{cmd_name}': could be {', '.join(sorted(matches))}")
-
-    def resolve_command(self, ctx, args):
-        # Always return the full command name for help
-        _, cmd, args = super().resolve_command(ctx, args)
-        return cmd.name if cmd else None, cmd, args
 
 console = Console()
 
