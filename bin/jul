@@ -439,6 +439,13 @@ def create_session(
     console.print(f"[yellow]To apply changes later, run: jul apply {session_id}[/yellow]")
 
 
+def send_message(session_id: str, prompt: str):
+    """Send a message to a session."""
+    endpoint = f"sessions/{session_id}:sendMessage"
+    make_request(endpoint, method="POST", json_data={"prompt": prompt})
+    console.print(f"[green]✓ Message sent to session {session_id}[/green]")
+
+
 def apply_artifacts(session_id: str):
     """Find the last activity with git patch artifacts and apply it."""
     console.print(f"[bold]Fetching activities for session {session_id}...[/bold]")
@@ -541,6 +548,14 @@ def session_rm(session_ref):
 def session_create(prompt, source, branch, title, require_plan_approval, auto_create_pr):
     """Create a new Jules session."""
     create_session(prompt, source, branch, title, require_plan_approval, auto_create_pr)
+
+
+@session.command("message")
+@click.argument("session_ref")
+@click.argument("prompt")
+def session_message(session_ref, prompt):
+    """Send a message to a session. SESSION_REF can be an ID or 1-9 for Nth most recent."""
+    send_message(resolve_session_id_from_args(session_ref), prompt)
 
 
 @cli.group(cls=AliasedGroup)

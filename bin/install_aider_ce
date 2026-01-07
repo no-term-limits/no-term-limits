@@ -9,4 +9,4 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: aider
 
-uv tool install --native-tls --python python3.12 aider-ce --with boto3
+uv tool install --upgrade --native-tls --python python3.12 aider-ce --with boto3
