@@ -481,6 +481,12 @@ def apply_artifacts(session_id: str):
         console.print("[yellow]No git patches found in activities[/yellow]")
         return
     
+    if not last_patch['patch']:
+        console.print("[yellow]Found a changeSet but it has no patch content (plan-only activity?)[/yellow]")
+        if last_patch['commit_message']:
+            console.print(f"Suggested commit message: {last_patch['commit_message']}")
+        return
+    
     console.print(f"\n[bold]Applying the most recent patch from the session[/bold]\n")
     console.print(f"Activity ID: {last_patch['activity_id']}")
     if last_patch['commit_message']:
