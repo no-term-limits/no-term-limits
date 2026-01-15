@@ -12,4 +12,17 @@ if [[ -z "${2:-}" ]] && grep -qE ':[0-9]+(:|$)' <<<"${1:-}"; then
   args=$(awk -F ':' '{print $1}' <<<"${1:-}")
 fi
 
+# If single arg and file doesn't exist, try stripping current dirname prefix
+# so let's say you run v api/hot.py and you are in the api dir already. it'll just open hey.py, stripping api/
+# cute for monorepos.
+if [[ -n "${1:-}" ]] && [[ -z "${2:-}" ]] && [[ ! -e "$args" ]]; then
+  current_dirname=$(basename "$PWD")
+  if [[ "$args" == "${current_dirname}/"* ]]; then
+    stripped_path="${args#${current_dirname}/}"
+    if [[ -e "$stripped_path" ]]; then
+      args="$stripped_path"
+    fi
+  fi
+fi
+
 exec env NVIM_APPNAME=LazyVim nvim $args
