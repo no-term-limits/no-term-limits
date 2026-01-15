@@ -12,4 +12,4 @@ if [[ -z "${2:-}" ]] && grep -qE ':[0-9]+(:|$)' <<<"${1:-}"; then
   args=$(awk -F ':' '{print $1}' <<<"${1:-}")
 fi
 
-NVIM_APPNAME=LazyVim nvim $args
+exec env NVIM_APPNAME=LazyVim nvim $args
