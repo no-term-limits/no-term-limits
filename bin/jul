@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 import webbrowser
 from pathlib import Path
 from typing import Optional
@@ -370,15 +371,40 @@ def get_default_source() -> Optional[str]:
     return None
 
 
+def get_current_git_branch() -> Optional[str]:
+    """Get the current git branch name."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return None
+
+
 def create_session(
     prompt: str,
     source: Optional[str],
-    branch: str = "main",
+    branch: Optional[str] = None,
     title: Optional[str] = None,
     require_plan_approval: bool = False,
     auto_create_pr: bool = False
 ):
     """Create a new Jules session."""
+    # Auto-detect branch from current git repo if not provided
+    if not branch:
+        branch = get_current_git_branch()
+        if branch:
+            console.print(f"[yellow]Using current git branch: {branch}[/yellow]")
+            console.print("[yellow]Press Ctrl+C within 5 seconds to cancel...[/yellow]")
+            time.sleep(5)
+        else:
+            branch = "main"
+            console.print(f"[yellow]Could not detect git branch, using default: {branch}[/yellow]")
+    
     console.print("[bold]Creating new session...[/bold]")
     
     # Auto-detect source if not provided
@@ -547,7 +573,7 @@ def session_rm(session_ref):
 @session.command("create")
 @click.option("--prompt", required=True, help="Task description for Jules")
 @click.option("--source", help="Source repository (auto-detected if only one)")
-@click.option("--branch", default="main", help="Starting branch")
+@click.option("--branch", default=None, help="Starting branch (default: current git branch)")
 @click.option("--title", help="Optional title for the session")
 @click.option("--require-plan-approval/--no-require-plan-approval", default=False)
 @click.option("--auto-create-pr", is_flag=True, help="Automatically create PR when ready")
