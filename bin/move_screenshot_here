@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+if [[ -z "${1:-}" ]]; then
+  >&2 echo "Usage: $(basename "$0") <filename>"
+  >&2 echo "  Moves the latest screenshot from Desktop to current directory"
+  exit 1
+fi
+
+filename="$1"
+
+# Add .png extension if not already present
+if [[ "$filename" != *.png ]]; then
+  filename="${filename}.png"
+fi
+
+# Find all screenshots on Desktop
+screenshots=()
+while IFS= read -r -d '' file; do
+  screenshots+=("$file")
+done < <(find ~/Desktop -maxdepth 1 -name "Screenshot *.png" -print0 2>/dev/null)
+
+if [[ ${#screenshots[@]} -eq 0 ]]; then
+  >&2 echo "Error: No screenshots found on Desktop"
+  exit 1
+fi
+
+if [[ ${#screenshots[@]} -gt 1 ]]; then
+  >&2 echo "Error: Multiple screenshots found on Desktop:"
+  for screenshot in "${screenshots[@]}"; do
+    >&2 echo "  $(basename "$screenshot")"
+  done
+  >&2 echo ""
+  read -p "Do you want to delete all of them? (y/N) " -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    for screenshot in "${screenshots[@]}"; do
+      rm "$screenshot"
+      echo "Deleted: $(basename "$screenshot")"
+    done
+    echo "All screenshots deleted. Please take a new screenshot and run this command again."
+  fi
+  exit 1
+fi
+
+# Exactly one screenshot found, move it
+mv "${screenshots[0]}" "$filename"
+echo "Moved screenshot to: $filename"
