@@ -10,9 +10,11 @@ import json
 from pathlib import Path
 import shutil
 from dataclasses import dataclass
-from typing import List, Set
-import time
+from typing import List, Set, Dict
 import select
+import hashlib
+import termios
+import tty
 
 
 @dataclass
@@ -28,6 +30,7 @@ class CodeReviewer:
         self.current_index = 0
         self.files_to_review: List[FileToReview] = []
         self.ignored_files: Set[str] = set()
+        self.reviewed_files: Dict[str, str] = {}  # {file_path: sha1sum}
 
         # Timer control
         self.timer_disabled = False
@@ -41,11 +44,11 @@ class CodeReviewer:
         self.ignore_file = (
             self.cache_dir / f"ignored_{self.branch_name.replace('/', '_')}.json"
         )
-        self.position_file = (
-            self.cache_dir / f"position_{self.branch_name.replace('/', '_')}.json"
+        self.reviewed_file_cache = (
+            self.cache_dir / f"reviewed_{self.branch_name.replace('/', '_')}.json"
         )
         self.load_ignored_files()
-        # Position will be loaded after we get the files list
+        self.load_reviewed_files()
 
     def handle_t_press(self):
         """Handle 't' key press to potentially disable/enable timer."""
@@ -119,32 +122,34 @@ class CodeReviewer:
         with open(self.ignore_file, "w") as f:
             json.dump(list(self.ignored_files), f)
 
-    def load_position(self):
-        """Load per-branch review position from cache."""
-        if self.position_file.exists():
+    def load_reviewed_files(self):
+        """Load per-branch reviewed files cache with sha1sums."""
+        if self.reviewed_file_cache.exists():
             try:
-                with open(self.position_file, "r") as f:
-                    position_data = json.load(f)
-                    saved_filename = position_data.get("current_file", "")
-                    # Find the file in current file list
-                    for i, file_info in enumerate(self.files_to_review):
-                        if file_info.path == saved_filename:
-                            self.current_index = i
-                            return
-                    # If file not found, start from beginning
-                    self.current_index = 0
+                with open(self.reviewed_file_cache, "r") as f:
+                    self.reviewed_files = json.load(f)
             except (json.JSONDecodeError, IOError):
-                self.current_index = 0
+                self.reviewed_files = {}
 
-    def save_position(self):
-        """Save per-branch review position to cache."""
-        if 0 <= self.current_index < len(self.files_to_review):
-            current_filename = self.files_to_review[self.current_index].path
-        else:
-            current_filename = ""
-        position_data = {"current_file": current_filename}
-        with open(self.position_file, "w") as f:
-            json.dump(position_data, f)
+    def save_reviewed_files(self):
+        """Save per-branch reviewed files cache with sha1sums."""
+        with open(self.reviewed_file_cache, "w") as f:
+            json.dump(self.reviewed_files, f, indent=2)
+
+    def calculate_file_sha1(self, file_path: str) -> str:
+        """Calculate SHA1 hash of a file."""
+        try:
+            full_path = self.resolve_file_path(file_path)
+            if not os.path.exists(full_path):
+                return ""
+
+            sha1 = hashlib.sha1()
+            with open(full_path, "rb") as f:
+                while chunk := f.read(8192):
+                    sha1.update(chunk)
+            return sha1.hexdigest()
+        except (IOError, OSError):
+            return ""
 
     def get_default_branch(self):
         """Get the default branch name dynamically."""
@@ -238,14 +243,25 @@ class CodeReviewer:
             pass
 
         # Filter out ignored files
-        self.files_to_review = [f for f in files if f.path not in self.ignored_files]
+        files = [f for f in files if f.path not in self.ignored_files]
+
+        # Filter out files that are in the reviewed cache with matching sha1sums
+        files_to_review = []
+        for file_info in files:
+            file_sha1 = self.calculate_file_sha1(file_info.path)
+            cached_sha1 = self.reviewed_files.get(file_info.path)
+
+            # Include file if:
+            # - Not in cache, OR
+            # - SHA1 has changed (file was modified since last review)
+            if cached_sha1 is None or cached_sha1 != file_sha1:
+                files_to_review.append(file_info)
+
+        self.files_to_review = files_to_review
 
         if not self.files_to_review:
             print("No files to review!")
             return False
-
-        # Load position after we have the file list
-        self.load_position()
 
         return True
 
@@ -444,10 +460,6 @@ class CodeReviewer:
 
         print(f"🔍 Starting code review for branch '{self.branch_name}'")
         print(f"Found {len(self.files_to_review)} files to review")
-        if self.current_index > 0:
-            print(
-                f"📍 Resuming from file {self.current_index + 1}: {self.files_to_review[self.current_index].path}"
-            )
         print("Starting review...")
 
         scroll_position = 0
@@ -473,9 +485,13 @@ class CodeReviewer:
                     continue  # Try next chunk
                 else:
                     # Go to next file
+                    # Mark current file as reviewed before moving to next
+                    file_sha1 = self.calculate_file_sha1(current_file.path)
+                    if file_sha1:
+                        self.reviewed_files[current_file.path] = file_sha1
+                        self.save_reviewed_files()
                     self.current_index += 1
                     scroll_position = 0
-                    self.save_position()
                     continue
 
             try:
@@ -488,20 +504,22 @@ class CodeReviewer:
                     if self.handle_t_press():
                         continue  # Timer was toggled, redisplay
                 elif choice == "l":  # Next
+                    # Mark current file as reviewed before moving to next
+                    file_sha1 = self.calculate_file_sha1(current_file.path)
+                    if file_sha1:
+                        self.reviewed_files[current_file.path] = file_sha1
+                        self.save_reviewed_files()
                     self.current_index += 1
                     scroll_position = 0
-                    self.save_position()  # Save position after navigating
                 elif choice == "h":  # Back
                     if self.current_index > 0:
                         self.current_index -= 1
                         scroll_position = 0
-                        self.save_position()  # Save position after navigating
                 elif choice == "i":  # Ignore
                     self.ignored_files.add(current_file.path)
                     self.save_ignored_files()
                     self.current_index += 1
                     scroll_position = 0
-                    self.save_position()  # Save position after ignoring
                 elif choice == "j":  # Scroll down
                     max_lines = self.get_file_line_count(current_file)
                     display_lines = (
@@ -529,7 +547,6 @@ class CodeReviewer:
                     editor = os.environ.get("EDITOR", "nano")
                     subprocess.run([editor, current_file.path])
                 elif choice == "q":  # Quit
-                    self.save_position()  # Save position before quitting
                     break
                 elif choice == "auto":  # Auto-advance timeout
                     # Only auto-advance if timer is not disabled
@@ -549,9 +566,13 @@ class CodeReviewer:
                             continue  # Re-display with new scroll position
                         else:
                             # Can't scroll more, go to next file
+                            # Mark current file as reviewed before moving to next
+                            file_sha1 = self.calculate_file_sha1(current_file.path)
+                            if file_sha1:
+                                self.reviewed_files[current_file.path] = file_sha1
+                                self.save_reviewed_files()
                             self.current_index += 1
                             scroll_position = 0
-                            self.save_position()
                 elif (
                     choice == " "
                 ):  # Spacebar (handled by countdown function, but might reach here)
@@ -563,11 +584,8 @@ class CodeReviewer:
 
             except KeyboardInterrupt:
                 print("\n\n👋 Review session interrupted")
-                self.save_position()  # Save position on interrupt
                 break
 
-        # Save position when review ends (whether completed or quit)
-        self.save_position()
         print(
             f"\n✅ Review complete! Reviewed {min(self.current_index + 1, len(self.files_to_review))} files"
         )
@@ -653,9 +671,6 @@ def get_single_char():
             return "q"
 
     try:
-        import termios
-        import tty
-
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
         try:
@@ -680,4 +695,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
-
