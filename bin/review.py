@@ -26,6 +26,10 @@ class CodeReviewer:
         self.files_to_review: List[FileToReview] = []
         self.ignored_files: Set[str] = set()
 
+        # Timer control
+        self.timer_disabled = False
+        self.t_press_times = []  # Track times when 't' is pressed
+
         # Find git root and set up cache directory
         self.git_root = self.get_git_root()
         self.cache_dir = self.git_root / ".git" / "code_review_cache"
@@ -36,6 +40,31 @@ class CodeReviewer:
         self.position_file = self.cache_dir / f"position_{self.branch_name.replace('/', '_')}.json"
         self.load_ignored_files()
         # Position will be loaded after we get the files list
+
+    def handle_t_press(self):
+        """Handle 't' key press to potentially disable/enable timer."""
+        current_time = time.time()
+        self.t_press_times.append(current_time)
+
+        # Keep only recent presses (within 2 seconds)
+        self.t_press_times = [t for t in self.t_press_times if current_time - t <= 2.0]
+
+        # If 3 or more 't' presses within 2 seconds, toggle timer
+        if len(self.t_press_times) >= 3:
+            self.timer_disabled = not self.timer_disabled
+            status = "disabled" if self.timer_disabled else "enabled"
+            emoji = "🚫" if self.timer_disabled else "⏰"
+            print(f"\r{emoji} Timer {status} for this session! Press any key to continue...", flush=True)
+            # Clear the t_press_times so we don't keep triggering
+            self.t_press_times = []
+            # Wait for any key press to acknowledge
+            try:
+                get_single_char()
+                print("\r                                                                    \r", end='', flush=True)
+            except:
+                pass
+            return True
+        return False
 
     def get_terminal_size(self):
         """Get current terminal dimensions."""
@@ -237,10 +266,14 @@ class CodeReviewer:
 
         # Footer with controls
         print("\n" + "─" * min(self.terminal_width, 80))
-        controls = "h)prev  l)next  i)gnore  j/k)scroll  space)pause  1-9)timer  q)uit"
+        controls = "h)prev  l)next  i)gnore  j/k)scroll  space)pause  1-9)timer  t)toggle-timer  q)uit"
         if file_info.is_new:
             controls += "  e)dit"
-        controls += f"  [Timer: {timer_duration}s]"
+
+        if self.timer_disabled:
+            controls += "  [Timer: OFF]"
+        else:
+            controls += f"  [Timer: {timer_duration}s]"
 
         print(f"Controls: {controls}")
         print("", end='', flush=True)
@@ -384,9 +417,15 @@ class CodeReviewer:
                     continue
 
             try:
-                choice = get_single_char_with_timeout(timer_duration).lower()
+                if self.timer_disabled:
+                    choice = get_single_char().lower()
+                else:
+                    choice = get_single_char_with_timeout(timer_duration).lower()
 
-                if choice == 'l':  # Next
+                if choice == 't':  # Toggle timer (handle hammering)
+                    if self.handle_t_press():
+                        continue  # Timer was toggled, redisplay
+                elif choice == 'l':  # Next
                     self.current_index += 1
                     scroll_position = 0
                     self.save_position()  # Save position after navigating
@@ -424,19 +463,21 @@ class CodeReviewer:
                     self.save_position()  # Save position before quitting
                     break
                 elif choice == 'auto':  # Auto-advance timeout
-                    # Try to scroll down first, if not possible then go to next file
-                    max_lines = self.get_file_line_count(current_file)
-                    display_lines = self.terminal_height - 9  # Leave room for header/footer
+                    # Only auto-advance if timer is not disabled
+                    if not self.timer_disabled:
+                        # Try to scroll down first, if not possible then go to next file
+                        max_lines = self.get_file_line_count(current_file)
+                        display_lines = self.terminal_height - 9  # Leave room for header/footer
 
-                    if max_lines > display_lines and scroll_position + display_lines < max_lines:
-                        # Can scroll down - do that
-                        scroll_position += display_lines
-                        continue  # Re-display with new scroll position
-                    else:
-                        # Can't scroll more, go to next file
-                        self.current_index += 1
-                        scroll_position = 0
-                        self.save_position()
+                        if max_lines > display_lines and scroll_position + display_lines < max_lines:
+                            # Can scroll down - do that
+                            scroll_position += display_lines
+                            continue  # Re-display with new scroll position
+                        else:
+                            # Can't scroll more, go to next file
+                            self.current_index += 1
+                            scroll_position = 0
+                            self.save_position()
                 elif choice == ' ':  # Spacebar (handled by countdown function, but might reach here)
                     continue  # Just re-display, don't treat as invalid
                 elif choice.isdigit() and '1' <= choice <= '9':  # Set timer duration
