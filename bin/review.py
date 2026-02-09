@@ -327,10 +327,16 @@ class CodeReviewer:
             if not has_content:
                 return False
 
-            # Try to use bat for syntax highlighting
+            # Try to use bat or batcat for syntax highlighting
+            bat_cmd = None
             if shutil.which("bat"):
+                bat_cmd = "bat"
+            elif shutil.which("batcat"):
+                bat_cmd = "batcat"
+
+            if bat_cmd:
                 cmd = [
-                    "bat",
+                    bat_cmd,
                     "--color=always",
                     "--style=numbers",
                     f"--line-range={start_line + 1}:{start_line + max_lines}",
