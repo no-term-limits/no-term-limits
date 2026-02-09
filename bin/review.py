@@ -2,6 +2,7 @@
 """
 Ergonomic code review script for reviewing branch changes and uncommitted files.
 """
+
 import os
 import sys
 import subprocess
@@ -13,11 +14,13 @@ from typing import List, Set
 import time
 import select
 
+
 @dataclass
 class FileToReview:
     path: str
     status: str  # 'modified', 'added', 'branch_modified', 'branch_added'
     is_new: bool = False
+
 
 class CodeReviewer:
     def __init__(self):
@@ -28,7 +31,6 @@ class CodeReviewer:
 
         # Timer control
         self.timer_disabled = False
-        self.t_press_times = []  # Track times when 't' is pressed
 
         # Find git root and set up cache directory
         self.git_root = self.get_git_root()
@@ -36,40 +38,24 @@ class CodeReviewer:
         self.cache_dir.mkdir(exist_ok=True)
 
         self.branch_name = self.get_current_branch()
-        self.ignore_file = self.cache_dir / f"ignored_{self.branch_name.replace('/', '_')}.json"
-        self.position_file = self.cache_dir / f"position_{self.branch_name.replace('/', '_')}.json"
+        self.ignore_file = (
+            self.cache_dir / f"ignored_{self.branch_name.replace('/', '_')}.json"
+        )
+        self.position_file = (
+            self.cache_dir / f"position_{self.branch_name.replace('/', '_')}.json"
+        )
         self.load_ignored_files()
         # Position will be loaded after we get the files list
 
     def handle_t_press(self):
         """Handle 't' key press to potentially disable/enable timer."""
-        current_time = time.time()
-        self.t_press_times.append(current_time)
-
-        # Keep only recent presses (within 2 seconds)
-        self.t_press_times = [t for t in self.t_press_times if current_time - t <= 2.0]
-
-        # If 3 or more 't' presses within 2 seconds, toggle timer
-        if len(self.t_press_times) >= 3:
-            self.timer_disabled = not self.timer_disabled
-            status = "disabled" if self.timer_disabled else "enabled"
-            emoji = "🚫" if self.timer_disabled else "⏰"
-            print(f"\r{emoji} Timer {status} for this session! Press any key to continue...", flush=True)
-            # Clear the t_press_times so we don't keep triggering
-            self.t_press_times = []
-            # Wait for any key press to acknowledge
-            try:
-                get_single_char()
-                print("\r                                                                    \r", end='', flush=True)
-            except:
-                pass
-            return True
-        return False
+        self.timer_disabled = not self.timer_disabled
+        return True
 
     def get_terminal_size(self):
         """Get current terminal dimensions."""
         try:
-            result = subprocess.run(['stty', 'size'], capture_output=True, text=True)
+            result = subprocess.run(["stty", "size"], capture_output=True, text=True)
             if result.returncode == 0:
                 lines, cols = map(int, result.stdout.split())
                 return lines, cols
@@ -81,8 +67,12 @@ class CodeReviewer:
     def get_git_root(self):
         """Find the root of the git repository."""
         try:
-            result = subprocess.run(['git', 'rev-parse', '--show-toplevel'],
-                                  capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             return Path(result.stdout.strip())
         except subprocess.CalledProcessError:
             # If not in a git repo, use current directory
@@ -91,8 +81,12 @@ class CodeReviewer:
     def get_current_branch(self):
         """Get current git branch name."""
         try:
-            result = subprocess.run(['git', 'branch', '--show-current'],
-                                  capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                ["git", "branch", "--show-current"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             return result.stdout.strip()
         except subprocess.CalledProcessError:
             return "unknown"
@@ -115,23 +109,23 @@ class CodeReviewer:
         """Load per-branch ignored files from cache."""
         if self.ignore_file.exists():
             try:
-                with open(self.ignore_file, 'r') as f:
+                with open(self.ignore_file, "r") as f:
                     self.ignored_files = set(json.load(f))
             except (json.JSONDecodeError, IOError):
                 self.ignored_files = set()
 
     def save_ignored_files(self):
         """Save per-branch ignored files to cache."""
-        with open(self.ignore_file, 'w') as f:
+        with open(self.ignore_file, "w") as f:
             json.dump(list(self.ignored_files), f)
 
     def load_position(self):
         """Load per-branch review position from cache."""
         if self.position_file.exists():
             try:
-                with open(self.position_file, 'r') as f:
+                with open(self.position_file, "r") as f:
                     position_data = json.load(f)
-                    saved_filename = position_data.get('current_file', '')
+                    saved_filename = position_data.get("current_file", "")
                     # Find the file in current file list
                     for i, file_info in enumerate(self.files_to_review):
                         if file_info.path == saved_filename:
@@ -147,27 +141,34 @@ class CodeReviewer:
         if 0 <= self.current_index < len(self.files_to_review):
             current_filename = self.files_to_review[self.current_index].path
         else:
-            current_filename = ''
-        position_data = {'current_file': current_filename}
-        with open(self.position_file, 'w') as f:
+            current_filename = ""
+        position_data = {"current_file": current_filename}
+        with open(self.position_file, "w") as f:
             json.dump(position_data, f)
 
     def get_default_branch(self):
         """Get the default branch name dynamically."""
         try:
-            result = subprocess.run(['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'],
-                                  capture_output=True, text=True, check=True)
-            return result.stdout.strip().split('/')[-1]
+            result = subprocess.run(
+                ["git", "symbolic-ref", "refs/remotes/origin/HEAD"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return result.stdout.strip().split("/")[-1]
         except subprocess.CalledProcessError:
             # Fallback to common default branch names
-            for branch in ['main', 'master']:
+            for branch in ["main", "master"]:
                 try:
-                    subprocess.run(['git', 'rev-parse', '--verify', f'origin/{branch}'],
-                                 capture_output=True, check=True)
+                    subprocess.run(
+                        ["git", "rev-parse", "--verify", f"origin/{branch}"],
+                        capture_output=True,
+                        check=True,
+                    )
                     return branch
                 except subprocess.CalledProcessError:
                     continue
-            return 'main'  # Final fallback
+            return "main"  # Final fallback
 
     def get_files_to_review(self):
         """Get all files that need review (branch changes + uncommitted)."""
@@ -175,45 +176,64 @@ class CodeReviewer:
 
         # Get uncommitted changes (working directory changes)
         try:
-            result = subprocess.run(['git', 'status', '--porcelain'],
-                                  capture_output=True, text=True, check=True)
-            for line in result.stdout.strip().split('\n'):
+            result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
                 status_code = line[:2]
                 file_path = line[3:]
 
                 if status_code.strip():  # Has changes
-                    is_new = status_code[1] == '?' or status_code[0] == 'A'
-                    files.append(FileToReview(
-                        path=file_path,
-                        status='added' if is_new else 'modified',
-                        is_new=is_new
-                    ))
+                    is_new = status_code[1] == "?" or status_code[0] == "A"
+                    files.append(
+                        FileToReview(
+                            path=file_path,
+                            status="added" if is_new else "modified",
+                            is_new=is_new,
+                        )
+                    )
         except subprocess.CalledProcessError:
             pass
 
         # Get branch changes vs default branch (similar to gbf but without --relative)
         default_branch = self.get_default_branch()
         try:
-            result = subprocess.run(['git', 'diff', '--name-status', '--diff-filter=d', f'origin/{default_branch}'],
-                                  capture_output=True, text=True, check=True, cwd=self.git_root)
-            for line in result.stdout.strip().split('\n'):
+            result = subprocess.run(
+                [
+                    "git",
+                    "diff",
+                    "--name-status",
+                    "--diff-filter=d",
+                    f"origin/{default_branch}",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+                cwd=self.git_root,
+            )
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
-                parts = line.split('\t')
+                parts = line.split("\t")
                 if len(parts) >= 2:
                     status = parts[0]
                     file_path = parts[1]
 
                     # Don't duplicate files already in working changes
                     if not any(f.path == file_path for f in files):
-                        is_new = status == 'A'
-                        files.append(FileToReview(
-                            path=file_path,
-                            status='branch_added' if is_new else 'branch_modified',
-                            is_new=is_new
-                        ))
+                        is_new = status == "A"
+                        files.append(
+                            FileToReview(
+                                path=file_path,
+                                status="branch_added" if is_new else "branch_modified",
+                                is_new=is_new,
+                            )
+                        )
         except subprocess.CalledProcessError:
             pass
 
@@ -229,16 +249,18 @@ class CodeReviewer:
 
         return True
 
-    def display_file_content(self, file_info: FileToReview, start_line: int = 0, timer_duration: int = 5):
+    def display_file_content(
+        self, file_info: FileToReview, start_line: int = 0, timer_duration: int = 5
+    ):
         """Display file content with appropriate method. Returns True if content was shown."""
         clear_screen()
 
         # Header info
         status_map = {
-            'modified': '📝 Modified (uncommitted)',
-            'added': '🆕 New file (uncommitted)',
-            'branch_modified': '📝 Modified (vs main)',
-            'branch_added': '🆕 New file (vs main)'
+            "modified": "📝 Modified (uncommitted)",
+            "added": "🆕 New file (uncommitted)",
+            "branch_modified": "📝 Modified (vs main)",
+            "branch_added": "🆕 New file (vs main)",
         }
 
         # Reserve lines for header (5) and footer (4)
@@ -250,16 +272,20 @@ class CodeReviewer:
         current_chunk = (start_line // display_lines) + 1
         chunk_info = f" [Chunk {current_chunk} of {total_chunks}]"
 
-        print(f"\n📁 File {self.current_index + 1}/{len(self.files_to_review)}: {file_info.path}{chunk_info}")
+        print(
+            f"\n📁 File {self.current_index + 1}/{len(self.files_to_review)}: {file_info.path}{chunk_info}"
+        )
         print(f"📊 Status: {status_map.get(file_info.status, file_info.status)}")
         print("─" * min(self.terminal_width, 80))
         print()
 
         # Show content and check if anything was displayed
         has_content = False
-        if file_info.is_new or file_info.status.startswith('branch_added'):
+        if file_info.is_new or file_info.status.startswith("branch_added"):
             # Show full file content for new files
-            has_content = self.show_file_content(file_info.path, start_line, display_lines)
+            has_content = self.show_file_content(
+                file_info.path, start_line, display_lines
+            )
         else:
             # Show git diff for modified files
             has_content = self.show_git_diff(file_info, start_line, display_lines)
@@ -276,7 +302,7 @@ class CodeReviewer:
             controls += f"  [Timer: {timer_duration}s]"
 
         print(f"Controls: {controls}")
-        print("", end='', flush=True)
+        print("", end="", flush=True)
 
         return has_content
 
@@ -290,7 +316,7 @@ class CodeReviewer:
                 return False
 
             # Read file to check for content in the range
-            with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()
 
             # Check if there's actual content in this range
@@ -302,10 +328,14 @@ class CodeReviewer:
                 return False
 
             # Try to use bat for syntax highlighting
-            if shutil.which('bat'):
-                cmd = ['bat', '--color=always', '--style=numbers',
-                       f'--line-range={start_line + 1}:{start_line + max_lines}',
-                       full_path]
+            if shutil.which("bat"):
+                cmd = [
+                    "bat",
+                    "--color=always",
+                    "--style=numbers",
+                    f"--line-range={start_line + 1}:{start_line + max_lines}",
+                    full_path,
+                ]
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 if result.returncode == 0:
                     print(result.stdout)
@@ -325,29 +355,40 @@ class CodeReviewer:
         """Show git diff for the file. Returns True if content was shown."""
         try:
             # Use the original path for git commands (git expects repo-relative paths)
-            if file_info.status.startswith('branch_'):
+            if file_info.status.startswith("branch_"):
                 # Compare with default branch
                 default_branch = self.get_default_branch()
-                cmd = ['git', 'diff', '--color=always', f'origin/{default_branch}', '--', file_info.path]
+                cmd = [
+                    "git",
+                    "diff",
+                    "--color=always",
+                    f"origin/{default_branch}",
+                    "--",
+                    file_info.path,
+                ]
             else:
                 # Show working directory changes
-                cmd = ['git', 'diff', '--color=always', '--', file_info.path]
+                cmd = ["git", "diff", "--color=always", "--", file_info.path]
 
             # Run git command from the git root directory
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.git_root)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.git_root
+            )
 
             if result.returncode != 0:
                 print(f"Git diff error for {file_info.path}: {result.stderr}")
                 return False
 
             if not result.stdout.strip():
-                print(f"No diff output for {file_info.path} (file may be staged or unchanged)")
+                print(
+                    f"No diff output for {file_info.path} (file may be staged or unchanged)"
+                )
                 return False
 
-            lines = result.stdout.split('\n')
+            lines = result.stdout.split("\n")
 
             # Show subset of lines based on scrolling
-            display_lines = lines[start_line:start_line + max_lines]
+            display_lines = lines[start_line : start_line + max_lines]
             has_content = any(line.strip() for line in display_lines)
 
             if has_content:
@@ -363,21 +404,29 @@ class CodeReviewer:
     def get_file_line_count(self, file_info: FileToReview) -> int:
         """Get total line count for scrolling."""
         try:
-            if file_info.is_new or file_info.status.startswith('branch_added'):
+            if file_info.is_new or file_info.status.startswith("branch_added"):
                 # For new files, count actual file lines
                 full_path = self.resolve_file_path(file_info.path)
-                with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+                with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
                     return len(f.readlines())
             else:
                 # For modified files, count diff lines
-                if file_info.status.startswith('branch_'):
+                if file_info.status.startswith("branch_"):
                     default_branch = self.get_default_branch()
-                    cmd = ['git', 'diff', f'origin/{default_branch}', '--', file_info.path]
+                    cmd = [
+                        "git",
+                        "diff",
+                        f"origin/{default_branch}",
+                        "--",
+                        file_info.path,
+                    ]
                 else:
-                    cmd = ['git', 'diff', '--', file_info.path]
+                    cmd = ["git", "diff", "--", file_info.path]
 
-                result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.git_root)
-                return len(result.stdout.split('\n'))
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, cwd=self.git_root
+                )
+                return len(result.stdout.split("\n"))
         except Exception as e:
             print(f"Error counting lines for {file_info.path}: {e}")
             return 0
@@ -390,7 +439,9 @@ class CodeReviewer:
         print(f"🔍 Starting code review for branch '{self.branch_name}'")
         print(f"Found {len(self.files_to_review)} files to review")
         if self.current_index > 0:
-            print(f"📍 Resuming from file {self.current_index + 1}: {self.files_to_review[self.current_index].path}")
+            print(
+                f"📍 Resuming from file {self.current_index + 1}: {self.files_to_review[self.current_index].path}"
+            )
         print("Starting review...")
 
         scroll_position = 0
@@ -400,13 +451,18 @@ class CodeReviewer:
             current_file = self.files_to_review[self.current_index]
 
             # Display content and check if anything was shown
-            has_content = self.display_file_content(current_file, scroll_position, timer_duration)
+            has_content = self.display_file_content(
+                current_file, scroll_position, timer_duration
+            )
 
             # If no content, skip to next chunk or file
             if not has_content:
                 max_lines = self.get_file_line_count(current_file)
                 display_lines = self.terminal_height - 9
-                if max_lines > display_lines and scroll_position + display_lines < max_lines:
+                if (
+                    max_lines > display_lines
+                    and scroll_position + display_lines < max_lines
+                ):
                     scroll_position += display_lines
                     continue  # Try next chunk
                 else:
@@ -422,54 +478,66 @@ class CodeReviewer:
                 else:
                     choice = get_single_char_with_timeout(timer_duration).lower()
 
-                if choice == 't':  # Toggle timer (handle hammering)
+                if choice == "t":  # Toggle timer (handle hammering)
                     if self.handle_t_press():
                         continue  # Timer was toggled, redisplay
-                elif choice == 'l':  # Next
+                elif choice == "l":  # Next
                     self.current_index += 1
                     scroll_position = 0
                     self.save_position()  # Save position after navigating
-                elif choice == 'h':  # Back
+                elif choice == "h":  # Back
                     if self.current_index > 0:
                         self.current_index -= 1
                         scroll_position = 0
                         self.save_position()  # Save position after navigating
-                elif choice == 'i':  # Ignore
+                elif choice == "i":  # Ignore
                     self.ignored_files.add(current_file.path)
                     self.save_ignored_files()
                     self.current_index += 1
                     scroll_position = 0
                     self.save_position()  # Save position after ignoring
-                elif choice == 'j':  # Scroll down
+                elif choice == "j":  # Scroll down
                     max_lines = self.get_file_line_count(current_file)
-                    display_lines = self.terminal_height - 9  # Leave room for header/footer
+                    display_lines = (
+                        self.terminal_height - 9
+                    )  # Leave room for header/footer
 
-                    if max_lines > display_lines and scroll_position + display_lines < max_lines:
+                    if (
+                        max_lines > display_lines
+                        and scroll_position + display_lines < max_lines
+                    ):
                         scroll_position += display_lines
                         continue  # Loop back to re-display
                     # If already at bottom, do nothing (no message, no input required)
 
-                elif choice == 'k':  # Scroll up
-                    display_lines = self.terminal_height - 9  # Leave room for header/footer
+                elif choice == "k":  # Scroll up
+                    display_lines = (
+                        self.terminal_height - 9
+                    )  # Leave room for header/footer
 
                     if scroll_position > 0:
                         scroll_position = max(0, scroll_position - display_lines)
                         continue  # Loop back to re-display
                     # If already at top, do nothing (no message, no input required)
-                elif choice == 'e' and current_file.is_new:  # Edit
-                    editor = os.environ.get('EDITOR', 'nano')
+                elif choice == "e" and current_file.is_new:  # Edit
+                    editor = os.environ.get("EDITOR", "nano")
                     subprocess.run([editor, current_file.path])
-                elif choice == 'q':  # Quit
+                elif choice == "q":  # Quit
                     self.save_position()  # Save position before quitting
                     break
-                elif choice == 'auto':  # Auto-advance timeout
+                elif choice == "auto":  # Auto-advance timeout
                     # Only auto-advance if timer is not disabled
                     if not self.timer_disabled:
                         # Try to scroll down first, if not possible then go to next file
                         max_lines = self.get_file_line_count(current_file)
-                        display_lines = self.terminal_height - 9  # Leave room for header/footer
+                        display_lines = (
+                            self.terminal_height - 9
+                        )  # Leave room for header/footer
 
-                        if max_lines > display_lines and scroll_position + display_lines < max_lines:
+                        if (
+                            max_lines > display_lines
+                            and scroll_position + display_lines < max_lines
+                        ):
                             # Can scroll down - do that
                             scroll_position += display_lines
                             continue  # Re-display with new scroll position
@@ -478,9 +546,11 @@ class CodeReviewer:
                             self.current_index += 1
                             scroll_position = 0
                             self.save_position()
-                elif choice == ' ':  # Spacebar (handled by countdown function, but might reach here)
+                elif (
+                    choice == " "
+                ):  # Spacebar (handled by countdown function, but might reach here)
                     continue  # Just re-display, don't treat as invalid
-                elif choice.isdigit() and '1' <= choice <= '9':  # Set timer duration
+                elif choice.isdigit() and "1" <= choice <= "9":  # Set timer duration
                     timer_duration = int(choice)
                     continue  # Re-display with updated timer
                 # Other invalid commands are simply ignored
@@ -492,11 +562,15 @@ class CodeReviewer:
 
         # Save position when review ends (whether completed or quit)
         self.save_position()
-        print(f"\n✅ Review complete! Reviewed {min(self.current_index + 1, len(self.files_to_review))} files")
+        print(
+            f"\n✅ Review complete! Reviewed {min(self.current_index + 1, len(self.files_to_review))} files"
+        )
+
 
 def clear_screen():
     """Clear the terminal screen."""
-    os.system('clear' if os.name == 'posix' else 'cls')
+    os.system("clear" if os.name == "posix" else "cls")
+
 
 def get_single_char_with_timeout(timeout_seconds=5):
     """Get a single character input with countdown timer. Returns 'AUTO' if timeout."""
@@ -524,16 +598,18 @@ def get_single_char_with_timeout(timeout_seconds=5):
 
             while remaining > 0:
                 if not paused:
-                    print(f"\r{remaining}s", end='', flush=True)
+                    print(f"\r{remaining}s", end="", flush=True)
                 else:
-                    print(f"\r⏸️ {remaining}s (paused)", end='', flush=True)
+                    print(f"\r⏸️ {remaining}s (paused)", end="", flush=True)
 
                 # Check if input is available
                 if select.select([sys.stdin], [], [], 1.0)[0]:
                     char = sys.stdin.read(1)
-                    print(f"\r                    \r", end='', flush=True)  # Clear countdown
+                    print(
+                        f"\r                    \r", end="", flush=True
+                    )  # Clear countdown
 
-                    if char == ' ':  # Spacebar toggles pause
+                    if char == " ":  # Spacebar toggles pause
                         paused = not paused
                         continue  # Don't return, just toggle pause state
                     else:
@@ -544,8 +620,8 @@ def get_single_char_with_timeout(timeout_seconds=5):
                     remaining -= 1
 
             # Timeout reached
-            print(f"\r                    \r", end='', flush=True)  # Clear countdown
-            return 'AUTO'
+            print(f"\r                    \r", end="", flush=True)  # Clear countdown
+            return "AUTO"
 
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
@@ -557,6 +633,7 @@ def get_single_char_with_timeout(timeout_seconds=5):
             return response[:1] if response else ""
         except (EOFError, KeyboardInterrupt):
             return "q"
+
 
 def get_single_char():
     """Get a single character input without pressing enter."""
@@ -589,6 +666,7 @@ def get_single_char():
         except (EOFError, KeyboardInterrupt):
             return "q"
 
+
 if __name__ == "__main__":
     try:
         reviewer = CodeReviewer()
@@ -596,3 +674,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
         sys.exit(1)
+
