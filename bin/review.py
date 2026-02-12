@@ -109,7 +109,6 @@ class CodeReviewer:
         return file_path
 
     def load_ignored_files(self):
-        """Load per-branch ignored files from cache."""
         if self.ignore_file.exists():
             try:
                 with open(self.ignore_file, "r") as f:
@@ -118,12 +117,10 @@ class CodeReviewer:
                 self.ignored_files = set()
 
     def save_ignored_files(self):
-        """Save per-branch ignored files to cache."""
         with open(self.ignore_file, "w") as f:
             json.dump(list(self.ignored_files), f)
 
     def load_reviewed_files(self):
-        """Load per-branch reviewed files cache with sha1sums."""
         if self.reviewed_file_cache.exists():
             try:
                 with open(self.reviewed_file_cache, "r") as f:
@@ -132,12 +129,10 @@ class CodeReviewer:
                 self.reviewed_files = {}
 
     def save_reviewed_files(self):
-        """Save per-branch reviewed files cache with sha1sums."""
         with open(self.reviewed_file_cache, "w") as f:
             json.dump(self.reviewed_files, f, indent=2)
 
     def calculate_file_sha1(self, file_path: str) -> str:
-        """Calculate SHA1 hash of a file."""
         try:
             full_path = self.resolve_file_path(file_path)
             if not os.path.exists(full_path):
@@ -608,9 +603,6 @@ def get_single_char_with_timeout(timeout_seconds=5):
             return "q"
 
     try:
-        import termios
-        import tty
-
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
 
