@@ -30,7 +30,7 @@ class CodeReviewer:
         self.current_index = 0
         self.files_to_review: List[FileToReview] = []
         self.ignored_files: Set[str] = set()
-        self.reviewed_files: Dict[str, str] = {}  # {file_path: sha1sum}
+        self.reviewed_files: Dict[str, str] = {}  # {file_path: sha256sum}
 
         # Timer control
         self.timer_disabled = False
@@ -132,17 +132,17 @@ class CodeReviewer:
         with open(self.reviewed_file_cache, "w") as f:
             json.dump(self.reviewed_files, f, indent=2)
 
-    def calculate_file_sha1(self, file_path: str) -> str:
+    def calculate_file_sha256(self, file_path: str) -> str:
         try:
             full_path = self.resolve_file_path(file_path)
             if not os.path.exists(full_path):
                 return ""
 
-            sha1 = hashlib.sha1()
+            sha256 = hashlib.sha256()
             with open(full_path, "rb") as f:
                 while chunk := f.read(8192):
-                    sha1.update(chunk)
-            return sha1.hexdigest()
+                    sha256.update(chunk)
+            return sha256.hexdigest()
         except (IOError, OSError):
             return ""
 
@@ -240,16 +240,16 @@ class CodeReviewer:
         # Filter out ignored files
         files = [f for f in files if f.path not in self.ignored_files]
 
-        # Filter out files that are in the reviewed cache with matching sha1sums
+        # Filter out files that are in the reviewed cache with matching sha256sums
         files_to_review = []
         for file_info in files:
-            file_sha1 = self.calculate_file_sha1(file_info.path)
-            cached_sha1 = self.reviewed_files.get(file_info.path)
+            file_sha256 = self.calculate_file_sha256(file_info.path)
+            cached_sha256 = self.reviewed_files.get(file_info.path)
 
             # Include file if:
             # - Not in cache, OR
-            # - SHA1 has changed (file was modified since last review)
-            if cached_sha1 is None or cached_sha1 != file_sha1:
+            # - SHA256 has changed (file was modified since last review)
+            if cached_sha256 is None or cached_sha256 != file_sha256:
                 files_to_review.append(file_info)
 
         self.files_to_review = files_to_review
@@ -481,9 +481,9 @@ class CodeReviewer:
                 else:
                     # Go to next file
                     # Mark current file as reviewed before moving to next
-                    file_sha1 = self.calculate_file_sha1(current_file.path)
-                    if file_sha1:
-                        self.reviewed_files[current_file.path] = file_sha1
+                    file_sha256 = self.calculate_file_sha256(current_file.path)
+                    if file_sha256:
+                        self.reviewed_files[current_file.path] = file_sha256
                         self.save_reviewed_files()
                     self.current_index += 1
                     scroll_position = 0
@@ -500,9 +500,9 @@ class CodeReviewer:
                         continue  # Timer was toggled, redisplay
                 elif choice == "l":  # Next
                     # Mark current file as reviewed before moving to next
-                    file_sha1 = self.calculate_file_sha1(current_file.path)
-                    if file_sha1:
-                        self.reviewed_files[current_file.path] = file_sha1
+                    file_sha256 = self.calculate_file_sha256(current_file.path)
+                    if file_sha256:
+                        self.reviewed_files[current_file.path] = file_sha256
                         self.save_reviewed_files()
                     self.current_index += 1
                     scroll_position = 0
@@ -562,9 +562,9 @@ class CodeReviewer:
                         else:
                             # Can't scroll more, go to next file
                             # Mark current file as reviewed before moving to next
-                            file_sha1 = self.calculate_file_sha1(current_file.path)
-                            if file_sha1:
-                                self.reviewed_files[current_file.path] = file_sha1
+                            file_sha256 = self.calculate_file_sha256(current_file.path)
+                            if file_sha256:
+                                self.reviewed_files[current_file.path] = file_sha256
                                 self.save_reviewed_files()
                             self.current_index += 1
                             scroll_position = 0
