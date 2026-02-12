@@ -17,8 +17,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable, Dict, List, Set, Tuple
 
-DISPLAY_RESERVED_LINES = 9
 DEFAULT_TIMER_SECONDS = 5
+
 
 class FileStatus(str, Enum):
     MODIFIED = "modified"
@@ -65,16 +65,15 @@ class CodeReviewer:
         self.reviewed_files = self._load_json(self.reviewed_file_cache, {})
         self.content_cache: Dict[Tuple[str, str], List[str]] = {}
         self.bat_cmd = shutil.which("bat") or shutil.which("batcat")
-        self.choice_handlers: Dict[str, Callable[[FileToReview, int, int], Tuple[int, int, bool]]] = {
+        self.choice_handlers: Dict[
+            str, Callable[[FileToReview, int], Tuple[int, bool]]
+        ] = {
             "t": self._handle_toggle_timer,
             "l": self._handle_next_file,
             "h": self._handle_prev_file,
             "i": self._handle_ignore_file,
-            "j": self._handle_scroll_down,
-            "k": self._handle_scroll_up,
             "e": self._handle_edit_file,
             "q": self._handle_quit,
-            "auto": self._handle_auto_advance,
             " ": self._handle_noop,
         }
 
@@ -116,7 +115,12 @@ class CodeReviewer:
 
     def get_git_root(self) -> Path:
         try:
-            result = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             return Path(result.stdout.strip())
         except subprocess.CalledProcessError:
             return Path.cwd()
@@ -137,7 +141,9 @@ class CodeReviewer:
         except subprocess.CalledProcessError:
             for branch in ["main", "master"]:
                 try:
-                    self._run_git(["rev-parse", "--verify", f"origin/{branch}"], check=True)
+                    self._run_git(
+                        ["rev-parse", "--verify", f"origin/{branch}"], check=True
+                    )
                     return branch
                 except subprocess.CalledProcessError:
                     continue
@@ -217,7 +223,9 @@ class CodeReviewer:
                 continue
 
             status_code = parts[0]
-            file_path = parts[-1]  # Handles rename entries by selecting destination path
+            file_path = parts[
+                -1
+            ]  # Handles rename entries by selecting destination path
 
             if file_path in existing_paths:
                 continue
@@ -226,7 +234,9 @@ class CodeReviewer:
             files.append(
                 FileToReview(
                     path=file_path,
-                    status=FileStatus.BRANCH_ADDED if is_new else FileStatus.BRANCH_MODIFIED,
+                    status=FileStatus.BRANCH_ADDED
+                    if is_new
+                    else FileStatus.BRANCH_MODIFIED,
                     is_new=is_new,
                 )
             )
@@ -250,9 +260,6 @@ class CodeReviewer:
             print("No files to review!")
             return False
         return True
-
-    def get_display_lines(self) -> int:
-        return self.terminal_height - DISPLAY_RESERVED_LINES
 
     def is_new_file(self, file_info: FileToReview) -> bool:
         return file_info.is_new or file_info.status == FileStatus.BRANCH_ADDED
@@ -298,28 +305,20 @@ class CodeReviewer:
 
         return result.stdout.splitlines()
 
-    def get_file_line_count(self, file_info: FileToReview) -> int:
-        return len(self.get_file_lines(file_info))
-
-    def can_scroll_down(self, scroll_position: int, max_lines: int) -> bool:
-        display_lines = self.get_display_lines()
-        return max_lines > display_lines and scroll_position + display_lines < max_lines
-
     def mark_file_reviewed(self, file_info: FileToReview):
         file_sha256 = self.calculate_file_sha256(file_info.path)
         if file_sha256:
             self.reviewed_files[file_info.path] = file_sha256
             self.save_reviewed_files()
 
-    def next_file(self, file_info: FileToReview, review_file: bool = True) -> int:
+    def next_file(self, file_info: FileToReview, review_file: bool = True):
         if review_file:
             self.mark_file_reviewed(file_info)
         self.current_index += 1
-        return 0
 
-    def print_header(self, file_info: FileToReview, chunk_info: str):
+    def print_header(self, file_info: FileToReview):
         print(
-            f"\n📁 File {self.current_index + 1}/{len(self.files_to_review)}: {file_info.path}{chunk_info}"
+            f"\n📁 File {self.current_index + 1}/{len(self.files_to_review)}: {file_info.path}"
         )
         print(f"📊 Status: {STATUS_LABELS.get(file_info.status, file_info.status)}")
         print("─" * min(self.terminal_width, 80))
@@ -327,7 +326,9 @@ class CodeReviewer:
 
     def print_footer(self, file_info: FileToReview, timer_duration: int):
         print("\n" + "─" * min(self.terminal_width, 80))
-        controls = "h)prev  l)next  i)gnore  j/k)scroll  space)pause  1-9)timer  t)toggle-timer  q)uit"
+        controls = (
+            "h)prev  l)next  i)gnore  space)pause  1-9)timer  t)toggle-timer  q)uit"
+        )
         if file_info.is_new:
             controls += "  e)dit"
 
@@ -339,16 +340,12 @@ class CodeReviewer:
         print(f"Controls: {controls}")
         print("", end="", flush=True)
 
-    def show_new_file_content(
-        self, file_info: FileToReview, start_line: int, max_lines: int, lines: List[str]
-    ) -> bool:
+    def show_new_file_content(self, file_info: FileToReview, lines: List[str]) -> bool:
         if not lines:
             print(f"File not found or empty: {file_info.path}")
             return False
 
-        end_line = min(start_line + max_lines, len(lines))
-        display_lines = lines[start_line:end_line]
-        has_content = any(line.strip() for line in display_lines)
+        has_content = any(line.strip() for line in lines)
         if not has_content:
             return False
 
@@ -359,7 +356,6 @@ class CodeReviewer:
                     self.bat_cmd,
                     "--color=always",
                     "--style=numbers",
-                    f"--line-range={start_line + 1}:{start_line + max_lines}",
                     full_path,
                 ],
                 capture_output=True,
@@ -369,36 +365,30 @@ class CodeReviewer:
                 print(result.stdout, end="")
                 return True
 
-        for i, line in enumerate(display_lines, start=start_line + 1):
+        for i, line in enumerate(lines, start=1):
             print(f"{i:4d}│ {line}")
         return True
 
-    def show_diff_content(self, lines: List[str], start_line: int, max_lines: int) -> bool:
-        display_lines = lines[start_line : start_line + max_lines]
-        if not any(line.strip() for line in display_lines):
+    def show_diff_content(self, lines: List[str]) -> bool:
+        if not any(line.strip() for line in lines):
             return False
-        for line in display_lines:
+        for line in lines:
             print(line)
         return True
 
     def display_file_content(
-        self, file_info: FileToReview, start_line: int, timer_duration: int
+        self, file_info: FileToReview, timer_duration: int
     ) -> bool:
         clear_screen()
 
-        max_lines = self.get_display_lines()
         lines = self.get_file_lines(file_info)
-        total_lines = len(lines)
-        total_chunks = max(1, (total_lines + max_lines - 1) // max_lines)
-        current_chunk = (start_line // max_lines) + 1
-        chunk_info = f" [Chunk {current_chunk} of {total_chunks}]"
 
-        self.print_header(file_info, chunk_info)
+        self.print_header(file_info)
 
         if self.is_new_file(file_info):
-            has_content = self.show_new_file_content(file_info, start_line, max_lines, lines)
+            has_content = self.show_new_file_content(file_info, lines)
         else:
-            has_content = self.show_diff_content(lines, start_line, max_lines)
+            has_content = self.show_diff_content(lines)
             if not has_content:
                 print(
                     f"No diff output for {file_info.path} (file may be staged or unchanged)"
@@ -412,100 +402,66 @@ class CodeReviewer:
             return get_single_char().lower()
         return get_single_char_with_timeout(timer_duration).lower()
 
-    def maybe_scroll_down_or_next(self, file_info: FileToReview, scroll_position: int) -> int:
-        max_lines = self.get_file_line_count(file_info)
-        display_lines = self.get_display_lines()
-        if self.can_scroll_down(scroll_position, max_lines):
-            return scroll_position + display_lines
-        return self.next_file(file_info)
-
     def _handle_toggle_timer(
-        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
+        self, _file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
         self.timer_disabled = not self.timer_disabled
-        return scroll_position, timer_duration, False
+        return timer_duration, False
 
     def _handle_next_file(
-        self, file_info: FileToReview, _scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
-        return self.next_file(file_info), timer_duration, False
+        self, file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
+        self.next_file(file_info)
+        return timer_duration, False
 
     def _handle_prev_file(
-        self, _file_info: FileToReview, _scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
+        self, _file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
         if self.current_index > 0:
             self.current_index -= 1
-        return 0, timer_duration, False
+        return timer_duration, False
 
     def _handle_ignore_file(
-        self, file_info: FileToReview, _scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
+        self, file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
         self.ignored_files.add(file_info.path)
         self.save_ignored_files()
-        return self.next_file(file_info, review_file=False), timer_duration, False
-
-    def _handle_scroll_down(
-        self, file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
-        max_lines = self.get_file_line_count(file_info)
-        display_lines = self.get_display_lines()
-        if self.can_scroll_down(scroll_position, max_lines):
-            return scroll_position + display_lines, timer_duration, False
-        return scroll_position, timer_duration, False
-
-    def _handle_scroll_up(
-        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
-        display_lines = self.get_display_lines()
-        if scroll_position > 0:
-            return max(0, scroll_position - display_lines), timer_duration, False
-        return scroll_position, timer_duration, False
+        self.next_file(file_info, review_file=False)
+        return timer_duration, False
 
     def _handle_edit_file(
-        self, file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
+        self, file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
         if file_info.is_new:
             editor = os.environ.get("EDITOR", "nano")
             subprocess.run([editor, file_info.path])
             self.invalidate_content_cache(file_info)
-        return scroll_position, timer_duration, False
+        return timer_duration, False
 
     def _handle_quit(
-        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
-        return scroll_position, timer_duration, True
-
-    def _handle_auto_advance(
-        self, file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
-        if not self.timer_disabled:
-            return (
-                self.maybe_scroll_down_or_next(file_info, scroll_position),
-                timer_duration,
-                False,
-            )
-        return scroll_position, timer_duration, False
+        self, _file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
+        return timer_duration, True
 
     def _handle_noop(
-        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
-    ) -> Tuple[int, int, bool]:
-        return scroll_position, timer_duration, False
+        self, _file_info: FileToReview, timer_duration: int
+    ) -> Tuple[int, bool]:
+        return timer_duration, False
 
     def handle_choice(
         self,
         choice: str,
         file_info: FileToReview,
-        scroll_position: int,
         timer_duration: int,
-    ) -> Tuple[int, int, bool]:
+    ) -> Tuple[int, bool]:
         if choice.isdigit() and "1" <= choice <= "9":
-            return scroll_position, int(choice), False
+            return int(choice), False
 
         handler = self.choice_handlers.get(choice)
         if handler:
-            return handler(file_info, scroll_position, timer_duration)
+            return handler(file_info, timer_duration)
 
-        return scroll_position, timer_duration, False
+        return timer_duration, False
 
     def run_review(self):
         if not self.refresh_files_to_review():
@@ -515,25 +471,23 @@ class CodeReviewer:
         print(f"Found {len(self.files_to_review)} files to review")
         print("Starting review...")
 
-        scroll_position = 0
         timer_duration = DEFAULT_TIMER_SECONDS
 
         while self.current_index < len(self.files_to_review):
             current_file = self.files_to_review[self.current_index]
 
-            has_content = self.display_file_content(
-                current_file, scroll_position, timer_duration
-            )
+            has_content = self.display_file_content(current_file, timer_duration)
             if not has_content:
-                scroll_position = self.maybe_scroll_down_or_next(
-                    current_file, scroll_position
-                )
+                self.next_file(current_file)
                 continue
 
             try:
                 choice = self.read_choice(timer_duration)
-                scroll_position, timer_duration, should_quit = self.handle_choice(
-                    choice, current_file, scroll_position, timer_duration
+                if choice == "auto" and not self.timer_disabled:
+                    self.next_file(current_file)
+                    continue
+                timer_duration, should_quit = self.handle_choice(
+                    choice, current_file, timer_duration
                 )
                 if should_quit:
                     break
