@@ -16,6 +16,9 @@ import hashlib
 import termios
 import tty
 
+DISPLAY_RESERVED_LINES = 9
+DEFAULT_TIMER_SECONDS = 5
+
 
 @dataclass
 class FileToReview:
@@ -41,6 +44,7 @@ class CodeReviewer:
         self.cache_dir.mkdir(exist_ok=True)
 
         self.branch_name = self.get_current_branch()
+        self.default_branch = self.get_default_branch()
         self.ignore_file = (
             self.cache_dir / f"ignored_{self.branch_name.replace('/', '_')}.json"
         )
@@ -50,11 +54,6 @@ class CodeReviewer:
         self.load_ignored_files()
         self.load_reviewed_files()
 
-    def handle_t_press(self):
-        """Handle 't' key press to potentially disable/enable timer."""
-        self.timer_disabled = not self.timer_disabled
-        return True
-
     def get_terminal_size(self):
         """Get current terminal dimensions."""
         try:
@@ -62,7 +61,7 @@ class CodeReviewer:
             if result.returncode == 0:
                 lines, cols = map(int, result.stdout.split())
                 return lines, cols
-        except:
+        except Exception:
             pass
         # Fallback
         return shutil.get_terminal_size((80, 24))
@@ -201,7 +200,6 @@ class CodeReviewer:
             pass
 
         # Get branch changes vs default branch (similar to gbf but without --relative)
-        default_branch = self.get_default_branch()
         try:
             result = subprocess.run(
                 [
@@ -209,7 +207,7 @@ class CodeReviewer:
                     "diff",
                     "--name-status",
                     "--diff-filter=d",
-                    f"origin/{default_branch}",
+                    f"origin/{self.default_branch}",
                 ],
                 capture_output=True,
                 text=True,
@@ -260,6 +258,37 @@ class CodeReviewer:
 
         return True
 
+    def get_display_lines(self) -> int:
+        return self.terminal_height - DISPLAY_RESERVED_LINES
+
+    def is_new_file(self, file_info: FileToReview) -> bool:
+        return file_info.is_new or file_info.status.startswith("branch_added")
+
+    def can_scroll_down(self, scroll_position: int, max_lines: int) -> bool:
+        display_lines = self.get_display_lines()
+        return max_lines > display_lines and scroll_position + display_lines < max_lines
+
+    def mark_file_reviewed(self, file_info: FileToReview):
+        file_sha256 = self.calculate_file_sha256(file_info.path)
+        if file_sha256:
+            self.reviewed_files[file_info.path] = file_sha256
+            self.save_reviewed_files()
+
+    def advance_to_next_file(self, file_info: FileToReview, review_file: bool = True) -> int:
+        if review_file:
+            self.mark_file_reviewed(file_info)
+        self.current_index += 1
+        return 0
+
+    def get_diff_cmd(self, file_info: FileToReview, with_color: bool = False) -> List[str]:
+        cmd = ["git", "diff"]
+        if with_color:
+            cmd.append("--color=always")
+        if file_info.status.startswith("branch_"):
+            cmd.append(f"origin/{self.default_branch}")
+        cmd.extend(["--", file_info.path])
+        return cmd
+
     def display_file_content(
         self, file_info: FileToReview, start_line: int = 0, timer_duration: int = 5
     ):
@@ -275,7 +304,7 @@ class CodeReviewer:
         }
 
         # Reserve lines for header (5) and footer (4)
-        display_lines = self.terminal_height - 9
+        display_lines = self.get_display_lines()
 
         # Simple chunk calculation
         total_lines = self.get_file_line_count(file_info)
@@ -292,7 +321,7 @@ class CodeReviewer:
 
         # Show content and check if anything was displayed
         has_content = False
-        if file_info.is_new or file_info.status.startswith("branch_added"):
+        if self.is_new_file(file_info):
             # Show full file content for new files
             has_content = self.show_file_content(
                 file_info.path, start_line, display_lines
@@ -372,20 +401,7 @@ class CodeReviewer:
         """Show git diff for the file. Returns True if content was shown."""
         try:
             # Use the original path for git commands (git expects repo-relative paths)
-            if file_info.status.startswith("branch_"):
-                # Compare with default branch
-                default_branch = self.get_default_branch()
-                cmd = [
-                    "git",
-                    "diff",
-                    "--color=always",
-                    f"origin/{default_branch}",
-                    "--",
-                    file_info.path,
-                ]
-            else:
-                # Show working directory changes
-                cmd = ["git", "diff", "--color=always", "--", file_info.path]
+            cmd = self.get_diff_cmd(file_info, with_color=True)
 
             # Run git command from the git root directory
             result = subprocess.run(
@@ -421,25 +437,14 @@ class CodeReviewer:
     def get_file_line_count(self, file_info: FileToReview) -> int:
         """Get total line count for scrolling."""
         try:
-            if file_info.is_new or file_info.status.startswith("branch_added"):
+            if self.is_new_file(file_info):
                 # For new files, count actual file lines
                 full_path = self.resolve_file_path(file_info.path)
                 with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
                     return len(f.readlines())
             else:
                 # For modified files, count diff lines
-                if file_info.status.startswith("branch_"):
-                    default_branch = self.get_default_branch()
-                    cmd = [
-                        "git",
-                        "diff",
-                        f"origin/{default_branch}",
-                        "--",
-                        file_info.path,
-                    ]
-                else:
-                    cmd = ["git", "diff", "--", file_info.path]
-
+                cmd = self.get_diff_cmd(file_info, with_color=False)
                 result = subprocess.run(
                     cmd, capture_output=True, text=True, cwd=self.git_root
                 )
@@ -458,7 +463,7 @@ class CodeReviewer:
         print("Starting review...")
 
         scroll_position = 0
-        timer_duration = 5  # Default 5 seconds
+        timer_duration = DEFAULT_TIMER_SECONDS
 
         while self.current_index < len(self.files_to_review):
             current_file = self.files_to_review[self.current_index]
@@ -471,23 +476,12 @@ class CodeReviewer:
             # If no content, skip to next chunk or file
             if not has_content:
                 max_lines = self.get_file_line_count(current_file)
-                display_lines = self.terminal_height - 9
-                if (
-                    max_lines > display_lines
-                    and scroll_position + display_lines < max_lines
-                ):
+                display_lines = self.get_display_lines()
+                if self.can_scroll_down(scroll_position, max_lines):
                     scroll_position += display_lines
                     continue  # Try next chunk
-                else:
-                    # Go to next file
-                    # Mark current file as reviewed before moving to next
-                    file_sha256 = self.calculate_file_sha256(current_file.path)
-                    if file_sha256:
-                        self.reviewed_files[current_file.path] = file_sha256
-                        self.save_reviewed_files()
-                    self.current_index += 1
-                    scroll_position = 0
-                    continue
+                scroll_position = self.advance_to_next_file(current_file)
+                continue
 
             try:
                 if self.timer_disabled:
@@ -496,16 +490,10 @@ class CodeReviewer:
                     choice = get_single_char_with_timeout(timer_duration).lower()
 
                 if choice == "t":  # Toggle timer (handle hammering)
-                    if self.handle_t_press():
-                        continue  # Timer was toggled, redisplay
+                    self.timer_disabled = not self.timer_disabled
+                    continue
                 elif choice == "l":  # Next
-                    # Mark current file as reviewed before moving to next
-                    file_sha256 = self.calculate_file_sha256(current_file.path)
-                    if file_sha256:
-                        self.reviewed_files[current_file.path] = file_sha256
-                        self.save_reviewed_files()
-                    self.current_index += 1
-                    scroll_position = 0
+                    scroll_position = self.advance_to_next_file(current_file)
                 elif choice == "h":  # Back
                     if self.current_index > 0:
                         self.current_index -= 1
@@ -513,27 +501,19 @@ class CodeReviewer:
                 elif choice == "i":  # Ignore
                     self.ignored_files.add(current_file.path)
                     self.save_ignored_files()
-                    self.current_index += 1
-                    scroll_position = 0
+                    scroll_position = self.advance_to_next_file(
+                        current_file, review_file=False
+                    )
                 elif choice == "j":  # Scroll down
                     max_lines = self.get_file_line_count(current_file)
-                    display_lines = (
-                        self.terminal_height - 9
-                    )  # Leave room for header/footer
-
-                    if (
-                        max_lines > display_lines
-                        and scroll_position + display_lines < max_lines
-                    ):
+                    display_lines = self.get_display_lines()
+                    if self.can_scroll_down(scroll_position, max_lines):
                         scroll_position += display_lines
                         continue  # Loop back to re-display
                     # If already at bottom, do nothing (no message, no input required)
 
                 elif choice == "k":  # Scroll up
-                    display_lines = (
-                        self.terminal_height - 9
-                    )  # Leave room for header/footer
-
+                    display_lines = self.get_display_lines()
                     if scroll_position > 0:
                         scroll_position = max(0, scroll_position - display_lines)
                         continue  # Loop back to re-display
@@ -548,26 +528,12 @@ class CodeReviewer:
                     if not self.timer_disabled:
                         # Try to scroll down first, if not possible then go to next file
                         max_lines = self.get_file_line_count(current_file)
-                        display_lines = (
-                            self.terminal_height - 9
-                        )  # Leave room for header/footer
-
-                        if (
-                            max_lines > display_lines
-                            and scroll_position + display_lines < max_lines
-                        ):
+                        display_lines = self.get_display_lines()
+                        if self.can_scroll_down(scroll_position, max_lines):
                             # Can scroll down - do that
                             scroll_position += display_lines
                             continue  # Re-display with new scroll position
-                        else:
-                            # Can't scroll more, go to next file
-                            # Mark current file as reviewed before moving to next
-                            file_sha256 = self.calculate_file_sha256(current_file.path)
-                            if file_sha256:
-                                self.reviewed_files[current_file.path] = file_sha256
-                                self.save_reviewed_files()
-                            self.current_index += 1
-                            scroll_position = 0
+                        scroll_position = self.advance_to_next_file(current_file)
                 elif (
                     choice == " "
                 ):  # Spacebar (handled by countdown function, but might reach here)
@@ -591,16 +557,19 @@ def clear_screen():
     os.system("clear" if os.name == "posix" else "cls")
 
 
+def read_line_char(prompt: str = "Enter command: ", default: str = "q") -> str:
+    try:
+        response = input(prompt).strip()
+        return response[:1] if response else default
+    except (EOFError, KeyboardInterrupt):
+        return "q"
+
+
 def get_single_char_with_timeout(timeout_seconds=5):
     """Get a single character input with countdown timer. Returns 'AUTO' if timeout."""
     # Check if we're in an interactive terminal
     if not sys.stdin.isatty():
-        # Non-interactive mode - use line input
-        try:
-            response = input("Enter command: ").strip()
-            return response[:1] if response else "q"
-        except (EOFError, KeyboardInterrupt):
-            return "q"
+        return read_line_char()
 
     try:
         fd = sys.stdin.fileno()
@@ -643,24 +612,14 @@ def get_single_char_with_timeout(timeout_seconds=5):
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
     except (ImportError, OSError, AttributeError):
-        # Fallback for systems without termios/tty
-        try:
-            response = input("Enter command: ").strip()
-            return response[:1] if response else ""
-        except (EOFError, KeyboardInterrupt):
-            return "q"
+        return read_line_char(default="")
 
 
 def get_single_char():
     """Get a single character input without pressing enter."""
     # Check if we're in an interactive terminal
     if not sys.stdin.isatty():
-        # Non-interactive mode - use line input
-        try:
-            response = input("Enter command: ").strip()
-            return response[:1] if response else "q"
-        except (EOFError, KeyboardInterrupt):
-            return "q"
+        return read_line_char()
 
     try:
         fd = sys.stdin.fileno()
@@ -672,12 +631,7 @@ def get_single_char():
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return char
     except (ImportError, OSError, AttributeError):
-        # Fallback for systems without termios/tty
-        try:
-            response = input("Enter command: ").strip()
-            return response[:1] if response else ""
-        except (EOFError, KeyboardInterrupt):
-            return "q"
+        return read_line_char(default="")
 
 
 if __name__ == "__main__":
