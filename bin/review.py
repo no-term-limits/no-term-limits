@@ -13,24 +13,32 @@ import sys
 import termios
 import tty
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Callable, Dict, List, Set, Tuple
 
 DISPLAY_RESERVED_LINES = 9
 DEFAULT_TIMER_SECONDS = 5
 
+class FileStatus(str, Enum):
+    MODIFIED = "modified"
+    ADDED = "added"
+    BRANCH_MODIFIED = "branch_modified"
+    BRANCH_ADDED = "branch_added"
+
+
 STATUS_LABELS = {
-    "modified": "📝 Modified (uncommitted)",
-    "added": "🆕 New file (uncommitted)",
-    "branch_modified": "📝 Modified (vs main)",
-    "branch_added": "🆕 New file (vs main)",
+    FileStatus.MODIFIED: "📝 Modified (uncommitted)",
+    FileStatus.ADDED: "🆕 New file (uncommitted)",
+    FileStatus.BRANCH_MODIFIED: "📝 Modified (vs main)",
+    FileStatus.BRANCH_ADDED: "🆕 New file (vs main)",
 }
 
 
 @dataclass
 class FileToReview:
     path: str
-    status: str  # 'modified', 'added', 'branch_modified', 'branch_added'
+    status: FileStatus
     is_new: bool = False
 
 
@@ -57,6 +65,18 @@ class CodeReviewer:
         self.reviewed_files = self._load_json(self.reviewed_file_cache, {})
         self.content_cache: Dict[Tuple[str, str], List[str]] = {}
         self.bat_cmd = shutil.which("bat") or shutil.which("batcat")
+        self.choice_handlers: Dict[str, Callable[[FileToReview, int, int], Tuple[int, int, bool]]] = {
+            "t": self._handle_toggle_timer,
+            "l": self._handle_next_file,
+            "h": self._handle_prev_file,
+            "i": self._handle_ignore_file,
+            "j": self._handle_scroll_down,
+            "k": self._handle_scroll_up,
+            "e": self._handle_edit_file,
+            "q": self._handle_quit,
+            "auto": self._handle_auto_advance,
+            " ": self._handle_noop,
+        }
 
     def _load_json(self, path: Path, default):
         if not path.exists():
@@ -81,8 +101,13 @@ class CodeReviewer:
     def _run_git(
         self, args: List[str], check: bool = False, cwd: Path = None
     ) -> subprocess.CompletedProcess:
+        return self._run(["git", *args], check=check, cwd=cwd)
+
+    def _run(
+        self, cmd: List[str], check: bool = False, cwd: Path = None
+    ) -> subprocess.CompletedProcess:
         return subprocess.run(
-            ["git", *args],
+            cmd,
             capture_output=True,
             text=True,
             check=check,
@@ -91,25 +116,14 @@ class CodeReviewer:
 
     def get_git_root(self) -> Path:
         try:
-            result = subprocess.run(
-                ["git", "rev-parse", "--show-toplevel"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
+            result = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True)
             return Path(result.stdout.strip())
         except subprocess.CalledProcessError:
             return Path.cwd()
 
     def get_current_branch(self) -> str:
         try:
-            result = subprocess.run(
-                ["git", "branch", "--show-current"],
-                capture_output=True,
-                text=True,
-                check=True,
-                cwd=self.git_root,
-            )
+            result = self._run_git(["branch", "--show-current"], check=True)
             return result.stdout.strip()
         except subprocess.CalledProcessError:
             return "unknown"
@@ -173,7 +187,7 @@ class CodeReviewer:
             files.append(
                 FileToReview(
                     path=file_path,
-                    status="added" if is_new else "modified",
+                    status=FileStatus.ADDED if is_new else FileStatus.MODIFIED,
                     is_new=is_new,
                 )
             )
@@ -212,7 +226,7 @@ class CodeReviewer:
             files.append(
                 FileToReview(
                     path=file_path,
-                    status="branch_added" if is_new else "branch_modified",
+                    status=FileStatus.BRANCH_ADDED if is_new else FileStatus.BRANCH_MODIFIED,
                     is_new=is_new,
                 )
             )
@@ -241,10 +255,10 @@ class CodeReviewer:
         return self.terminal_height - DISPLAY_RESERVED_LINES
 
     def is_new_file(self, file_info: FileToReview) -> bool:
-        return file_info.is_new or file_info.status == "branch_added"
+        return file_info.is_new or file_info.status == FileStatus.BRANCH_ADDED
 
     def cache_key(self, file_info: FileToReview) -> Tuple[str, str]:
-        return (file_info.path, file_info.status)
+        return (file_info.path, file_info.status.value)
 
     def invalidate_content_cache(self, file_info: FileToReview):
         self.content_cache.pop(self.cache_key(file_info), None)
@@ -270,7 +284,7 @@ class CodeReviewer:
 
     def get_diff_lines(self, file_info: FileToReview) -> List[str]:
         cmd = ["diff", "--color=always"]
-        if file_info.status.startswith("branch_"):
+        if file_info.status in (FileStatus.BRANCH_MODIFIED, FileStatus.BRANCH_ADDED):
             cmd.append(f"origin/{self.default_branch}")
         cmd.extend(["--", file_info.path])
 
@@ -405,6 +419,78 @@ class CodeReviewer:
             return scroll_position + display_lines
         return self.next_file(file_info)
 
+    def _handle_toggle_timer(
+        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        self.timer_disabled = not self.timer_disabled
+        return scroll_position, timer_duration, False
+
+    def _handle_next_file(
+        self, file_info: FileToReview, _scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        return self.next_file(file_info), timer_duration, False
+
+    def _handle_prev_file(
+        self, _file_info: FileToReview, _scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        if self.current_index > 0:
+            self.current_index -= 1
+        return 0, timer_duration, False
+
+    def _handle_ignore_file(
+        self, file_info: FileToReview, _scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        self.ignored_files.add(file_info.path)
+        self.save_ignored_files()
+        return self.next_file(file_info, review_file=False), timer_duration, False
+
+    def _handle_scroll_down(
+        self, file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        max_lines = self.get_file_line_count(file_info)
+        display_lines = self.get_display_lines()
+        if self.can_scroll_down(scroll_position, max_lines):
+            return scroll_position + display_lines, timer_duration, False
+        return scroll_position, timer_duration, False
+
+    def _handle_scroll_up(
+        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        display_lines = self.get_display_lines()
+        if scroll_position > 0:
+            return max(0, scroll_position - display_lines), timer_duration, False
+        return scroll_position, timer_duration, False
+
+    def _handle_edit_file(
+        self, file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        if file_info.is_new:
+            editor = os.environ.get("EDITOR", "nano")
+            subprocess.run([editor, file_info.path])
+            self.invalidate_content_cache(file_info)
+        return scroll_position, timer_duration, False
+
+    def _handle_quit(
+        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        return scroll_position, timer_duration, True
+
+    def _handle_auto_advance(
+        self, file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        if not self.timer_disabled:
+            return (
+                self.maybe_scroll_down_or_next(file_info, scroll_position),
+                timer_duration,
+                False,
+            )
+        return scroll_position, timer_duration, False
+
+    def _handle_noop(
+        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        return scroll_position, timer_duration, False
+
     def handle_choice(
         self,
         choice: str,
@@ -412,53 +498,12 @@ class CodeReviewer:
         scroll_position: int,
         timer_duration: int,
     ) -> Tuple[int, int, bool]:
-        if choice == "t":
-            self.timer_disabled = not self.timer_disabled
-            return scroll_position, timer_duration, False
-
-        if choice == "l":
-            return self.next_file(file_info), timer_duration, False
-
-        if choice == "h":
-            if self.current_index > 0:
-                self.current_index -= 1
-            return 0, timer_duration, False
-
-        if choice == "i":
-            self.ignored_files.add(file_info.path)
-            self.save_ignored_files()
-            return self.next_file(file_info, review_file=False), timer_duration, False
-
-        if choice == "j":
-            max_lines = self.get_file_line_count(file_info)
-            display_lines = self.get_display_lines()
-            if self.can_scroll_down(scroll_position, max_lines):
-                return scroll_position + display_lines, timer_duration, False
-            return scroll_position, timer_duration, False
-
-        if choice == "k":
-            display_lines = self.get_display_lines()
-            if scroll_position > 0:
-                return max(0, scroll_position - display_lines), timer_duration, False
-            return scroll_position, timer_duration, False
-
-        if choice == "e" and file_info.is_new:
-            editor = os.environ.get("EDITOR", "nano")
-            subprocess.run([editor, file_info.path])
-            self.invalidate_content_cache(file_info)
-            return scroll_position, timer_duration, False
-
-        if choice == "q":
-            return scroll_position, timer_duration, True
-
-        if choice == "auto" and not self.timer_disabled:
-            return self.maybe_scroll_down_or_next(file_info, scroll_position), timer_duration, False
-
-        if choice == " ":
-            return scroll_position, timer_duration, False
-
         if choice.isdigit() and "1" <= choice <= "9":
             return scroll_position, int(choice), False
+
+        handler = self.choice_handlers.get(choice)
+        if handler:
+            return handler(file_info, scroll_position, timer_duration)
 
         return scroll_position, timer_duration, False
 
