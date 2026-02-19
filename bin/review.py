@@ -26,6 +26,7 @@ class FileStatus(str, Enum):
     ADDED = "added"
     BRANCH_MODIFIED = "branch_modified"
     BRANCH_ADDED = "branch_added"
+    SUMMARY = "summary"
 
 
 STATUS_LABELS = {
@@ -33,6 +34,7 @@ STATUS_LABELS = {
     FileStatus.ADDED: "🆕 New file (uncommitted)",
     FileStatus.BRANCH_MODIFIED: "📝 Modified (vs main)",
     FileStatus.BRANCH_ADDED: "🆕 New file (vs main)",
+    FileStatus.SUMMARY: "📊 Branch Summary",
 }
 
 
@@ -76,6 +78,7 @@ class CodeReviewer:
             "j": self._handle_scroll_down,
             "k": self._handle_scroll_up,
             "e": self._handle_edit_file,
+            "s": self._handle_show_summary,
             "q": self._handle_quit,
             "auto": self._handle_auto_advance,
             " ": self._handle_noop,
@@ -254,9 +257,88 @@ class CodeReviewer:
             )
         return files
 
+    def get_deleted_files(self) -> List[str]:
+        """Get all deleted files from branch compared to default branch."""
+        deleted_files: List[str] = []
+        try:
+            result = self._run_git(
+                [
+                    "diff",
+                    "--name-status",
+                    "--diff-filter=D",
+                    f"origin/{self.default_branch}",
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError:
+            return deleted_files
+
+        for line in result.stdout.splitlines():
+            if not line:
+                continue
+
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+
+            status_code = parts[0]
+            if status_code == "D":
+                file_path = parts[-1]
+                deleted_files.append(file_path)
+
+        return deleted_files
+
+    def get_new_files(self) -> List[str]:
+        """Get all new files from working tree and branch."""
+        new_files: List[str] = []
+
+        # Get new files from working tree
+        try:
+            result = self._run_git(["status", "--porcelain"], check=True)
+            for line in result.stdout.splitlines():
+                if len(line) < 4:
+                    continue
+                status_code = line[:2]
+                if status_code[1] == "?" or status_code[0] == "A":
+                    file_path = line[3:]
+                    new_files.append(file_path)
+        except subprocess.CalledProcessError:
+            pass
+
+        # Get new files from branch
+        try:
+            result = self._run_git(
+                [
+                    "diff",
+                    "--name-status",
+                    "--diff-filter=A",
+                    f"origin/{self.default_branch}",
+                ],
+                check=True,
+            )
+            for line in result.stdout.splitlines():
+                if not line:
+                    continue
+                parts = line.split("\t")
+                if len(parts) < 2:
+                    continue
+                status_code = parts[0]
+                if status_code == "A":
+                    file_path = parts[-1]
+                    if file_path not in new_files:
+                        new_files.append(file_path)
+        except subprocess.CalledProcessError:
+            pass
+
+        return new_files
+
     def should_review(self, file_info: FileToReview) -> bool:
         if file_info.path in self.ignored_files:
             return False
+
+        # Summary screen is handled separately
+        if self.is_summary_screen(file_info):
+            return True
 
         file_sha256 = self.calculate_file_sha256(file_info.path)
         cached_sha256 = self.reviewed_files.get(file_info.path)
@@ -268,6 +350,16 @@ class CodeReviewer:
         files.extend(self.parse_branch_files(seen_paths))
 
         self.files_to_review = [f for f in files if self.should_review(f)]
+
+        # Add summary screen at the beginning if needed
+        if self.should_show_summary():
+            summary_file = FileToReview(
+                path="__summary__",
+                status=FileStatus.SUMMARY,
+                is_new=False
+            )
+            self.files_to_review.insert(0, summary_file)
+
         if not self.files_to_review:
             print("No files to review!")
             return False
@@ -278,6 +370,9 @@ class CodeReviewer:
 
     def is_new_file(self, file_info: FileToReview) -> bool:
         return file_info.is_new or file_info.status == FileStatus.BRANCH_ADDED
+
+    def is_summary_screen(self, file_info: FileToReview) -> bool:
+        return file_info.status == FileStatus.SUMMARY
 
     def cache_key(self, file_info: FileToReview) -> Tuple[str, str]:
         return (file_info.path, file_info.status.value)
@@ -291,7 +386,9 @@ class CodeReviewer:
             return self.content_cache[key]
 
         lines: List[str]
-        if self.is_new_file(file_info):
+        if self.is_summary_screen(file_info):
+            lines = self.get_summary_lines()
+        elif self.is_new_file(file_info):
             full_path = self.resolve_file_path(file_info.path)
             if not os.path.exists(full_path):
                 lines = []
@@ -302,6 +399,35 @@ class CodeReviewer:
             lines = self.get_diff_lines(file_info)
 
         self.content_cache[key] = lines
+        return lines
+
+    def get_summary_lines(self) -> List[str]:
+        """Generate summary content as lines for display."""
+        lines = []
+        new_files = self.get_new_files()
+        deleted_files = self.get_deleted_files()
+
+        lines.append("")
+        if new_files:
+            lines.append(f"🆕 New Files ({len(new_files)}):")
+            lines.append("")
+            for file_path in sorted(new_files):
+                lines.append(f"  + {file_path}")
+            lines.append("")
+        else:
+            lines.append("🆕 New Files: None")
+            lines.append("")
+
+        if deleted_files:
+            lines.append(f"🗑️  Deleted Files ({len(deleted_files)}):")
+            lines.append("")
+            for file_path in sorted(deleted_files):
+                lines.append(f"  - {file_path}")
+            lines.append("")
+        else:
+            lines.append("🗑️  Deleted Files: None")
+            lines.append("")
+
         return lines
 
     def get_diff_lines(self, file_info: FileToReview) -> List[str]:
@@ -328,10 +454,13 @@ class CodeReviewer:
         return max_lines > display_lines and scroll_position + display_lines < max_lines
 
     def mark_file_reviewed(self, file_info: FileToReview):
-        file_sha256 = self.calculate_file_sha256(file_info.path)
-        if file_sha256:
-            self.reviewed_files[file_info.path] = file_sha256
-            self.save_reviewed_files()
+        if self.is_summary_screen(file_info):
+            self.mark_summary_reviewed()
+        else:
+            file_sha256 = self.calculate_file_sha256(file_info.path)
+            if file_sha256:
+                self.reviewed_files[file_info.path] = file_sha256
+                self.save_reviewed_files()
 
     def next_file(self, file_info: FileToReview, review_file: bool = True) -> int:
         if review_file:
@@ -340,16 +469,21 @@ class CodeReviewer:
         return 0
 
     def print_header(self, file_info: FileToReview, chunk_info: str):
-        print(
-            f"\n📁 File {self.current_index + 1}/{len(self.files_to_review)}: {file_info.path}{chunk_info}"
-        )
-        print(f"📊 Status: {STATUS_LABELS.get(file_info.status, file_info.status)}")
+        if self.is_summary_screen(file_info):
+            print(
+                f"\n📊 Branch Summary ({self.current_index + 1}/{len(self.files_to_review)}): {self.branch_name} vs {self.default_branch}{chunk_info}"
+            )
+        else:
+            print(
+                f"\n📁 File {self.current_index + 1}/{len(self.files_to_review)}: {file_info.path}{chunk_info}"
+            )
+            print(f"📊 Status: {STATUS_LABELS.get(file_info.status, file_info.status)}")
         print("─" * min(self.terminal_width, 80))
         print()
 
     def print_footer(self, file_info: FileToReview, timer_duration: int):
         print("\n" + "─" * min(self.terminal_width, 80))
-        controls = "h)prev  l)next  i)gnore  j/k)scroll  space)pause  1-9)timer  t)toggle-timer  q)uit"
+        controls = "h)prev  l)next  i)gnore  j/k)scroll  s)ummary  space)pause  1-9)timer  t)toggle-timer  q)uit"
         if file_info.is_new:
             controls += "  e)dit"
 
@@ -415,11 +549,13 @@ class CodeReviewer:
         total_lines = len(lines)
         total_chunks = max(1, (total_lines + max_lines - 1) // max_lines)
         current_chunk = (start_line // max_lines) + 1
-        chunk_info = f" [Chunk {current_chunk} of {total_chunks}]"
+        chunk_info = f" [Chunk {current_chunk} of {total_chunks}]" if total_chunks > 1 else ""
 
         self.print_header(file_info, chunk_info)
 
-        if self.is_new_file(file_info):
+        if self.is_summary_screen(file_info):
+            has_content = self.show_summary_content(lines, start_line, max_lines)
+        elif self.is_new_file(file_info):
             has_content = self.show_new_file_content(
                 file_info, start_line, max_lines, lines
             )
@@ -432,6 +568,40 @@ class CodeReviewer:
 
         self.print_footer(file_info, timer_duration)
         return has_content
+
+    def show_summary_content(
+        self, lines: List[str], start_line: int, max_lines: int
+    ) -> bool:
+        """Display summary screen content."""
+        display_lines = lines[start_line : start_line + max_lines]
+        if not display_lines:
+            return False
+        for line in display_lines:
+            print(line)
+        return True
+
+    def calculate_summary_hash(self, new_files: List[str], deleted_files: List[str]) -> str:
+        """Calculate a hash of the new and deleted files list."""
+        combined = sorted(new_files) + ["---DELETED---"] + sorted(deleted_files)
+        content = "\n".join(combined)
+        return hashlib.sha256(content.encode()).hexdigest()
+
+    def should_show_summary(self) -> bool:
+        """Check if the summary screen should be shown based on hash."""
+        new_files = self.get_new_files()
+        deleted_files = self.get_deleted_files()
+        current_hash = self.calculate_summary_hash(new_files, deleted_files)
+        cached_hash = self.reviewed_files.get("__summary__")
+        return cached_hash is None or cached_hash != current_hash
+
+    def mark_summary_reviewed(self):
+        """Mark the current summary as reviewed by storing its hash."""
+        new_files = self.get_new_files()
+        deleted_files = self.get_deleted_files()
+        summary_hash = self.calculate_summary_hash(new_files, deleted_files)
+        self.reviewed_files["__summary__"] = summary_hash
+        self.save_reviewed_files()
+
 
     def read_choice(self, timer_duration: int) -> str:
         if self.timer_disabled:
@@ -468,6 +638,9 @@ class CodeReviewer:
     def _handle_ignore_file(
         self, file_info: FileToReview, _scroll_position: int, timer_duration: int
     ) -> Tuple[int, int, bool]:
+        # Can't ignore the summary screen
+        if self.is_summary_screen(file_info):
+            return 0, timer_duration, False
         self.ignored_files.add(file_info.path)
         self.save_ignored_files()
         return self.next_file(file_info, review_file=False), timer_duration, False
@@ -517,6 +690,17 @@ class CodeReviewer:
     def _handle_noop(
         self, _file_info: FileToReview, scroll_position: int, timer_duration: int
     ) -> Tuple[int, int, bool]:
+        return scroll_position, timer_duration, False
+
+    def _handle_show_summary(
+        self, _file_info: FileToReview, scroll_position: int, timer_duration: int
+    ) -> Tuple[int, int, bool]:
+        # Find summary in the review list
+        for i, file in enumerate(self.files_to_review):
+            if self.is_summary_screen(file):
+                self.current_index = i
+                return 0, timer_duration, False
+        # If not found, do nothing (summary was already reviewed)
         return scroll_position, timer_duration, False
 
     def handle_choice(
