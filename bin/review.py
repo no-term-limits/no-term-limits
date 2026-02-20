@@ -3,6 +3,7 @@
 Ergonomic code review script for reviewing branch changes and uncommitted files.
 """
 
+import argparse
 import hashlib
 import json
 import os
@@ -46,7 +47,7 @@ class FileToReview:
 
 
 class CodeReviewer:
-    def __init__(self):
+    def __init__(self, delete_cache: bool = False):
         self.terminal_height, self.terminal_width = self.get_terminal_size()
         self.current_index = 0
         self.files_to_review: List[FileToReview] = []
@@ -63,6 +64,13 @@ class CodeReviewer:
         branch_slug = self.branch_name.replace("/", "_")
         self.ignore_file = self.cache_dir / f"ignored_{branch_slug}.json"
         self.reviewed_file_cache = self.cache_dir / f"reviewed_{branch_slug}.json"
+
+        # Delete cache files if requested
+        if delete_cache:
+            if self.ignore_file.exists():
+                self.ignore_file.unlink()
+            if self.reviewed_file_cache.exists():
+                self.reviewed_file_cache.unlink()
 
         self.ignored_files = set(self._load_json(self.ignore_file, []))
         self.reviewed_files = self._load_json(self.reviewed_file_cache, {})
@@ -821,5 +829,16 @@ def get_single_char() -> str:
 
 
 if __name__ == "__main__":
-    reviewer = CodeReviewer()
+    parser = argparse.ArgumentParser(
+        description="Ergonomic code review script for reviewing branch changes and uncommitted files."
+    )
+    parser.add_argument(
+        "-d",
+        "--delete-cache",
+        action="store_true",
+        help="Delete the cache files for this branch before starting the review",
+    )
+    args = parser.parse_args()
+
+    reviewer = CodeReviewer(delete_cache=args.delete_cache)
     reviewer.run_review()
