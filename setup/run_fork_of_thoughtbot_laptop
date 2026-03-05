@@ -39,6 +39,49 @@ function ubuntu_greater_than_18_04() {
   [[ "$ubuntu_version" -gt "1804" ]]
 }
 
+function ubuntu_greater_than_or_equal_24_04() {
+  ubuntu_version="$(lsb_release -sr | sed 's/\.//')"
+  [[ "$ubuntu_version" -ge "2404" ]]
+}
+
+function install_neovim_for_modern_ubuntu() {
+  if ! ubuntu_greater_than_or_equal_24_04; then
+    return
+  fi
+
+  if command -v nvim >/dev/null; then
+    return
+  fi
+
+  local machine_arch
+  machine_arch="$(uname -m)"
+  local nvim_arch=''
+  case "$machine_arch" in
+    x86_64)
+      nvim_arch='x86_64'
+      ;;
+    aarch64|arm64)
+      nvim_arch='arm64'
+      ;;
+    *)
+      echo "Skipping Neovim install: unsupported architecture '$machine_arch'"
+      return
+      ;;
+  esac
+
+  local nvim_tarball="nvim-linux-${nvim_arch}.tar.gz"
+  local tmp_output="/tmp/nvim_$(date +%s)"
+  mkdir -p "$tmp_output"
+  pushd "$tmp_output"
+  curl -L --fail "https://github.com/neovim/neovim/releases/latest/download/${nvim_tarball}" -o "$nvim_tarball"
+  tar xzf "$nvim_tarball"
+  sudo rm -rf "/opt/nvim-linux-${nvim_arch}"
+  sudo mv "nvim-linux-${nvim_arch}" "/opt/nvim-linux-${nvim_arch}"
+  sudo ln -sf "/opt/nvim-linux-${nvim_arch}/bin/nvim" /usr/local/bin/nvim
+  popd
+  rm -rf "$tmp_output"
+}
+
 function update_shell() {
   if [[ "$SHELL" != *"$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
     local shell_path
@@ -403,10 +446,12 @@ else
     software-properties-common \
     sqlite3 \
     unzip \
-    vim-gtk \
+    vim-gtk3 \
     wget \
     zlib1g-dev \
     zsh
+
+  install_neovim_for_modern_ubuntu
 
   if ubuntu_greater_than_18_04; then
     if [[ "$NO_TERM_LIMITS_INSTALL_VIM_FROM_SOURCE" != "false" ]]; then

@@ -9,7 +9,55 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: install lazyvim
 
+no_term_limits_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+no_term_limits_rcrc="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
 lazyvim_config_dir="$HOME/.config/LazyVim"
+
+function rcrc_includes_no_term_limits() {
+  local rcrc_file="$1"
+  [[ -f "$rcrc_file" ]] || return 1
+  grep -Fq "${no_term_limits_directory}/dotfiles_no_term_limits" "$rcrc_file"
+}
+
+function ensure_rcrc_is_configured() {
+  if [[ -n "${RCRC:-}" ]]; then
+    if [[ ! -f "$RCRC" ]]; then
+      echo >&2 "ERROR: RCRC is set but file does not exist: $RCRC"
+      exit 1
+    fi
+    if ! rcrc_includes_no_term_limits "$RCRC"; then
+      echo >&2 "ERROR: RCRC does not reference no-term-limits dotfiles: $RCRC"
+      echo >&2 "Expected to include: ${no_term_limits_directory}/dotfiles_no_term_limits"
+      exit 1
+    fi
+    return
+  fi
+
+  if [[ -f "$HOME/.rcrc" ]] && rcrc_includes_no_term_limits "$HOME/.rcrc"; then
+    export RCRC="$HOME/.rcrc"
+    return
+  fi
+
+  # Deterministic fallback for standalone script runs.
+  export RCRC="$no_term_limits_rcrc"
+}
+
+function assert_lazyvim_overrides_linked() {
+  local expected_target="${no_term_limits_directory}/dotfiles_no_term_limits/config/LazyVim/lua/config/lazy.lua"
+  local current_link="${lazyvim_config_dir}/lua/config/lazy.lua"
+
+  if [[ ! -L "$current_link" ]]; then
+    echo >&2 "ERROR: Expected LazyVim override symlink is missing: $current_link"
+    exit 1
+  fi
+
+  if [[ "$(readlink -f "$current_link")" != "$expected_target" ]]; then
+    echo >&2 "ERROR: LazyVim override symlink is not pointing at no-term-limits config."
+    echo >&2 "Expected: $expected_target"
+    echo >&2 "Actual:   $(readlink -f "$current_link")"
+    exit 1
+  fi
+}
 
 if [[ ! -d "${lazyvim_config_dir}/.git" ]]; then
   if [[ -d "$lazyvim_config_dir" ]]; then
@@ -18,7 +66,9 @@ if [[ ! -d "${lazyvim_config_dir}/.git" ]]; then
   git clone https://github.com/LazyVim/starter "$lazyvim_config_dir"
 
   # set up lazyvim customizations via symlinks to no-term-limits/dotfiles_no_term_limits/config/LazyVim
+  ensure_rcrc_is_configured
   rcup -K
+  assert_lazyvim_overrides_linked
 fi
 
 # neovim switcher
