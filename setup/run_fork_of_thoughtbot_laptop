@@ -177,6 +177,11 @@ function install_asdf_language() {
 
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"
+  fi
+
+  # Global language pins in $HOME are opt-in so project tooling does not
+  # unexpectedly drag in languages like Ruby during unrelated commands.
+  if [[ "${NO_TERM_LIMITS_INSTALL_GLOBAL_ASDF_LANGUAGES:-}" == "1" ]]; then
     asdf global "$language" "$version"
   fi
 }
