@@ -11,6 +11,7 @@
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import time
 import webbrowser
@@ -175,9 +176,9 @@ def resolve_session_id_from_args(session_ref: str) -> str:
     if session_info:
         info_str = format_session_info(session_info)
         if info_str:
-            console.print(f"[green]Session #{session_ref}: {info_str}[/green]")
+            click.echo(f"Session #{session_ref}: {info_str}", err=True)
         else:
-            console.print(f"[green]Session #{session_ref}: {session_id}[/green]")
+            click.echo(f"Session #{session_ref}: {session_id}", err=True)
     
     return session_id
 
@@ -190,7 +191,8 @@ def get_sources() -> list:
 
 def print_json(data):
     """Pretty print JSON data."""
-    console.print(json.dumps(data, indent=2))
+    json.dump(data, sys.stdout, indent=2)
+    sys.stdout.write("\n")
 
 
 def list_repos():
