@@ -278,7 +278,7 @@ if file_exists(nodejs_program_for_github_copilot) then
   vim.g["copilot_node_command"] = nodejs_program_for_github_copilot
 end
 
--- disable ale augroup from thoughtbot/dotfiles
+-- disable the base ALE augroup
 vim.api.nvim_exec(
   [[
   autocmd! ale
