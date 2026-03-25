@@ -33,7 +33,6 @@
     no_term_limits_kubecontext
     # os_icon               # os identifier
     dir                     # current directory
-    asdf                    # asdf version manager (https://github.com/asdf-vm/asdf)
     vcs                     # git status
     context
     # status                  # exit code of the last command

@@ -53,11 +53,6 @@ fi
 initial_directory="$PWD"
 no_term_limits_directory="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits"
 
-# this breaks the add_or_update_asdf_plugin in the mac_install script from thoughtbot,
-# making it so asdf plugins are always added instead of being updated when they
-# are already installed.
-# set -o pipefail
-
 mkdir -p /var/tmp/no_term_limits_setup
 
 set -x
@@ -132,15 +127,6 @@ function determine_os() {
   esac
 }
 
-function assert_asdf_is_installed_and_loaded() {
-  if [[ -f ~/.asdf/asdf.sh ]]; then
-    source ~/.asdf/asdf.sh
-  else
-    echo "ERROR: asdf was not installed successfully by https://github.com/thoughtbot/laptop. check ~/laptop.log for errors"
-    exit 1
-  fi
-}
-
 function add_no_term_limits_bin_to_path() {
   export PATH="${no_term_limits_directory}/bin:$PATH"
 }
@@ -195,7 +181,7 @@ if is_mac ; then
   done
 fi
 
-if [[ "$NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT" != "false" ]]; then
+if [[ "${NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT:-true}" != "false" ]]; then
   "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
 fi
 
@@ -206,8 +192,6 @@ if is_mac ; then
     export PATH="/opt/homebrew/bin:$PATH"
   fi
 fi
-
-assert_asdf_is_installed_and_loaded
 
 # one time it felt like this file got out of date.
 if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then

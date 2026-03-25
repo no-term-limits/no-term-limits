@@ -30,7 +30,6 @@ elif ! grep -qE '^(zsh|bash)$' <<<"$NO_TERM_LIMITS_PREFERRED_SHELL"; then
   exit 1
 fi
 
-asdf_branch_name='v0.9.0'
 vim_version='8.2.3768'
 HOMEBREW_PREFIX="/usr/local"
 
@@ -155,37 +154,6 @@ function get_additional_apt_keys() {
   fi
 }
 
-function add_or_update_asdf_plugin() {
-  local name="$1"
-  local url="$2"
-
-  if ! asdf plugin-list | grep -Fq "$name"; then
-    asdf plugin-add "$name" "$url"
-  else
-    asdf plugin-update "$name"
-  fi
-}
-
-function install_asdf_language() {
-  local language="$1"
-  local version
-
-  # FIXME: 17.7.0 seems to be broken with the newest nodejs plugin. It sometimes lists the version
-  # with: "asdf list-all nodejs" but gives the error "node-build: definition not found: 17.7.0"
-  # when trying to install it so avoid it for now
-  version="$(asdf list-all "$language" | grep -v "[a-z]" | grep -vE "17\.7" | tail -1)"
-
-  if ! asdf list "$language" | grep -Fq "$version"; then
-    asdf install "$language" "$version"
-  fi
-
-  # Global language pins in $HOME are opt-in so project tooling does not
-  # unexpectedly drag in languages like Ruby during unrelated commands.
-  if [[ "${NO_TERM_LIMITS_INSTALL_GLOBAL_ASDF_LANGUAGES:-}" == "1" ]]; then
-    asdf global "$language" "$version"
-  fi
-}
-
 function add_user_to_docker_group() {
   local username_of_current_user
   username_of_current_user="$(whoami)"
@@ -194,18 +162,6 @@ function add_user_to_docker_group() {
     if ! grep -qw "docker" <<<"$groups_for_user"; then
       sudo usermod -a -G docker "$username_of_current_user"
     fi
-  fi
-}
-
-function set_number_of_cores_for_bundler() {
-  if is_mac; then
-    number_of_cores=$(sysctl -n hw.ncpu)
-  elif [[ -f /proc/cpuinfo ]]; then
-    number_of_cores=$(grep -c processor /proc/cpuinfo)
-  fi
-
-  if [[ -n "$number_of_cores" ]]; then
-    bundle config --global jobs $((number_of_cores - 1))
   fi
 }
 
@@ -409,10 +365,6 @@ EOF
 
   install_kubectl
 
-  if grep -q "asdf" /tmp/brew_list; then
-    echo 'asdf should be installed in ~/.asdf by the thoughtbot laptop setup script, so uninstalling from homebrew'
-    brew uninstall asdf
-  fi
 else
   sudo apt-get update
   # automake so we can sh autogen.sh to install tmux below
@@ -514,22 +466,3 @@ case "$SHELL" in
   update_shell
   ;;
 esac
-
-echo "Configuring asdf version manager ..."
-if [ ! -d "$HOME/.asdf" ]; then
-  git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch "$asdf_branch_name"
-fi
-
-if [[ "$NO_TERM_LIMITS_INSTALL_ASDF_LANGUAGES" != "false" ]]; then
-  source "$HOME/.asdf/asdf.sh"
-  add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
-  add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
-
-  echo "Installing latest Ruby ..."
-  install_asdf_language "ruby"
-  gem update --system
-  set_number_of_cores_for_bundler
-
-  echo "Installing latest Node ..."
-  install_asdf_language "nodejs"
-fi
