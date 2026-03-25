@@ -105,11 +105,29 @@ function c() {
   cd "$dir"
 }
 
+function standard_git_prompt_info() {
+  local branch_name
+  local dirty_marker=''
+
+  branch_name=$(git_branch 2> /dev/null)
+  if [[ -z "$branch_name" ]]; then
+    return 0
+  fi
+
+  if [[ -n "$(git status --porcelain 2> /dev/null)" ]]; then
+    dirty_marker='*'
+  fi
+
+  echo " (${branch_name}${dirty_marker})"
+}
+
 function git_super_status_with_fallback() {
+  local current_branch
+
   current_branch=$(git_branch 2> /dev/null)
   if [[ -n $current_branch ]]; then
     if ! git_super_status 2>/dev/null; then
-      git_prompt_info
+      standard_git_prompt_info
     fi
   fi
 }
