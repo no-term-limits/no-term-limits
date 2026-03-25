@@ -81,10 +81,8 @@ function is_mac() {
 # https://unix.stackexchange.com/a/135090
 function generate_ssh_key_pair_if_needed() {
   if [[ ! -f "$HOME/.ssh/id_rsa" ]]; then
-    # exits with a bad exit status when it creates the key if pipefail is set
-    set +o pipefail
-    cat /dev/zero | ssh-keygen -q -N "" > /dev/null
-    set -o pipefail
+    mkdir -p "$HOME/.ssh"
+    ssh-keygen -q -N "" -f "$HOME/.ssh/id_rsa" </dev/null > /dev/null
   fi
 }
 
