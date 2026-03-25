@@ -134,16 +134,6 @@ function determine_os() {
   esac
 }
 
-function get_thoughtbot_dotfiles() {
-  if [[ ! -d "$HOME/dotfiles" ]]; then
-    git clone https://github.com/thoughtbot/dotfiles.git "${HOME}/dotfiles"
-  else
-    cd "${HOME}/dotfiles"
-    git pull
-    cd "$initial_directory"
-  fi
-}
-
 function assert_asdf_is_installed_and_loaded() {
   if [[ -f ~/.asdf/asdf.sh ]]; then
     source ~/.asdf/asdf.sh
@@ -195,7 +185,6 @@ generate_ssh_key_pair_if_needed
 "${no_term_limits_directory}/bin/sudo_start_executing_commands_with_no_password"
 
 set_up_github_repos
-get_thoughtbot_dotfiles
 
 if is_mac ; then
   # sudo chown -R "$(whoami)" /usr/local/*

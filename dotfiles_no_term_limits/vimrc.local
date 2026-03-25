@@ -52,7 +52,7 @@ nnoremap <C-l> <C-W>l
 
 
 " Leader mappings. Note that <leader> is the backslash key by default, and is
-" overriden to be the Space key by thoughtbot/dotfiles
+" overriden to be the Space key by the base vim config
 
 " fuzzy finding from fzf.vim. had been CtrlP.vim plugin
 nnoremap <leader>f :Files<CR>
@@ -277,7 +277,7 @@ fun! Run_run_in_tmux_pane_ProgramInTmuxPane() "{{{
 endfunction "}}}
 autocmd BufWritePost * cal Run_run_in_tmux_pane_ProgramInTmuxPane()
 
-" Some folks are not huge fans of the "Get off my lawn" settings in thoughtbot dotfiles
+" Some folks are not huge fans of the stricter defaults in the base vim config
 nnoremap <Left> <Left>
 nnoremap <Right> <Right>
 nnoremap <Up> <Up>
@@ -306,7 +306,7 @@ command! OpenLastFailedTestFile call OpenLastFailedTestFile()
 let g:fzf_layout = { 'down': '40%' }
 
 
-" remove mappings from thoughtbot/dotfiles
+" remove mappings from the base vim config
 if ! empty(maparg('<leader>t', 'n'))
 nunmap <silent> <leader>t
 endif
@@ -428,7 +428,7 @@ let g:which_key_map.s.c = 'commits'
 
 let g:which_key_map.v = {
       \ 'name' : '+vimrc' ,
-      \ 'v' : [':edit $MYVIMRC'                                                    , '(vimrc, loaded #1) edit $MYVIMRC (thoughtbot dotfiles, ~/.vimrc)'],
+      \ 'v' : [':edit $MYVIMRC'                                                    , '(vimrc, loaded #1) edit $MYVIMRC (~/.vimrc)'],
       \ 'n' : [':edit ~/.vimrc.local'                                              , '(no-term, #2) edit ~/.vimrc.local'],
       \ 'o' : [':edit ~/.vimrc.no_term_limits_overrides'                           , '(overrides of no-term, #3) edit ~/.vimrc.no_term_limits_overrides'],
       \ 's' : [':source $MYVIMRC'                                                  , 'source $MYVIMRC'],
@@ -540,7 +540,7 @@ endfunction
 "initialize the generateUUID function here and map it to a local command
 noremap <Leader>rg :call GenerateUUID()<CR>
 
-" Ignores stuff in ~/dotfiles/vim/plugin/ctags.vim
+" Ignores redundant ctags plugin configuration
 nmap <leader>ra :!ctags -R --exclude=.mypy_cache --exclude=.nox<cr>
 nmap <leader>rG :grep! "\b<C-R><C-W>\b"<CR>:cw<CR>
 let g:which_key_map.r = { 'name' : '+run' }
@@ -592,7 +592,7 @@ let g:which_key_localleader_map.e.w = 'open file in same directory'
 " tcomment_vim mappings, meh
 let g:which_key_map['_'] = { 'name': 'which_key_ignore' }
 
-" FIXME: remove once https://github.com/thoughtbot/dotfiles/pull/684 is merged
+" FIXME: remove once this workaround is no longer needed
 " but for now, ignore the ctags mapping on ct
 " UPDATE: now being used for cheat sheet shortcuts (see above)
 " let g:which_key_map.c = { 'name': 'which_key_ignore' }

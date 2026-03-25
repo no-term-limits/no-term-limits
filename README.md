@@ -12,7 +12,7 @@ no-term[inal]-limits
 
 ## What is going on here?
 
-This is a dotfiles setup and a bunch of programs that we find useful. It "inherits" from and extends https://github.com/thoughtbot/dotfiles and is itself extendable, since it uses https://github.com/thoughtbot/rcm.
+This is a dotfiles setup and a bunch of programs that we find useful. It is self-contained and extendable, since it uses https://github.com/thoughtbot/rcm.
 
 ## Install
 

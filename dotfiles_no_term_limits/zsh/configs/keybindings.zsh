@@ -1,4 +1,4 @@
-# nothing. this just overrides to obliterate the functionality in the same file in thoughtbot/dotfiles,
+# nothing. this just overrides to obliterate the functionality in the older shared keybindings file,
 # mostly because stty -ixon on the first line throws stderr to the terminal, which causes this issue:
 
 # [WARNING]: Console output during zsh initialization detected.
@@ -43,7 +43,7 @@
 # stty: stdin isn't a terminal
 # ================================================
 #
-# the only difference from the original thoughtbot/dotfiles file
+# the only difference from the earlier shared file
 # is that we have stty -ixon commented out since it throws stdout or stderr to the terminal
 # give us access to ^Q
 # stty -ixon

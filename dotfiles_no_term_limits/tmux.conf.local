@@ -1,5 +1,5 @@
-##################### START thoughtbot/dotfiles/tmux.conf
-# Except that we removed the source line at the end
+##################### START bundled tmux base config
+##################### adapted into no-term-limits
 
 # improve colors
 set -g default-terminal 'screen-256color'
@@ -69,10 +69,9 @@ bind-key C-s send-prefix -2
 # don't suspend-client
 unbind-key C-z
 
-##################### END thoughtbot/dotfiles/tmux.conf, except for we removed the source
+##################### END bundled tmux base config
 
-# since we copied and pasted in the contents of this file above, this isn't necessary:
-# if-shell "[ -f ~/dotfiles/tmux.conf ]" 'source ~/dotfiles/tmux.conf'
+# base tmux configuration now lives in this repo
 
 # https://unix.stackexchange.com/a/622211/456630
 # to avoid having to ctrl+s shift+r all the time
@@ -82,8 +81,7 @@ setw -g aggressive-resize on
 set-window-option -g main-pane-width 150
 
 # https://superuser.com/questions/343572/how-do-i-reorder-tmux-windows
-# capital T sends current window to "top", and thoughtbot's dotfiles
-# have changed top from 0 to 1
+# capital T sends current window to "top", and this config uses 1 as the first window index
 bind-key T swap-window -t 1
 
 # fix the size so it does not resize when different people type

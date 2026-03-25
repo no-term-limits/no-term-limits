@@ -243,10 +243,10 @@ if command -v setopt > /dev/null; then
   setopt HISTIGNORESPACE
   setopt rm_star_silent
 
-  # from thoughtbot/dotfiles/zsh/configs/prompt.zsh:
+  # based on a standard zsh prompt pattern:
   #  PS1='${SSH_CONNECTION+"%{$fg_bold[green]%}%n@%m:"}%{$fg_bold[blue]%}%c%{$reset_color%}$(git_prompt_info) %# '
 
-  # this prompt is different from thoughtbot/dotfiles default in that it:
+  # this prompt is different from the older default in that it:
   ## uses shrink_path, copied from https://github.com/robbyrussell/oh-my-zsh/blob/master/plugins/shrink-path/shrink-path.plugin.zsh into bin
   ## uses git_super_status_with_fallback, which prefers git_super_status over git_prompt_info, if available
   ## adds the exit status of the last command, per https://stackoverflow.com/questions/4466245/customize-zshs-prompt-when-displaying-previous-command-exit-code

@@ -1,0 +1,2 @@
+[[ -f ~/.aliases.local ]] && source ~/.aliases.local
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
