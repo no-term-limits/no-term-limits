@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -o nounset -o pipefail
+
+overmind start "$@"
+status=$?
+rm -f .overmind.sock
+exit "$status"
