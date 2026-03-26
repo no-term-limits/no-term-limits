@@ -2,6 +2,8 @@
 
 set -o nounset -o pipefail
 
+# https://github.com/DarthSim/overmind/issues/50
+
 overmind start "$@"
 status=$?
 rm -f .overmind.sock
