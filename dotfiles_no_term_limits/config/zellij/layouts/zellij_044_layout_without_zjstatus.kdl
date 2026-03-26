@@ -1,0 +1,116 @@
+
+layout {
+  cwd "${HOME}/projects/github/sartography"
+
+  default_tab_template {
+      // the default zellij tab-bar and status bar plugins
+      pane size=1 borderless=true {
+          plugin location="zellij:tab-bar"
+      }
+      children
+      pane size=2 borderless=true {
+          plugin location="zellij:status-bar"
+      }
+  }
+  // default_tab_template {
+  //   // Default tabs:
+  //   // pane size=1 borderless=true {
+  //   //   plugin location="zellij:compact-bar"
+  //   // }
+  //   pane size=1 borderless=true {
+  //     plugin location="https://github.com/dj95/zjstatus/releases/latest/download/zjstatus.wasm" {
+  //       format_left  "#[fg=#FFFFFF,bold] {session} {mode} {tabs}"
+  //       format_right "#[bg=#8A8A8A,fg=#000000]#[bg=#8A8A8A,fg=#000000,bold]{command_pair_users}#[bg=#000000,fg=#8A8A8A]#[bg=#8A8A8A,fg=#000000]{command_kn}"
+  //
+  //        mode_locked "#[fg=#FF00D9,bold] {name} "
+  //        mode_normal "#[fg=#AFFF00,bold] {name} "
+  //        mode_resize "#[fg=#D75F00,bold] {name} "
+  //        mode_default_to_mode "resize"
+  //
+  //       tab_normal "#[bg=#8A8A8A,fg=#000000] #[bg=#8A8A8A,fg=#000000,bold]{name} {sync_indicator}{fullscreen_indicator}{floating_indicator} #[bg=#000000,fg=#8A8A8A]"
+  //       tab_active "#[bg=#AFFF00,fg=#000000] #[bg=#AFFF00,fg=#000000,bold]{name} {sync_indicator}{fullscreen_indicator}{floating_indicator} #[bg=#000000,fg=#AFFF00]"
+  //
+  //       tab_sync_indicator       " "
+  //       tab_fullscreen_indicator "□ "
+  //       tab_floating_indicator   "󰉈 "
+  //
+  //       border_enabled  "false"
+  //       hide_frame_for_single_pane "false"
+  //
+  //       command_pair_users_command "currently_connected_paired_users"
+  //       command_pair_users_format   "#[bg=#8A8A8A,fg=#053807,bold] {stdout} {stderr}"
+  //       command_pair_users_rendermode "static"
+  //       command_pair_users_interval    "10"
+  //
+  //       command_kn_command "kn_for_prompt"
+  //       command_kn_format   "#[bg=#8A8A8A,fg=#6E1101,bold] {stdout} {stderr}"
+  //       command_kn_rendermode "static"
+  //       command_kn_interval    "10"
+  //     }
+  //   }
+  //   children
+  //   pane size=1 borderless=true {
+  //     plugin location="status-bar"
+  //   }
+  // }
+
+  tab name="backend" cwd="spiff-arena/spiffworkflow-backend" {
+    pane split_direction="vertical" {
+      pane
+      pane
+    }
+  }
+
+  tab name="frontend" cwd="spiff-arena/spiffworkflow-frontend" {
+    pane split_direction="vertical" {
+      pane
+      pane
+    }
+  }
+
+  tab name="sample-civitos" {
+    pane split_direction="horizontal" {
+      pane split_direction="vertical" {
+        pane cwd="sample-process-models"
+        pane cwd="sample-process-models"
+      }
+      pane split_direction="vertical" {
+        pane cwd="civitos-process-models"
+        pane cwd="civitos-process-models"
+      }
+    }
+  }
+
+  tab name="infra-onboarding" {
+    pane split_direction="horizontal" {
+      pane split_direction="vertical" {
+        pane cwd="infra"
+        pane cwd="infra"
+      }
+      pane split_direction="vertical" {
+        pane cwd="onboarding"
+        pane cwd="onboarding"
+      }
+    }
+  }
+
+  tab name="civitos-api" cwd="../civitos/civitos/api" {
+    pane split_direction="vertical" {
+      pane
+      pane
+    }
+  }
+
+  tab name="civitos-app-terraform" {
+    pane split_direction="horizontal" {
+      pane split_direction="vertical" {
+        pane cwd="../civitos/civitos/app"
+        pane cwd="../civitos/civitos/app"
+      }
+      pane split_direction="vertical" {
+        pane cwd="../civitos/civitos/terraform"
+        pane cwd="../civitos/civitos/terraform"
+      }
+    }
+  }
+}
