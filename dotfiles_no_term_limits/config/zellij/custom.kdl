@@ -4,6 +4,7 @@
 auto_layout false
 show_startup_tips false
 // mouse_mode false
+copy_on_select false
 mirror_session true
 
 keybinds {
