@@ -25,11 +25,10 @@ fi
 MANIFEST="$DOTFILES_NVIM/plugins.json"
 PLUGIN_DIR="$NVIM_CONFIG/pack/plugins/start"
 
-echo "Installing to: $PLUGIN_DIR"
-echo "Using manifest: $MANIFEST"
-echo ""
-
 command_install() {
+  echo "Installing to: $PLUGIN_DIR"
+  echo "Using manifest: $MANIFEST"
+  echo ""
   echo "Installing plugins from manifest..."
   mkdir -p "$PLUGIN_DIR"
 
@@ -268,8 +267,111 @@ command_purge() {
   fi
 }
 
+# Doctor command - diagnose setup issues
+command_doctor() {
+  echo "vpm doctor - checking setup..."
+  echo ""
+
+  local issues=0
+
+  # Check nvim installation
+  if command -v nvim >/dev/null 2>&1; then
+    local nvim_version=$(nvim --version | head -1)
+    echo "✓ Neovim installed: $nvim_version"
+  else
+    echo "✗ Neovim not found in PATH"
+    ((issues++))
+  fi
+
+  # Check manifest exists
+  if [ -f "$MANIFEST" ]; then
+    echo "✓ Manifest found: $MANIFEST"
+  else
+    echo "✗ Manifest not found: $MANIFEST"
+    ((issues++))
+  fi
+
+  # Check ~/.config/nvim setup
+  if [ ! -e "$NVIM_CONFIG" ]; then
+    echo "✗ ~/.config/nvim does not exist"
+    echo "  → Run 'rcup -q' to set up symlinks"
+    ((issues++))
+  elif [ -L "$NVIM_CONFIG" ] && [ ! -L "$NVIM_CONFIG/init.lua" ]; then
+    # Whole directory is a symlink (BAD)
+    echo "✗ ~/.config/nvim is a single symlink to the repo"
+    echo "  → This puts pack/ in your git repo (wrong!)"
+    echo "  → Fix: rm ~/.config/nvim && rcup -q"
+    ((issues++))
+  elif [ -L "$NVIM_CONFIG/init.lua" ]; then
+    # Individual files are symlinked (GOOD)
+    echo "✓ ~/.config/nvim has individual file symlinks (correct)"
+  else
+    echo "⚠ ~/.config/nvim exists but setup unclear"
+  fi
+
+  # Check pack directory location
+  if [ -d "$DOTFILES_NVIM/pack" ]; then
+    echo "✗ pack/ directory found in git repo: $DOTFILES_NVIM/pack"
+    echo "  → This should NOT be in your repo"
+    echo "  → Fix: rm -rf $DOTFILES_NVIM/pack"
+    ((issues++))
+  else
+    echo "✓ pack/ not in git repo (correct)"
+  fi
+
+  if [ -d "$PLUGIN_DIR" ]; then
+    echo "✓ Plugin directory exists: $PLUGIN_DIR"
+
+    # Check a sample plugin has correct remote
+    if [ -d "$PLUGIN_DIR/telescope.nvim" ]; then
+      local remote=$(cd "$PLUGIN_DIR/telescope.nvim" && git remote get-url origin 2>/dev/null)
+      if [[ "$remote" == *"nvim-telescope/telescope.nvim"* ]]; then
+        echo "✓ Plugin git remotes look correct"
+      else
+        echo "✗ Plugin has wrong git remote: $remote"
+        echo "  → Plugins should point to their upstream repos"
+        echo "  → Fix: vpm purge && vpm i"
+        ((issues++))
+      fi
+    fi
+  else
+    echo "⚠ Plugin directory not found (run 'vpm i' to install)"
+  fi
+
+  # Check blink.cmp fuzzy library
+  if [ -d "$PLUGIN_DIR/blink.cmp" ]; then
+    local blink_lib=""
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      blink_lib="$PLUGIN_DIR/blink.cmp/lua/blink/cmp/fuzzy/rust.so"
+    else
+      blink_lib="$PLUGIN_DIR/blink.cmp/lua/blink/cmp/fuzzy/rust.so"
+    fi
+
+    if [ -f "$blink_lib" ] && [ ! -L "$blink_lib" ]; then
+      echo "✓ blink.cmp fuzzy library compiled"
+    elif [ -L "$blink_lib" ]; then
+      echo "✗ blink.cmp fuzzy library is a symlink (wrong!)"
+      echo "  → Fix: vpm purge && vpm i"
+      ((issues++))
+    else
+      echo "⚠ blink.cmp fuzzy library not found"
+      echo "  → Should auto-download on Mac (v1.10.1 has prebuilt binaries)"
+      echo "  → If missing: vpm build-blink"
+    fi
+  fi
+
+  # Summary
+  echo ""
+  if [ $issues -eq 0 ]; then
+    echo "✓ All checks passed!"
+  else
+    echo "Found $issues issue(s) that need attention"
+    exit 1
+  fi
+}
+
 # Main command dispatcher
-case "${1:-install}" in
+case "${1:-}" in
   install|i)
     command_install
     ;;
@@ -288,16 +390,24 @@ case "${1:-install}" in
   purge)
     command_purge
     ;;
+  doctor|d)
+    command_doctor
+    ;;
   *)
-    echo "Usage: $0 {install|update [plugin]|pin <plugin> <commit>|list|build-blink|purge}"
+    echo "vpm - vim package manager"
+    echo ""
+    echo "Usage: vpm <command> [args]"
     echo ""
     echo "Commands:"
     echo "  install (i)         Install all plugins from manifest"
-    echo "  update (u) [plugin] Update all plugins or specific plugin to latest"
+    echo "  list (l)            List installed plugins and versions"
+    echo "  update (u) [plugin] Update all or specific plugin to latest"
     echo "  pin (p) <name> <h>  Pin plugin to specific commit"
-    echo "  list (l)            List all plugins and their versions"
-    echo "  build-blink         Rebuild blink.cmp fuzzy matching library"
-    echo "  purge               Delete all plugins (follows symlinks)"
+    echo "  purge               Delete all plugins"
+    echo ""
+    echo "Troubleshooting:"
+    echo "  doctor (d)          Check setup and diagnose issues"
+    echo "  build-blink         Manually build blink.cmp (only if auto-download fails)"
     exit 1
     ;;
 esac

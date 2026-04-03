@@ -1,5 +1,1 @@
--- should not be necessary to disable, as it is an extra, but jason hates same-word highlight
-return {
-  "RRethy/vim-illuminate",
-  enabled = false,
-}
+/home/spiffuser/projects/github/no-term-limits/dotfiles_no_term_limits/config/LazyVim/lua/plugins/vim-illuminate.lua

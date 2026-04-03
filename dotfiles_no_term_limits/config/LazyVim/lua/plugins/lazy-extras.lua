@@ -1,3 +1,1 @@
--- Extras are loaded in lua/config/lazy.lua via { import = "config.lazy-extras" }
--- to satisfy LazyVim's import order checks.
-return {}
+/home/spiffuser/projects/github/no-term-limits/dotfiles_no_term_limits/config/LazyVim/lua/plugins/lazy-extras.lua

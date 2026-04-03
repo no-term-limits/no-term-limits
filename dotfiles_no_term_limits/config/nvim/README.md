@@ -25,11 +25,11 @@ v /tmp/test.py
 ```bash
 v file.py          # Open with this config
 vo file.py         # Open with old LazyVim config
+vpm                # Show help
 vpm i              # Install all plugins
 vpm l              # List installed
 vpm u              # Update all
-vpm u nvim-lint    # Update one plugin
-vpm build-blink    # If blink.cmp fuzzy not working (Mac/manual build)
+vpm d              # Check setup (diagnose issues)
 ```
 
 ## Features
