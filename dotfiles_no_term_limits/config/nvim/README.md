@@ -14,7 +14,11 @@ export PATH="$HOME/no-term-limits/bin:$PATH"  # Add to ~/.zshrc
 v /tmp/test.py
 ```
 
-**Note:** If using rcup, `pack/` is excluded in rcrc - it's managed by `vpm`, not symlinked.
+**Notes:** 
+- If using rcup, `pack/` is excluded in rcrc - it's managed by `vpm`, not symlinked
+- blink.cmp v1.10.1 has prebuilt binaries for Mac (both Intel & Apple Silicon) - auto-downloads on first run
+- If blink shows "not compiled": check `~/.config/nvim/pack/plugins/start/blink.cmp/target/release/` for .dylib file
+- If missing: `vpm build-blink` (requires Rust/Cargo)
 
 ## Daily Use
 
