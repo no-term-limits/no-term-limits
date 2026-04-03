@@ -40,8 +40,14 @@ command_install() {
       echo "    Using latest commit"
     else
       echo "    Checking out commit: $commit"
-      git fetch --tags --quiet 2>/dev/null || true
-      git checkout --quiet "$commit" 2>/dev/null || git checkout --quiet "tags/$commit" 2>/dev/null
+      # Only fetch tags if commit looks like a tag (starts with v or contains dots)
+      if [[ "$commit" =~ ^v[0-9] ]] || [[ "$commit" =~ \. ]]; then
+        git fetch --tags --quiet 2>/dev/null || true
+        git checkout --quiet "tags/$commit" 2>/dev/null || git checkout --quiet "$commit" 2>/dev/null
+      else
+        # Just checkout the commit hash directly
+        git checkout --quiet "$commit" 2>/dev/null
+      fi
     fi
 
     # Note: blink.cmp auto-downloads prebuilt binaries on tagged releases
@@ -65,6 +71,15 @@ command_install() {
 
   echo ""
   echo "✓ All plugins installed!"
+
+  # Install treesitter parsers
+  echo ""
+  echo "Installing treesitter parsers (this may take a minute)..."
+  if command -v nvim >/dev/null 2>&1; then
+    nvim --headless +"TSUpdateSync" +qall 2>/dev/null && echo "✓ Treesitter parsers installed" || echo "⚠ Run ':TSUpdate' in nvim to install parsers"
+  else
+    echo "⚠ nvim not found. Run ':TSUpdate' inside nvim after setup"
+  fi
 }
 
 command_update() {
@@ -194,16 +209,16 @@ command_build_blink() {
 
 # Main command dispatcher
 case "${1:-install}" in
-  install)
+  install|i)
     command_install
     ;;
-  update)
+  update|u)
     command_update "$2"
     ;;
-  pin)
+  pin|p)
     command_pin "$2" "$3"
     ;;
-  list)
+  list|l)
     command_list
     ;;
   build-blink)
@@ -213,11 +228,11 @@ case "${1:-install}" in
     echo "Usage: $0 {install|update [plugin]|pin <plugin> <commit>|list|build-blink}"
     echo ""
     echo "Commands:"
-    echo "  install           Install all plugins from manifest"
-    echo "  update [plugin]   Update all plugins or specific plugin to latest"
-    echo "  pin <name> <hash> Pin plugin to specific commit"
-    echo "  list              List all plugins and their versions"
-    echo "  build-blink       Rebuild blink.cmp fuzzy matching library"
+    echo "  install (i)         Install all plugins from manifest"
+    echo "  update (u) [plugin] Update all plugins or specific plugin to latest"
+    echo "  pin (p) <name> <h>  Pin plugin to specific commit"
+    echo "  list (l)            List all plugins and their versions"
+    echo "  build-blink         Rebuild blink.cmp fuzzy matching library"
     exit 1
     ;;
 esac

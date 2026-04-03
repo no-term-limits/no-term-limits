@@ -16,8 +16,8 @@ cd ~/no-term-limits
 # 2. Symlink nvim config
 ln -s ~/no-term-limits/dotfiles_no_term_limits/config/nvim ~/.config/nvim
 
-# 3. Install plugins
-./bin/vpm install
+# 3. Install plugins (and treesitter parsers)
+./bin/vpm i
 
 # 4. Add bin to PATH (in your ~/.zshrc or ~/.bashrc)
 export PATH="$HOME/no-term-limits/bin:$PATH"
@@ -27,10 +27,9 @@ source ~/.zshrc
 
 # 6. Test it
 v /tmp/test.py
-
-# 7. Inside nvim, install treesitter parsers (run once)
-:TSUpdate
 ```
+
+Note: `vpm install` automatically runs `:TSUpdate` to install treesitter parsers.
 
 ## That's it!
 

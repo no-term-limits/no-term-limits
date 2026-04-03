@@ -1,37 +1,38 @@
 {
+  "_note": "All plugins pinned as of 2026-04-03. Most plugins don't use tags, so we pin to commit hashes. blink.cmp uses tags (v1.10.1). Update with: vpm u",
   "plugins": {
     "nvim-lspconfig": {
       "repo": "neovim/nvim-lspconfig",
-      "commit": "latest"
+      "commit": "8e2084b"
     },
     "nvim-treesitter": {
       "repo": "nvim-treesitter/nvim-treesitter",
-      "commit": "latest"
+      "commit": "4916d65"
     },
     "blink.cmp": {
       "repo": "saghen/blink.cmp",
       "commit": "v1.10.1",
-      "note": "Latest v1 stable. Main is ~26 commits ahead with bug fixes. Requires cargo build."
+      "note": "Latest v1 stable. Main is ~26 commits ahead with bug fixes."
     },
     "LuaSnip": {
       "repo": "L3MON4D3/LuaSnip",
-      "commit": "latest"
+      "commit": "642b0c5"
     },
     "conform.nvim": {
       "repo": "stevearc/conform.nvim",
-      "commit": "latest"
+      "commit": "086a40d"
     },
     "nvim-lint": {
       "repo": "mfussenegger/nvim-lint",
-      "commit": "latest"
+      "commit": "4b03656"
     },
     "fzf-lua": {
       "repo": "ibhagwan/fzf-lua",
-      "commit": "latest"
+      "commit": "3f19430"
     },
     "text-case.nvim": {
       "repo": "johmsalas/text-case.nvim",
-      "commit": "latest"
+      "commit": "e898cfd"
     }
   }
 }

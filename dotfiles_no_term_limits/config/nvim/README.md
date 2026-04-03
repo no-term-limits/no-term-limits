@@ -5,14 +5,11 @@ Minimal Neovim config using native `vim.pack` with manifest-based plugin managem
 ## Quick Start
 
 ```bash
-# Install all plugins (run once - requires cargo/rust for blink.cmp)
+# Install all plugins (auto-installs treesitter parsers too)
 vpm install
 
 # Test it works
 v /tmp/test.py
-
-# Inside nvim, run once:
-:TSUpdate
 ```
 
 **Note:** blink.cmp on tagged releases (like v1.10.1) auto-downloads prebuilt binaries. 
@@ -48,27 +45,29 @@ Use `vpm` (vim plugin manager) from anywhere.
 ### Commands
 
 ```bash
-# Install all plugins from manifest
-vpm install
+# Install all plugins from manifest (includes treesitter parsers)
+vpm install   # or: vpm i
 
 # List installed plugins with versions
-vpm list
+vpm list      # or: vpm l
 
 # Update all plugins to latest
-vpm update
+vpm update    # or: vpm u
 
 # Update specific plugin
-vpm update nvim-treesitter
+vpm u nvim-treesitter
 
 # Pin a plugin to specific commit
-vpm pin LuaSnip abc123
+vpm pin LuaSnip abc123   # or: vpm p LuaSnip abc123
 
 # Rebuild blink.cmp (if needed after update)
 vpm build-blink
 
 # To unpin, edit plugins.json and set commit to "latest", then run:
-vpm install
+vpm i
 ```
+
+**Note:** `vpm install` automatically installs treesitter parsers. No manual `:TSUpdate` needed!
 
 ### blink.cmp Special Notes
 
@@ -109,16 +108,20 @@ vpm build-blink  # Required for main branch
 
 ## Plugins (8 total)
 
-| Plugin | Purpose | Pinned |
+All plugins pinned to specific commits for stability.
+
+| Plugin | Purpose | Commit |
 |--------|---------|--------|
-| nvim-lspconfig | LSP support | latest |
-| nvim-treesitter | Syntax highlighting | latest |
-| blink.cmp | Completion engine | latest |
-| LuaSnip | Snippet engine | latest |
-| conform.nvim | Formatting | latest |
-| nvim-lint | Linting | latest |
-| fzf-lua | Fuzzy finding | latest |
-| text-case.nvim | Case conversion | latest |
+| nvim-lspconfig | LSP support | 8e2084b |
+| nvim-treesitter | Syntax highlighting | 4916d65 |
+| blink.cmp | Completion engine | v1.10.1 |
+| LuaSnip | Snippet engine | 642b0c5 |
+| conform.nvim | Formatting | 086a40d |
+| nvim-lint | Linting | 4b03656 |
+| fzf-lua | Fuzzy finding | 3f19430 |
+| text-case.nvim | Case conversion | e898cfd |
+
+Update with: `vpm u` (updates all) or `vpm u <plugin-name>`
 
 ## Launch Commands
 
