@@ -1,1 +1,6 @@
-/home/spiffuser/projects/github/no-term-limits/dotfiles_no_term_limits/config/LazyVim/lua/plugins/fzflua.lua
+return {
+  "ibhagwan/fzf-lua",
+  keys = {
+    { "<leader>j", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
+  },
+}
