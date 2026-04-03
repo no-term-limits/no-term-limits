@@ -1,0 +1,37 @@
+{
+  "plugins": {
+    "nvim-lspconfig": {
+      "repo": "neovim/nvim-lspconfig",
+      "commit": "latest"
+    },
+    "nvim-treesitter": {
+      "repo": "nvim-treesitter/nvim-treesitter",
+      "commit": "latest"
+    },
+    "blink.cmp": {
+      "repo": "saghen/blink.cmp",
+      "commit": "v1.10.1",
+      "note": "Latest v1 stable. Main is ~26 commits ahead with bug fixes. Requires cargo build."
+    },
+    "LuaSnip": {
+      "repo": "L3MON4D3/LuaSnip",
+      "commit": "latest"
+    },
+    "conform.nvim": {
+      "repo": "stevearc/conform.nvim",
+      "commit": "latest"
+    },
+    "nvim-lint": {
+      "repo": "mfussenegger/nvim-lint",
+      "commit": "latest"
+    },
+    "fzf-lua": {
+      "repo": "ibhagwan/fzf-lua",
+      "commit": "latest"
+    },
+    "text-case.nvim": {
+      "repo": "johmsalas/text-case.nvim",
+      "commit": "latest"
+    }
+  }
+}

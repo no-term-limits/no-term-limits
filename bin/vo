@@ -24,4 +24,4 @@ if [[ -n "${1:-}" ]] && [[ -z "${2:-}" ]] && [[ ! -e "${1:-}" ]]; then
   fi
 fi
 
-exec env NVIM_APPNAME=nvim nvim "$@"
+exec env NVIM_APPNAME=LazyVim nvim "$@"

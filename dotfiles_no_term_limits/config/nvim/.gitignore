@@ -1,0 +1,7 @@
+# Plugin directory managed by vpm
+pack/plugins/start/
+
+# Vim swap files
+*.swp
+*.swo
+*~
