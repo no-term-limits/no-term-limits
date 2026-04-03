@@ -1,5 +1,9 @@
 -- Options configuration
 
+-- Set leader key to space (must be set before plugins load)
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+
 -- turn off vim mouse support
 vim.opt.mouse = ""
 

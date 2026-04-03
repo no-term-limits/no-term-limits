@@ -115,18 +115,27 @@ if lint_ok then
   })
 end
 
--- fzf-lua Configuration
-local fzf_ok, fzf = pcall(require, "fzf-lua")
-if fzf_ok then
-  fzf.setup({})
-  vim.keymap.set("n", "<leader>j", function() fzf.files({ cwd = vim.fn.getcwd() }) end, { desc = "Find Files (cwd)" })
-  vim.keymap.set("n", "<leader>ff", fzf.files, { desc = "Find Files" })
-  vim.keymap.set("n", "<leader>fg", fzf.live_grep, { desc = "Live Grep" })
-  vim.keymap.set("n", "<leader>fb", fzf.buffers, { desc = "Buffers" })
+-- telescope.nvim Configuration
+local telescope_ok, telescope = pcall(require, "telescope")
+if telescope_ok then
+  telescope.setup({})
+  local builtin = require("telescope.builtin")
+  vim.keymap.set("n", "<leader><leader>", builtin.find_files, { desc = "Find Files" })
+  vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find Files" })
+  vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live Grep" })
+  vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
 end
 
 -- text-case.nvim Configuration
 local textcase_ok, textcase = pcall(require, "textcase")
 if textcase_ok then
   textcase.setup({})
+end
+
+-- which-key.nvim Configuration
+local wk_ok, wk = pcall(require, "which-key")
+if wk_ok then
+  wk.setup({
+    delay = 500,
+  })
 end

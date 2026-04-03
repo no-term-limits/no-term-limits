@@ -26,13 +26,21 @@
       "repo": "mfussenegger/nvim-lint",
       "commit": "4b03656"
     },
-    "fzf-lua": {
-      "repo": "ibhagwan/fzf-lua",
-      "commit": "3f19430"
+    "plenary.nvim": {
+      "repo": "nvim-lua/plenary.nvim",
+      "commit": "b9fd522"
+    },
+    "telescope.nvim": {
+      "repo": "nvim-telescope/telescope.nvim",
+      "commit": "cfb85dc"
     },
     "text-case.nvim": {
       "repo": "johmsalas/text-case.nvim",
       "commit": "e898cfd"
+    },
+    "which-key.nvim": {
+      "repo": "folke/which-key.nvim",
+      "commit": "3aab214"
     }
   }
 }
