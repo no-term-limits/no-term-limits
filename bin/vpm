@@ -216,6 +216,46 @@ command_build_blink() {
   echo "✓ Built successfully"
 }
 
+# Purge all plugins
+command_purge() {
+  # Resolve symlinks to find real plugin directory
+  local real_plugin_dir
+  if command -v realpath >/dev/null 2>&1; then
+    real_plugin_dir=$(realpath "$PLUGIN_DIR" 2>/dev/null || echo "$PLUGIN_DIR")
+  elif command -v readlink >/dev/null 2>&1; then
+    # macOS doesn't have readlink -f, use different approach
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      real_plugin_dir=$(cd "$PLUGIN_DIR" 2>/dev/null && pwd -P || echo "$PLUGIN_DIR")
+    else
+      real_plugin_dir=$(readlink -f "$PLUGIN_DIR" 2>/dev/null || echo "$PLUGIN_DIR")
+    fi
+  else
+    real_plugin_dir="$PLUGIN_DIR"
+  fi
+
+  echo "Plugin directory (resolved): $real_plugin_dir"
+
+  if [ ! -d "$real_plugin_dir" ]; then
+    echo "No plugins to purge (directory doesn't exist)"
+    return 0
+  fi
+
+  echo ""
+  echo "⚠️  This will DELETE all plugins from:"
+  echo "    $real_plugin_dir"
+  echo ""
+  read -p "Are you sure? (type 'yes' to confirm): " confirm
+
+  if [ "$confirm" = "yes" ]; then
+    rm -rf "$real_plugin_dir"
+    echo "✓ All plugins purged"
+    echo ""
+    echo "Run 'vpm i' to reinstall"
+  else
+    echo "Cancelled"
+  fi
+}
+
 # Main command dispatcher
 case "${1:-install}" in
   install|i)
@@ -233,8 +273,11 @@ case "${1:-install}" in
   build-blink)
     command_build_blink
     ;;
+  purge)
+    command_purge
+    ;;
   *)
-    echo "Usage: $0 {install|update [plugin]|pin <plugin> <commit>|list|build-blink}"
+    echo "Usage: $0 {install|update [plugin]|pin <plugin> <commit>|list|build-blink|purge}"
     echo ""
     echo "Commands:"
     echo "  install (i)         Install all plugins from manifest"
@@ -242,6 +285,7 @@ case "${1:-install}" in
     echo "  pin (p) <name> <h>  Pin plugin to specific commit"
     echo "  list (l)            List all plugins and their versions"
     echo "  build-blink         Rebuild blink.cmp fuzzy matching library"
+    echo "  purge               Delete all plugins (follows symlinks)"
     exit 1
     ;;
 esac
