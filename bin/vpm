@@ -2,20 +2,32 @@
 
 set -e
 
-# Find nvim config directory
+# Find nvim config directory - prefer ~/.config/nvim for plugin installation
+NVIM_CONFIG="$HOME/.config/nvim"
+
+# Find manifest in dotfiles repo
 if [[ -n "${NO_TERM_LIMITS_DIR:-}" ]]; then
-  NVIM_CONFIG="$NO_TERM_LIMITS_DIR/dotfiles_no_term_limits/config/nvim"
+  DOTFILES_NVIM="$NO_TERM_LIMITS_DIR/dotfiles_no_term_limits/config/nvim"
 elif [[ -d "$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim" ]]; then
-  NVIM_CONFIG="$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim"
+  DOTFILES_NVIM="$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim"
 elif [[ -d "$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/nvim" ]]; then
-  NVIM_CONFIG="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/nvim"
+  DOTFILES_NVIM="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/nvim"
 else
-  echo "Error: Could not find nvim config directory"
+  echo "Error: Could not find dotfiles nvim directory"
   exit 1
 fi
 
-MANIFEST="$NVIM_CONFIG/plugins.json"
+if [[ ! -d "$NVIM_CONFIG" ]]; then
+  echo "Error: ~/.config/nvim does not exist. Run 'rcup -q' first."
+  exit 1
+fi
+
+MANIFEST="$DOTFILES_NVIM/plugins.json"
 PLUGIN_DIR="$NVIM_CONFIG/pack/plugins/start"
+
+echo "Installing to: $PLUGIN_DIR"
+echo "Using manifest: $MANIFEST"
+echo ""
 
 command_install() {
   echo "Installing plugins from manifest..."
