@@ -203,7 +203,16 @@ command_build_blink() {
   echo "Building blink.cmp..."
   cd "$PLUGIN_DIR/blink.cmp"
   cargo build --release
-  cp target/release/libblink_cmp_fuzzy.so lua/blink/cmp/fuzzy/rust.so
+
+  # Detect OS and copy correct library extension
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS
+    cp target/release/libblink_cmp_fuzzy.dylib lua/blink/cmp/fuzzy/rust.so
+  else
+    # Linux
+    cp target/release/libblink_cmp_fuzzy.so lua/blink/cmp/fuzzy/rust.so
+  fi
+
   echo "✓ Built successfully"
 }
 

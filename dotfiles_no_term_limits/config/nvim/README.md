@@ -14,6 +14,8 @@ export PATH="$HOME/no-term-limits/bin:$PATH"  # Add to ~/.zshrc
 v /tmp/test.py
 ```
 
+**Note:** If using rcup, `pack/` is excluded in rcrc - it's managed by `vpm`, not symlinked.
+
 ## Daily Use
 
 ```bash
@@ -23,6 +25,7 @@ vpm i              # Install all plugins
 vpm l              # List installed
 vpm u              # Update all
 vpm u nvim-lint    # Update one plugin
+vpm build-blink    # If blink.cmp fuzzy not working (Mac/manual build)
 ```
 
 ## Features

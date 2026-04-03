@@ -1,4 +1,4 @@
-EXCLUDES="README*.md LICENSE"
+EXCLUDES="README*.md LICENSE config/nvim/pack"
 
 DOTFILES_DIRS="$HOME/user-dotfiles ${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits/dotfiles_no_term_limits"
 
