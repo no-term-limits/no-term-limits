@@ -39,9 +39,10 @@ vpm build-blink    # If blink.cmp fuzzy not working (Mac/manual build)
 - Formatting (conform: black, prettier, shfmt) - auto on save
 - Linting (mypy, shellcheck)
 - Fuzzy finding: `<leader><leader>/ff/fg/fb` (telescope)
+- Git integration: `<leader>gr` (reset hunk), `<leader>gp` (preview), `<leader>gb` (blame), `]c/[c` (next/prev hunk)
 - Custom keymaps: `<leader>ri` (add import), `<leader>rc` (copy path), `<leader>rs/rr/rt` (tmux)
 
-## Plugins (10)
+## Plugins (11)
 
 All pinned to commits. Update with `vpm u`.
 
@@ -52,6 +53,7 @@ All pinned to commits. Update with `vpm u`.
 | blink.cmp | Completion | v1.10.1 |
 | LuaSnip | Snippets | 642b0c5 |
 | conform.nvim | Formatting | 086a40d |
+| gitsigns.nvim | Git integration | 944ef13 |
 | nvim-lint | Linting | 4b03656 |
 | plenary.nvim | Telescope dep | b9fd522 |
 | telescope.nvim | Fuzzy find | cfb85dc |

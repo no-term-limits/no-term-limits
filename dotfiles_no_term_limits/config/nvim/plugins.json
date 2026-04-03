@@ -22,6 +22,10 @@
       "repo": "stevearc/conform.nvim",
       "commit": "086a40d"
     },
+    "gitsigns.nvim": {
+      "repo": "lewis6991/gitsigns.nvim",
+      "commit": "944ef13"
+    },
     "nvim-lint": {
       "repo": "mfussenegger/nvim-lint",
       "commit": "4b03656"

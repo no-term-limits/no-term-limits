@@ -132,10 +132,47 @@ if textcase_ok then
   textcase.setup({})
 end
 
+-- gitsigns.nvim Configuration
+local gitsigns_ok, gitsigns = pcall(require, "gitsigns")
+if gitsigns_ok then
+  gitsigns.setup({
+    signs = {
+      add = { text = "│" },
+      change = { text = "│" },
+      delete = { text = "_" },
+      topdelete = { text = "‾" },
+      changedelete = { text = "~" },
+    },
+    on_attach = function(bufnr)
+      local gs = package.loaded.gitsigns
+      vim.keymap.set("n", "<leader>gr", gs.reset_hunk, { buffer = bufnr, desc = "Git reset hunk" })
+      vim.keymap.set("v", "<leader>gr", function() gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") }) end, { buffer = bufnr, desc = "Git reset hunk" })
+      vim.keymap.set("n", "<leader>gp", gs.preview_hunk, { buffer = bufnr, desc = "Git preview hunk" })
+      vim.keymap.set("n", "<leader>gb", function() gs.blame_line({ full = true }) end, { buffer = bufnr, desc = "Git blame line" })
+      vim.keymap.set("n", "]c", function()
+        if vim.wo.diff then return "]c" end
+        vim.schedule(function() gs.next_hunk() end)
+        return "<Ignore>"
+      end, { buffer = bufnr, expr = true, desc = "Next git hunk" })
+      vim.keymap.set("n", "[c", function()
+        if vim.wo.diff then return "[c" end
+        vim.schedule(function() gs.prev_hunk() end)
+        return "<Ignore>"
+      end, { buffer = bufnr, expr = true, desc = "Prev git hunk" })
+    end,
+  })
+end
+
 -- which-key.nvim Configuration
 local wk_ok, wk = pcall(require, "which-key")
 if wk_ok then
   wk.setup({
     delay = 500,
+  })
+  -- Register leader key groups so they show up in menu
+  wk.add({
+    { "<leader>f", group = "find" },
+    { "<leader>g", group = "git" },
+    { "<leader>r", group = "run" },
   })
 end
