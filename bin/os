@@ -3,8 +3,26 @@
 set -o nounset -o pipefail
 
 # https://github.com/DarthSim/overmind/issues/50
+socket_file=.overmind.sock
+force_remove_socket=false
+overmind_args=()
 
-overmind start "$@"
+for arg in "$@"; do
+  case "$arg" in
+    -f|--force)
+      force_remove_socket=true
+      ;;
+    *)
+      overmind_args+=("$arg")
+      ;;
+  esac
+done
+
+if [[ "$force_remove_socket" == true ]]; then
+  rm -f "$socket_file"
+fi
+
+overmind start "${overmind_args[@]}"
 status=$?
-rm -f .overmind.sock
+rm -f "$socket_file"
 exit "$status"
