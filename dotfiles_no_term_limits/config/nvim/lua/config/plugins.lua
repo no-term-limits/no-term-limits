@@ -177,7 +177,7 @@ end
 local wk_ok, wk = pcall(require, "which-key")
 if wk_ok then
   wk.setup({
-    delay = 500,
+    delay = 250,
   })
   -- Register leader key groups so they show up in menu
   wk.add({
@@ -185,4 +185,14 @@ if wk_ok then
     { "<leader>g", group = "git" },
     { "<leader>r", group = "run" },
   })
+end
+
+-- zellij-nav.nvim Configuration
+local zellij_nav_ok, zellij_nav = pcall(require, "zellij-nav")
+if zellij_nav_ok then
+  zellij_nav.setup()
+  vim.keymap.set("n", "<C-h>", "<cmd>ZellijNavigateLeftTab<CR>", { silent = true, desc = "Navigate left or tab" })
+  vim.keymap.set("n", "<C-j>", "<cmd>ZellijNavigateDown<CR>", { silent = true, desc = "Navigate down" })
+  vim.keymap.set("n", "<C-k>", "<cmd>ZellijNavigateUp<CR>", { silent = true, desc = "Navigate up" })
+  vim.keymap.set("n", "<C-l>", "<cmd>ZellijNavigateRightTab<CR>", { silent = true, desc = "Navigate right or tab" })
 end

@@ -39,6 +39,7 @@ vpm d              # Check setup (diagnose issues)
 - Formatting (conform: black, prettier, shfmt) - auto on save
 - Linting (mypy, shellcheck)
 - Fuzzy finding: `<leader><leader>/ff/fg/fb` (telescope)
+- Zellij/Vim navigation: `<C-h/j/k/l>` across Neovim splits and Zellij panes
 - Git integration: `<leader>gr` (reset hunk), `<leader>gp` (preview), `<leader>gb` (blame), `]c/[c` (next/prev hunk)
 - Custom keymaps: `<leader>ri` (add import), `<leader>rc` (copy path), `<leader>rs/rr/rt` (tmux)
 
@@ -59,6 +60,7 @@ All pinned to commits. Update with `vpm u`.
 | telescope.nvim | Fuzzy find | cfb85dc |
 | text-case.nvim | Case convert | e898cfd |
 | which-key.nvim | Keybind help | 3aab214 |
+| zellij-nav.nvim | Zellij pane navigation | 91cc2a6 |
 
 ## Add/Remove Plugins
 

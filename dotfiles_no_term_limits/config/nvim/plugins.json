@@ -45,6 +45,10 @@
     "which-key.nvim": {
       "repo": "folke/which-key.nvim",
       "commit": "3aab214"
+    },
+    "zellij-nav.nvim": {
+      "repo": "swaits/zellij-nav.nvim",
+      "commit": "91cc2a6"
     }
   }
 }
