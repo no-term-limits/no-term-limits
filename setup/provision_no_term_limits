@@ -145,6 +145,7 @@ function ensure_mise_installed() {
 
 function ensure_modern_rust_toolchain() {
   export PATH="$HOME/.cargo/bin:$PATH"
+  hash -r
 
   local should_install_rustup="false"
   if ! command -v cargo >/dev/null 2>&1; then
@@ -165,8 +166,14 @@ function ensure_modern_rust_toolchain() {
   echo "Installing/updating Rust toolchain ..."
   curl https://sh.rustup.rs -sSf | sh -s -- -y
   export PATH="$HOME/.cargo/bin:$PATH"
+  hash -r
   rustup default stable
   rustup update stable
+
+  if ! cargo --version | grep -Eq 'cargo 1\.(8[5-9]|9[0-9])|cargo [2-9]\.'; then
+    echo "Error: cargo is still too old after rustup update. Resolved cargo: $(command -v cargo)"
+    exit 1
+  fi
 }
 
 function ensure_miseo_installed() {
