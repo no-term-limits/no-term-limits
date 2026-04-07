@@ -89,7 +89,7 @@ command_install() {
   if command -v nvim >/dev/null 2>&1; then
     if nvim --headless "+lua if vim.fn.exists(':TSUpdate') == 2 then vim.cmd('TSUpdate') elseif vim.fn.exists(':TSUpdateSync') == 2 then vim.cmd('TSUpdateSync') else vim.cmd('cquit 1') end" +qall; then
       local parser_check
-      parser_check=$(nvim --headless "+lua local missing={} for _,lang in ipairs({'python','javascript','typescript','tsx','json','yaml','bash','lua','vim','terraform','hcl'}) do if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then table.insert(missing, lang) end end if #missing == 0 then print('OK') else print('MISSING:' .. table.concat(missing, ',')) end" +qall | tail -n1)
+      parser_check=$(nvim --headless "+lua local missing={} for _,lang in ipairs({'python','javascript','typescript','tsx','json','yaml','bash','lua','vim','terraform','hcl'}) do if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then table.insert(missing, lang) end end if #missing == 0 then print('OK') else print('MISSING:' .. table.concat(missing, ',')) end" +qall | grep -Eo 'OK|MISSING:[a-z,]+' | tail -n1)
       if [[ "$parser_check" == "OK" ]]; then
         echo "✓ Treesitter parsers installed"
       else
@@ -98,7 +98,7 @@ command_install() {
           echo "Installing missing Treesitter parsers: $missing_parsers"
           if nvim --headless "+TSInstall ${missing_parsers//,/ }" +qall; then
             local parser_recheck
-            parser_recheck=$(nvim --headless "+lua local missing={} for _,lang in ipairs({'python','javascript','typescript','tsx','json','yaml','bash','lua','vim','terraform','hcl'}) do if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then table.insert(missing, lang) end end if #missing == 0 then print('OK') else print('MISSING:' .. table.concat(missing, ',')) end" +qall | tail -n1)
+            parser_recheck=$(nvim --headless "+lua local missing={} for _,lang in ipairs({'python','javascript','typescript','tsx','json','yaml','bash','lua','vim','terraform','hcl'}) do if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then table.insert(missing, lang) end end if #missing == 0 then print('OK') else print('MISSING:' .. table.concat(missing, ',')) end" +qall | grep -Eo 'OK|MISSING:[a-z,]+' | tail -n1)
             if [[ "$parser_recheck" == "OK" ]]; then
               echo "✓ Treesitter parsers installed"
             else
