@@ -98,8 +98,7 @@ vim.api.nvim_exec([[
 
 -- Python test function detection
 function _G.get_current_python_function()
-  local ts_utils = require("nvim-treesitter.ts_utils")
-  local current_node = ts_utils.get_node_at_cursor()
+  local current_node = vim.treesitter.get_node()
   if not current_node then return nil end
 
   while current_node do
