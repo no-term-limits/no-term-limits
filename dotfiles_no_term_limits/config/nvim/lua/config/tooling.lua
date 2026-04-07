@@ -50,6 +50,23 @@ local function resolve_lint_names(ft)
   return resolved
 end
 
+local function resolve_declared_conform_names(bufnr)
+  local ok, conform = pcall(require, "conform")
+  if not ok then
+    return {}
+  end
+
+  local names = conform.list_formatters_for_buffer(bufnr)
+  local resolved = {}
+  for _, name in ipairs(names) do
+    if type(name) == "string" then
+      table.insert(resolved, name)
+    end
+  end
+  table.sort(resolved)
+  return resolved
+end
+
 local function command_status(command)
   if not command or command == "" then
     return "unknown command"
@@ -83,6 +100,21 @@ local function python_mypy_note(bufname)
     return ("mypy linting expected from %s"):format(pyproject)
   end
   return ("mypy linting disabled: %s does not mention mypy"):format(pyproject)
+end
+
+local function eval_linter_condition(linter, bufname)
+  if type(linter.condition) ~= "function" then
+    return true, nil
+  end
+
+  local ok, result = pcall(linter.condition, { filename = bufname })
+  if not ok then
+    return false, "condition errored"
+  end
+  if result then
+    return true, nil
+  end
+  return false, "condition disabled"
 end
 
 function M.build_lines(bufnr)
@@ -135,23 +167,31 @@ function M.build_lines(bufnr)
   if not conform_ok then
     item(lines, "Conform: not loaded")
   else
-    local formatters, uses_lsp = conform.list_formatters_to_run(bufnr)
-    if #formatters == 0 then
-      item(lines, uses_lsp and "Configured: LSP formatter" or "Configured: none")
+    item(lines, "Conform: loaded")
+    local declared_formatters = resolve_declared_conform_names(bufnr)
+    if #declared_formatters == 0 then
+      item(lines, "Declared for filetype: none")
+    else
+      item(lines, "Declared for filetype: " .. table.concat(declared_formatters, ", "))
+    end
+    local runnable_formatters, uses_lsp = conform.list_formatters_to_run(bufnr)
+    if #runnable_formatters == 0 then
+      item(lines, uses_lsp and "Will run now: lsp" or "Will run now: none")
     else
       local names = {}
-      for _, formatter in ipairs(formatters) do
+      for _, formatter in ipairs(runnable_formatters) do
         table.insert(names, formatter.name)
       end
       if uses_lsp then
         table.insert(names, "lsp")
       end
-      item(lines, "Configured: " .. table.concat(names, ", "))
+      item(lines, "Will run now: " .. table.concat(names, ", "))
     end
 
-    for _, formatter in ipairs(formatters) do
-      local status = formatter.available and "installed" or (formatter.available_msg or "unavailable")
-      item(lines, ("%s: %s"):format(formatter.name, status))
+    for _, name in ipairs(declared_formatters) do
+      local formatter = conform.get_formatter_info(name, bufnr)
+      local status = formatter.available and "ready" or (formatter.available_msg or "unavailable")
+      item(lines, ("%s: %s"):format(name, status))
     end
   end
 
@@ -160,11 +200,12 @@ function M.build_lines(bufnr)
   if not lint_ok then
     item(lines, "nvim-lint: not loaded")
   else
+    item(lines, "nvim-lint: loaded")
     local lint_names = resolve_lint_names(ft)
     if #lint_names == 0 then
-      item(lines, "Configured: none")
+      item(lines, "Declared for filetype: none")
     else
-      item(lines, "Configured: " .. table.concat(lint_names, ", "))
+      item(lines, "Declared for filetype: " .. table.concat(lint_names, ", "))
     end
 
     local running = lint.get_running(bufnr)
@@ -176,7 +217,13 @@ function M.build_lines(bufnr)
         item(lines, ("%s: missing linter config"):format(name))
       else
         local cmd = type(linter.cmd) == "string" and linter.cmd or nil
+        local enabled, condition_note = eval_linter_condition(linter, bufname)
         local status = cmd and command_status(cmd) or "dynamic/unknown command"
+        if enabled then
+          status = status == "installed" and "ready" or status
+        elseif condition_note then
+          status = condition_note
+        end
         item(lines, ("%s: %s"):format(name, status))
       end
     end
