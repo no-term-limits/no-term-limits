@@ -9,7 +9,7 @@ if lsp_ok then
     vim.lsp.config("*", {
       root_markers = { ".git", "pyproject.toml", "package.json" },
     })
-    vim.lsp.enable({ "pyright", "ts_ls", "jsonls", "yamlls", "bashls" })
+    vim.lsp.enable({ "pyright", "ts_ls", "jsonls", "yamlls", "bashls", "terraformls" })
   else
     -- Fallback to old API for older nvim versions
     local lspconfig = require("lspconfig")
@@ -18,6 +18,7 @@ if lsp_ok then
     lspconfig.jsonls.setup({})
     lspconfig.yamlls.setup({})
     lspconfig.bashls.setup({})
+    lspconfig.terraformls.setup({})
   end
 
   vim.diagnostic.config({
@@ -30,7 +31,7 @@ end
 local ts_ok, treesitter = pcall(require, "nvim-treesitter.configs")
 if ts_ok then
   treesitter.setup({
-    ensure_installed = { "python", "javascript", "typescript", "tsx", "json", "yaml", "bash", "lua", "vim" },
+    ensure_installed = { "python", "javascript", "typescript", "tsx", "json", "yaml", "bash", "lua", "vim", "terraform", "hcl" },
     highlight = { enable = true },
     indent = { enable = true },
   })
@@ -74,6 +75,8 @@ if conform_ok then
       typescriptreact = { "prettier" },
       json = { "prettier" },
       yaml = { "prettier" },
+      terraform = { "terraform_fmt" },
+      hcl = { "terraform_fmt" },
       sh = { "shfmt" },
       lua = { "stylua" },
     },
