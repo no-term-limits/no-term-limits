@@ -143,6 +143,32 @@ function ensure_mise_installed() {
   export PATH="$HOME/.local/bin:$PATH"
 }
 
+function ensure_modern_rust_toolchain() {
+  export PATH="$HOME/.cargo/bin:$PATH"
+
+  local should_install_rustup="false"
+  if ! command -v cargo >/dev/null 2>&1; then
+    should_install_rustup="true"
+  elif ! cargo --version | grep -Eq 'cargo 1\.(8[5-9]|9[0-9])|cargo [2-9]\.'; then
+    should_install_rustup="true"
+  fi
+
+  if [[ "$should_install_rustup" == "false" ]]; then
+    return
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "Error: curl is required to install/update Rust"
+    exit 1
+  fi
+
+  echo "Installing/updating Rust toolchain ..."
+  curl https://sh.rustup.rs -sSf | sh -s -- -y
+  export PATH="$HOME/.cargo/bin:$PATH"
+  rustup default stable
+  rustup update stable
+}
+
 function ensure_miseo_installed() {
   export PATH="$HOME/.miseo/.bin:$PATH"
 
@@ -151,6 +177,7 @@ function ensure_miseo_installed() {
   fi
 
   ensure_mise_installed
+  ensure_modern_rust_toolchain
 
   echo "Installing miseo ..."
   mise use -g rust cargo:miseo
