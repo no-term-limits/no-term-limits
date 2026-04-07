@@ -4,6 +4,8 @@
 -- Load options first
 require("config.options")
 
+vim.cmd.colorscheme("vim")
+
 -- Load keymaps
 require("config.keymaps")
 
