@@ -7,7 +7,7 @@
     },
     "nvim-treesitter": {
       "repo": "nvim-treesitter/nvim-treesitter",
-      "commit": "4916d65"
+      "commit": "90cd658"
     },
     "blink.cmp": {
       "repo": "saghen/blink.cmp",
