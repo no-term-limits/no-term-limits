@@ -25,6 +25,42 @@ fi
 MANIFEST="$DOTFILES_NVIM/plugins.json"
 PLUGIN_DIR="$NVIM_CONFIG/pack/plugins/start"
 
+ensure_treesitter_cli() {
+  local os_name
+  os_name=$(uname -s)
+
+  if command -v tree-sitter >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "tree-sitter CLI not found on PATH. Installing..."
+  if [[ "$os_name" == "Darwin" ]]; then
+    if ! command -v brew >/dev/null 2>&1; then
+      echo "Error: Homebrew is required to install tree-sitter on macOS"
+      return 1
+    fi
+    brew install tree-sitter
+  elif [[ "$os_name" == "Linux" ]]; then
+    if ! command -v miseo >/dev/null 2>&1; then
+      echo "Error: miseo is required to install tree-sitter on Linux"
+      return 1
+    fi
+    miseo install npm:tree-sitter-cli
+    export PATH="$HOME/.miseo/.bin:$PATH"
+  else
+    echo "Error: unsupported OS for automatic tree-sitter installation"
+    return 1
+  fi
+
+  if ! command -v tree-sitter >/dev/null 2>&1; then
+    echo "Error: tree-sitter installation completed but binary is still not on PATH"
+    return 1
+  fi
+
+  echo "✓ tree-sitter CLI installed"
+  return 0
+}
+
 command_install() {
   echo "Installing to: $PLUGIN_DIR"
   echo "Using manifest: $MANIFEST"
@@ -87,6 +123,10 @@ command_install() {
   echo ""
   echo "Installing treesitter parsers (this may take a minute)..."
   if command -v nvim >/dev/null 2>&1; then
+    if ! ensure_treesitter_cli; then
+      return 1
+    fi
+
     local parser_status_file
     parser_status_file=$(mktemp)
     local parser_check_lua
