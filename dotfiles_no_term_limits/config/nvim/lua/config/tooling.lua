@@ -83,11 +83,16 @@ local function treesitter_status(bufnr, ft)
     lang = ft
   end
 
+  local parser_files = vim.api.nvim_get_runtime_file(("parser/%s.so"):format(lang), false)
+  if #parser_files == 0 then
+    return lang, "parser not installed"
+  end
+
   local ok_parser = pcall(vim.treesitter.get_parser, bufnr, lang)
   if ok_parser then
     return lang, "attached"
   end
-  return lang, "missing parser"
+  return lang, "installed but not attached"
 end
 
 local function python_mypy_note(bufname)
@@ -115,6 +120,14 @@ local function eval_linter_condition(linter, bufname)
     return true, nil
   end
   return false, "condition disabled"
+end
+
+local function treesitter_lang_for_ft(ft)
+  local ok_lang, lang = pcall(vim.treesitter.language.get_lang, ft)
+  if not ok_lang or not lang then
+    lang = ft
+  end
+  return lang
 end
 
 function M.build_lines(bufnr)
@@ -155,7 +168,13 @@ function M.build_lines(bufnr)
     local cfg = vim.lsp.config[name] or {}
     local cmd = cfg.cmd and table.concat(cfg.cmd, " ") or "[default]"
     local executable = cfg.cmd and cfg.cmd[1] or nil
-    item(lines, ("%s: %s (%s)"):format(name, cmd, executable and command_status(executable) or "builtin/default"))
+    local status = executable and command_status(executable) or "builtin/default"
+    if status == "installed" then
+      status = "ready"
+    elseif status == "missing" then
+      status = "missing binary"
+    end
+    item(lines, ("%s: %s (%s)"):format(name, cmd, status))
   end
 
   section(lines, "Treesitter")
@@ -239,6 +258,18 @@ function M.build_lines(bufnr)
   end
   item(lines, "Built-ins: :LspInfo, :ConformInfo, :checkhealth, :Inspect")
 
+  section(lines, "Checks")
+  item(lines, ":LspInfo")
+  item(lines, ":ConformInfo")
+  item(lines, ":checkhealth nvim-treesitter")
+  item(lines, ':echo stdpath("data")')
+  item(lines, (":echo nvim_get_runtime_file('parser/%s.so', v:false)"):format(treesitter_lang_for_ft(ft)))
+  item(lines, ':echo executable("pyright-langserver")')
+  if ft == "python" then
+    item(lines, ':echo executable("ruff")')
+  end
+  item(lines, "Press <CR> on a :command line in this buffer to run it")
+
   return lines
 end
 
@@ -254,6 +285,14 @@ function M.show(bufnr)
   vim.api.nvim_buf_set_lines(out_buf, 0, -1, false, lines)
   vim.bo[out_buf].modifiable = false
   vim.api.nvim_buf_set_name(out_buf, "File Tooling")
+  vim.keymap.set("n", "<CR>", function()
+    local line = vim.api.nvim_get_current_line()
+    local command = line:match("^%- (:.+)$")
+    if not command then
+      return
+    end
+    vim.cmd(command:sub(2))
+  end, { buffer = out_buf, silent = true, desc = "Run tooling check under cursor" })
 end
 
 return M

@@ -87,7 +87,18 @@ command_install() {
   echo ""
   echo "Installing treesitter parsers (this may take a minute)..."
   if command -v nvim >/dev/null 2>&1; then
-    nvim --headless +"TSUpdateSync" +qall 2>/dev/null && echo "✓ Treesitter parsers installed" || echo "⚠ Run ':TSUpdate' in nvim to install parsers"
+    if nvim --headless +"TSUpdateSync" +qall; then
+      local parser_check
+      parser_check=$(nvim --headless "+lua local missing={} for _,lang in ipairs({'python','javascript','typescript','tsx','json','yaml','bash','lua','vim','terraform','hcl'}) do if #vim.api.nvim_get_runtime_file('parser/' .. lang .. '.so', false) == 0 then table.insert(missing, lang) end end if #missing == 0 then print('OK') else print('MISSING:' .. table.concat(missing, ',')) end" +qall)
+      if [[ "$parser_check" == "OK" ]]; then
+        echo "✓ Treesitter parsers installed"
+      else
+        echo "⚠ Treesitter parser check failed: $parser_check"
+        echo "  Run ':checkhealth nvim-treesitter' inside nvim"
+      fi
+    else
+      echo "⚠ Treesitter install failed. Run ':checkhealth nvim-treesitter' inside nvim"
+    fi
   else
     echo "⚠ nvim not found. Run ':TSUpdate' inside nvim after setup"
   fi
