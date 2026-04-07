@@ -4,6 +4,11 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+local data_site = vim.fn.stdpath("data") .. "/site"
+if not vim.o.runtimepath:find(vim.pesc(data_site), 1, false) then
+  vim.opt.runtimepath:append(data_site)
+end
+
 -- turn off vim mouse support
 vim.opt.mouse = ""
 
