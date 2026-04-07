@@ -8,6 +8,8 @@ vim.keymap.set(
   { desc = "copy file to clipboard", noremap = false, silent = false }
 )
 
+vim.keymap.set("n", "<leader>a", "<Cmd>buffer #<CR>", { noremap = true, silent = true, desc = "Alternate file" })
+
 -- there is never a time when we want to save a visual selection
 vim.cmd([[cabbrev <expr> w getcmdtype()==':' && getcmdline() == "'<,'>w" ? '<c-u>w' : 'w']])
 

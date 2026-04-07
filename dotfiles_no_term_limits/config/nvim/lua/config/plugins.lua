@@ -118,11 +118,21 @@ end
 -- telescope.nvim Configuration
 local telescope_ok, telescope = pcall(require, "telescope")
 if telescope_ok then
-  telescope.setup({})
+  telescope.setup({
+    pickers = {
+      buffers = {
+        previewer = false,
+      },
+      find_files = {
+        previewer = false,
+      },
+    },
+  })
   local builtin = require("telescope.builtin")
   vim.keymap.set("n", "<leader><leader>", builtin.find_files, { desc = "Find Files" })
   vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find Files" })
   vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live Grep" })
+  vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Buffers" })
   vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
 end
 
