@@ -77,6 +77,14 @@ else
   fi
 fi
 
+setopt hist_ignore_all_dups hist_ignore_space inc_append_history share_history
+
+HISTFILE=~/.zhistory
+HISTSIZE=32768
+SAVEHIST="${HISTSIZE}"
+
+export ERL_AFLAGS="-kernel shell_history enabled"
+
 # don't throw duplicate commands, plain ls's, fg's, bg's or exit's into the command history
 export HISTIGNORE="&:ls:[bf]g:exit"
 
