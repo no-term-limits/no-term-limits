@@ -5,11 +5,12 @@ set -e
 # HELP: edits a command found in environment
 
 command="$1"
-location=$(which "$command" || echo 'COMMAND_NOT_FOUND')
 
+location=$(which "$command" || echo 'COMMAND_NOT_FOUND')
 if grep -qE "\/projects\/" <<<"$location" ; then
   cd "$(dirname "$location")/../"
-  exec $(v) "$location"
+  echo "LOCASTION: $location"
+  exec v "$location"
 else
   >&2 echo "ERROR: cannot find '${command}'"
   exit 1
