@@ -42,6 +42,7 @@ vpm d              # Check setup (diagnose issues)
 - Zellij/Vim navigation: `<C-h/j/k/l>` across Neovim splits and Zellij panes
 - Git integration: `<leader>gr` (reset hunk), `<leader>gp` (preview), `<leader>gb` (blame), `]c/[c` (next/prev hunk)
 - Custom keymaps: `<leader>ri` (add import), `<leader>rc` (copy path), `<leader>rs/rr/rt` (tmux)
+- Tooling summary: `:FileTooling` shows LSP, formatting, linting, Treesitter, and binary availability for the current file
 
 ## Plugins (11)
 

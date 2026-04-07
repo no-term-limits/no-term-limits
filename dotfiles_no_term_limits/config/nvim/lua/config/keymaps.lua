@@ -41,6 +41,10 @@ function AddImportForTermUnderCursor()
 end
 
 vim.keymap.set("n", "<leader>ri", AddImportForTermUnderCursor, { noremap = false, silent = false, desc = "Add import" })
+vim.keymap.set("n", "<leader>rf", "<Cmd>FileTooling<CR>", { noremap = true, silent = true, desc = "Run file tooling summary" })
+vim.api.nvim_create_user_command("FileTooling", function()
+  require("config.tooling").show()
+end, { desc = "Show configured tooling for the current file" })
 
 -- Open current code line in browser
 function OpenCurrentCodeLineInBrowser()
