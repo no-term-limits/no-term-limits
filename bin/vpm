@@ -102,7 +102,7 @@ command_install() {
         local missing_parsers="${parser_check#MISSING:}"
         if [[ "$parser_check" == MISSING:* ]]; then
           echo "Installing missing Treesitter parsers: $missing_parsers"
-          if nvim --headless "+TSInstall ${missing_parsers//,/ }" +qall; then
+          if nvim --headless "+lua local langs = vim.split('$missing_parsers', ',', { plain = true }); local ok = require('nvim-treesitter.install').install(langs, { summary = true }):wait(); if not ok then vim.cmd('cquit 1') end" +qall; then
             local parser_recheck
             nvim --headless "+lua $parser_check_lua" +qall >/dev/null 2>&1 || true
             parser_recheck=$(cat "$parser_status_file" 2>/dev/null || true)
