@@ -131,6 +131,32 @@ function add_no_term_limits_bin_to_path() {
   export PATH="${no_term_limits_directory}/bin:$PATH"
 }
 
+function ensure_mise_installed() {
+  export PATH="$HOME/.local/bin:$PATH"
+
+  if command -v mise >/dev/null 2>&1; then
+    return
+  fi
+
+  echo "Installing mise ..."
+  curl https://mise.run | sh
+  export PATH="$HOME/.local/bin:$PATH"
+}
+
+function ensure_miseo_installed() {
+  export PATH="$HOME/.miseo/.bin:$PATH"
+
+  if command -v miseo >/dev/null 2>&1; then
+    return
+  fi
+
+  ensure_mise_installed
+
+  echo "Installing miseo ..."
+  mise use -g rust cargo:miseo
+  export PATH="$HOME/.miseo/.bin:$PATH"
+}
+
 function run_rcup() {
   if [[ "$NO_TERM_LIMITS_RCUP_FORCE" == "true" ]]; then
     rcup -f -q
@@ -158,6 +184,8 @@ function set_up_github_repos() {
 add_no_term_limits_bin_to_path
 check_sudo
 determine_os
+ensure_mise_installed
+ensure_miseo_installed
 
 # caffeinate prevents the computer from sleeping while running a command.
 # from caffeinate manual, regarding the -s switch:

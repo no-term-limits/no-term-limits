@@ -41,12 +41,8 @@ ensure_treesitter_cli() {
     fi
     brew install tree-sitter
   elif [[ "$os_name" == "Linux" ]]; then
-    if ! command -v miseo >/dev/null 2>&1; then
-      echo "Error: miseo is required to install tree-sitter on Linux"
-      return 1
-    fi
-    miseo install npm:tree-sitter-cli
-    export PATH="$HOME/.miseo/.bin:$PATH"
+    echo "Error: tree-sitter is required on Linux. Run the higher-level provision/setup script first."
+    return 1
   else
     echo "Error: unsupported OS for automatic tree-sitter installation"
     return 1
