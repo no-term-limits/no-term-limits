@@ -36,7 +36,6 @@ function process_additional_directory() {
 
 git_pull_repo "$(no_term_limits_location)"
 git_pull_repo "${HOME}/dotfiles"
-git_pull_repo "${NO_TERM_LIMITS_PROJECTS_DIR}/github/computer-setup"
 
 for repo in $additional_directories; do
   if [[ ! -d "${repo}" ]]; then

@@ -5,7 +5,7 @@ set -e
 # Find nvim config directory - prefer ~/.config/nvim for plugin installation
 NVIM_CONFIG="$HOME/.config/nvim"
 
-# Find manifest in dotfiles repo
+# Find nvim config directory in ntl
 if [[ -n "${NO_TERM_LIMITS_DIR:-}" ]]; then
   DOTFILES_NVIM="$NO_TERM_LIMITS_DIR/dotfiles_no_term_limits/config/nvim"
 elif [[ -d "$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim" ]]; then
@@ -13,7 +13,7 @@ elif [[ -d "$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim" ]]; then
 elif [[ -d "$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/nvim" ]]; then
   DOTFILES_NVIM="$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/config/nvim"
 else
-  echo "Error: Could not find dotfiles nvim directory"
+  echo "Error: Could not find nvim config directory in no-term-limits"
   exit 1
 fi
 
