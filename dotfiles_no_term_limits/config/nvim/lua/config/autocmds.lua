@@ -36,3 +36,21 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
   end,
   desc = "Mark script files with shebangs as executable on write.",
 })
+
+-- Restore the last cursor position when reopening a file.
+vim.api.nvim_create_autocmd("BufReadPost", {
+  group = vim.api.nvim_create_augroup("RestoreCursorPosition", { clear = true }),
+  callback = function(args)
+    local last_line = vim.api.nvim_buf_line_count(args.buf)
+    local mark = vim.api.nvim_buf_get_mark(args.buf, '"')
+    local row = mark[1]
+    local col = mark[2]
+
+    if row <= 0 or row > last_line then
+      return
+    end
+
+    pcall(vim.api.nvim_win_set_cursor, 0, { row, col })
+  end,
+  desc = "Restore cursor to the last known position when reopening a file.",
+})
