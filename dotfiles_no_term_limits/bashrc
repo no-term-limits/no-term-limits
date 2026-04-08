@@ -1,5 +1,3 @@
-source ~/.zshrc.local
-
 if [[ -f "${HOME}/.bashrc.no_term_limits_overrides" ]]; then
   if [[ "$LOAD_NO_TERM_LIMITS_OVERRIDES" != "false" ]]; then
     source "${HOME}/.bashrc.no_term_limits_overrides"

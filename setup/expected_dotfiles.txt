@@ -12,7 +12,6 @@
 .vimrc.bundles.local:$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/vimrc.bundles.local
 .vimrc.local:$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/vimrc.local
 .zshrc:$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/zshrc
-.zshrc.local:$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/zshrc.local
 
 .zsh/zsh-autosuggestions:$HOME/projects/github/zsh-users/zsh-autosuggestions
 .vim/after/plugin/disable_mouse.vim:$HOME/projects/github/no-term-limits/dotfiles_no_term_limits/vim/after/plugin/disable_mouse.vim

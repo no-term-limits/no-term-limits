@@ -38,7 +38,7 @@ unset -f git_super_status 2>/dev/null || true
 unset -f git_prompt_info 2>/dev/null || true
 
 cd "$1"
-source /home/spiffuser/projects/github/no-term-limits/dotfiles_no_term_limits/zshrc.local
+source /home/spiffuser/projects/github/no-term-limits/dotfiles_no_term_limits/zshrc
 git_super_status_with_fallback
 EOF
 
