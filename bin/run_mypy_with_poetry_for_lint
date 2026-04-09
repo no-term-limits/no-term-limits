@@ -7,8 +7,62 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: python: run mypy with poetry
+# HELP: python: run mypy with uv from the nearest pyproject.toml
 
-echo "$@" >/tmp/checkit
+find_project_root() {
+  local arg dir
+  for ((i = $#; i >= 1; i--)); do
+    arg="${!i}"
+    if [[ "$arg" == -* ]]; then
+      continue
+    fi
+    if [[ -f "$arg" ]]; then
+      dir="$(cd -- "$(dirname -- "$arg")" >/dev/null 2>&1 && pwd -P)"
+    elif [[ -d "$arg" ]]; then
+      dir="$(cd -- "$arg" >/dev/null 2>&1 && pwd -P)"
+    else
+      continue
+    fi
 
-poetry run mypy "$@"
+    while [[ "$dir" != "/" ]]; do
+      if [[ -f "$dir/pyproject.toml" ]]; then
+        printf '%s\n' "$dir"
+        return 0
+      fi
+      dir="$(dirname -- "$dir")"
+    done
+
+    if [[ -f "/pyproject.toml" ]]; then
+      printf '/\n'
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+run_mypy() {
+  local project_root status
+
+  if project_root="$(find_project_root "$@")"; then
+    cd "$project_root"
+  fi
+
+  set +e
+  uv run mypy "$@"
+  status=$?
+  set -e
+
+  if [[ "$status" -le 1 ]]; then
+    return "$status"
+  fi
+
+  echo >&2 "uv run mypy failed with exit code ${status}."
+  return "$status"
+}
+
+if run_mypy "$@"; then
+  exit 0
+else
+  exit "$?"
+fi

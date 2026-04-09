@@ -107,22 +107,33 @@ end
 -- nvim-lint Configuration
 local lint_ok, lint = pcall(require, "lint")
 if lint_ok then
+  local function project_mentions_mypy(filename)
+    local pyproject = vim.fs.find({ "pyproject.toml" }, { path = filename, upward = true })[1]
+    if not pyproject then
+      return false
+    end
+
+    local file_contents = table.concat(vim.fn.readfile(pyproject), "\n")
+    return file_contents:match("mypy") ~= nil
+  end
+
   lint.linters_by_ft = {
     python = { "mypy" },
     sh = { "shellcheck" },
   }
 
-  lint.linters.mypy = {
+  local default_mypy_linter = lint.linters.mypy
+  if type(default_mypy_linter) == "function" then
+    default_mypy_linter = default_mypy_linter()
+  end
+
+  lint.linters.mypy = vim.tbl_deep_extend("force", default_mypy_linter or {}, {
     cmd = "run_mypy_with_poetry_for_lint",
     append_fname = true,
     condition = function(ctx)
-      local pyproject = vim.fs.find({ "pyproject.toml" }, { path = ctx.filename, upward = true })[1]
-      if pyproject then
-        return vim.fn.match(vim.fn.readfile(pyproject), "mypy") >= 0
-      end
-      return false
+      return project_mentions_mypy(ctx.filename)
     end,
-  }
+  })
 
   vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
     callback = function() lint.try_lint() end,
