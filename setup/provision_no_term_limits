@@ -184,7 +184,8 @@ function ensure_global_editor_cli_tools_installed() {
   mise use --global pipx:ruff
 
   if [[ "${operating_system}" == "linux" ]]; then
-    mise use --global npm:tree-sitter-cli
+    # use cargo to ensure it compilies with correct GLIBC version
+    mise use --global cargo:tree-sitter-cli
   fi
 }
 
@@ -215,8 +216,6 @@ function set_up_github_repos() {
 add_no_term_limits_bin_to_path
 check_sudo
 determine_os
-ensure_mise_installed
-ensure_global_editor_cli_tools_installed
 
 # caffeinate prevents the computer from sleeping while running a command.
 # from caffeinate manual, regarding the -s switch:
@@ -243,6 +242,10 @@ fi
 if [[ "${NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT:-true}" != "false" ]]; then
   "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
 fi
+
+ensure_mise_installed
+ensure_modern_rust_toolchain
+ensure_global_editor_cli_tools_installed
 
 if is_mac ; then
   if [[ -f /usr/local/bin/brew ]]; then
