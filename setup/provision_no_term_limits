@@ -176,32 +176,15 @@ function ensure_modern_rust_toolchain() {
   fi
 }
 
-function ensure_miseo_installed() {
-  export PATH="$HOME/.miseo/.bin:$PATH"
-
-  if command -v miseo >/dev/null 2>&1; then
-    return
-  fi
-
-  ensure_mise_installed
-  ensure_modern_rust_toolchain
-
-  echo "Installing miseo ..."
-  mise use -g rust cargo:miseo
-  export PATH="$HOME/.miseo/.bin:$PATH"
-}
-
 function ensure_global_editor_cli_tools_installed() {
   export PATH="$HOME/.miseo/.bin:$PATH"
 
-  ensure_miseo_installed
-
   echo "Installing global editor CLI tools via miseo ..."
-  miseo install npm:pyright
-  miseo install pipx:ruff
+  mise use --global npm:pyright
+  mise use --global pipx:ruff
 
   if [[ "${operating_system}" == "linux" ]]; then
-    miseo install npm:tree-sitter-cli
+    mise use --global npm:tree-sitter-cli
   fi
 }
 
@@ -233,7 +216,6 @@ add_no_term_limits_bin_to_path
 check_sudo
 determine_os
 ensure_mise_installed
-ensure_miseo_installed
 ensure_global_editor_cli_tools_installed
 
 # caffeinate prevents the computer from sleeping while running a command.
