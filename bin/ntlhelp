@@ -109,15 +109,15 @@ function get_help_from_bin_dirs() {
 }
 
 function get_help_from_sourced_files() {
-  results_from_common="$(process_file "${HOME}/.zshrc.local")"
+  results_from_common="$(process_file "${HOME}/.zshrc")"
   if [[ -n "$results_from_common" ]]; then
-    results_from_common=$(echo -e "\n\n$(print_color green)Commands in ${HOME}/.zshrc.local:$(print_color end)\n${results_from_common}")
+    results_from_common=$(echo -e "\n\n$(print_color green)Commands in ${HOME}/.zshrc:$(print_color end)\n${results_from_common}")
   fi
   echo "$results_from_common"
 }
 
 if [[ -z "$pattern" ]]; then
-  dohelp "${HOME}/.zshrc.local"
+  dohelp "${HOME}/.zshrc"
   if [[ -f "${HOME}/.zshrc.no_term_limits_overrides" ]]; then
     dohelp "${HOME}/.zshrc.no_term_limits_overrides"
   fi

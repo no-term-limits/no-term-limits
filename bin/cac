@@ -6,7 +6,7 @@ set -e
 
 command="$1"
 
-source "${HOME}/.zshrc.local"
+source "${HOME}/.zshrc"
 
 location=$(which "$command" || echo 'COMMAND_NOT_FOUND')
 

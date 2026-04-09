@@ -382,6 +382,7 @@ else
     jq \
     language-pack-en \
     libbz2-dev \
+    libclang-dev \
     libcurl4-openssl-dev \
     libfcgi \
     libfcgi-dev \

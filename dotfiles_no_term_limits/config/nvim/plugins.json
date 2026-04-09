@@ -1,0 +1,54 @@
+{
+  "_note": "All plugins pinned as of 2026-04-03. Most plugins don't use tags, so we pin to commit hashes. blink.cmp uses tags (v1.10.1). Update with: vpm u",
+  "plugins": {
+    "nvim-lspconfig": {
+      "repo": "neovim/nvim-lspconfig",
+      "commit": "8e2084b"
+    },
+    "nvim-treesitter": {
+      "repo": "nvim-treesitter/nvim-treesitter",
+      "commit": "90cd658"
+    },
+    "blink.cmp": {
+      "repo": "saghen/blink.cmp",
+      "commit": "v1.10.1",
+      "note": "Latest v1 stable. Main is ~26 commits ahead with bug fixes."
+    },
+    "LuaSnip": {
+      "repo": "L3MON4D3/LuaSnip",
+      "commit": "642b0c5"
+    },
+    "conform.nvim": {
+      "repo": "stevearc/conform.nvim",
+      "commit": "086a40d"
+    },
+    "gitsigns.nvim": {
+      "repo": "lewis6991/gitsigns.nvim",
+      "commit": "944ef13"
+    },
+    "nvim-lint": {
+      "repo": "mfussenegger/nvim-lint",
+      "commit": "4b03656"
+    },
+    "plenary.nvim": {
+      "repo": "nvim-lua/plenary.nvim",
+      "commit": "b9fd522"
+    },
+    "telescope.nvim": {
+      "repo": "nvim-telescope/telescope.nvim",
+      "commit": "cfb85dc"
+    },
+    "text-case.nvim": {
+      "repo": "johmsalas/text-case.nvim",
+      "commit": "e898cfd"
+    },
+    "which-key.nvim": {
+      "repo": "folke/which-key.nvim",
+      "commit": "3aab214"
+    },
+    "zellij-nav.nvim": {
+      "repo": "swaits/zellij-nav.nvim",
+      "commit": "91cc2a6"
+    }
+  }
+}

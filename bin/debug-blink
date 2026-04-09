@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+echo "=== blink.cmp Debug Info ==="
+echo ""
+
+PLUGIN_DIR="$HOME/.config/nvim/pack/plugins/start/blink.cmp"
+
+if [ ! -d "$PLUGIN_DIR" ]; then
+  echo "❌ blink.cmp not installed at: $PLUGIN_DIR"
+  exit 1
+fi
+
+echo "✓ blink.cmp found"
+cd "$PLUGIN_DIR"
+
+echo ""
+echo "=== Git Version ==="
+git describe --tags 2>/dev/null || git rev-parse --short HEAD
+
+echo ""
+echo "=== System Info ==="
+echo "OS: $(uname -s)"
+echo "Arch: $(uname -m)"
+
+echo ""
+echo "=== Binary Status ==="
+if [ -d "target/release" ]; then
+  echo "target/release exists:"
+  ls -lh target/release/ | grep -v "^total" | grep -v "^d"
+else
+  echo "❌ target/release/ doesn't exist"
+fi
+
+echo ""
+echo "=== Expected Binary ==="
+case "$(uname -s)" in
+  Darwin)
+    case "$(uname -m)" in
+      arm64) echo "Should have: aarch64-apple-darwin.dylib" ;;
+      x86_64) echo "Should have: x86_64-apple-darwin.dylib" ;;
+    esac
+    ;;
+  Linux)
+    echo "Should have: libblink_cmp_fuzzy.so"
+    ;;
+esac
+
+echo ""
+echo "=== Nvim Detection Test ==="
+nvim --headless -c "lua local os, arch = require('blink.cmp.fuzzy.download.system').get_info(); print('Detected OS: ' .. os .. ', Arch: ' .. arch)" -c "qall" 2>&1 | grep "Detected"
+
+echo ""
+echo "=== Nvim Triple Test ==="
+nvim --headless -c "lua local triple = require('blink.cmp.fuzzy.download.system').get_triple_sync(); print('Triple: ' .. tostring(triple))" -c "qall" 2>&1 | grep "Triple"
+
+echo ""
+echo "=== Rust Module Load Test ==="
+nvim --headless -c "lua local ok, err = pcall(require, 'blink.cmp.fuzzy.rust'); print(ok and '✓ Loaded' or '❌ Failed: ' .. tostring(err))" -c "qall" 2>&1 | tail -3

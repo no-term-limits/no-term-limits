@@ -131,6 +131,65 @@ function add_no_term_limits_bin_to_path() {
   export PATH="${no_term_limits_directory}/bin:$PATH"
 }
 
+function ensure_mise_installed() {
+  export PATH="$HOME/.local/bin:$PATH"
+
+  if command -v mise >/dev/null 2>&1; then
+    return
+  fi
+
+  echo "Installing mise ..."
+  curl https://mise.run | sh
+  export PATH="$HOME/.local/bin:$PATH"
+}
+
+function ensure_modern_rust_toolchain() {
+  export PATH="$HOME/.cargo/bin:$PATH"
+  hash -r
+
+  local should_install_rustup="false"
+  if ! command -v cargo >/dev/null 2>&1; then
+    should_install_rustup="true"
+  elif ! cargo --version | grep -Eq 'cargo 1\.(8[5-9]|9[0-9])|cargo [2-9]\.'; then
+    should_install_rustup="true"
+  fi
+
+  if [[ "$should_install_rustup" == "false" ]]; then
+    return
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "Error: curl is required to install/update Rust"
+    exit 1
+  fi
+
+  echo "Installing/updating Rust toolchain ..."
+  curl https://sh.rustup.rs -sSf | sh -s -- -y
+  export PATH="$HOME/.cargo/bin:$PATH"
+  hash -r
+  rustup default stable
+  rustup update stable
+
+  if ! cargo --version | grep -Eq 'cargo 1\.(8[5-9]|9[0-9])|cargo [2-9]\.'; then
+    echo "Error: cargo is still too old after rustup update. Resolved cargo: $(command -v cargo)"
+    exit 1
+  fi
+}
+
+function ensure_global_editor_cli_tools_installed() {
+  export PATH="$HOME/.miseo/.bin:$PATH"
+
+  echo "Installing global editor CLI tools via miseo ..."
+  mise use --global npm:pyright
+  mise use --global pipx@latest
+  mise use --global pipx:ruff
+
+  if [[ "${operating_system}" == "linux" ]]; then
+    # use cargo to ensure it compilies with correct GLIBC version
+    mise use --global cargo:tree-sitter-cli
+  fi
+}
+
 function run_rcup() {
   if [[ "$NO_TERM_LIMITS_RCUP_FORCE" == "true" ]]; then
     rcup -f -q
@@ -184,6 +243,10 @@ fi
 if [[ "${NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT:-true}" != "false" ]]; then
   "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
 fi
+
+ensure_mise_installed
+ensure_modern_rust_toolchain
+ensure_global_editor_cli_tools_installed
 
 if is_mac ; then
   if [[ -f /usr/local/bin/brew ]]; then
