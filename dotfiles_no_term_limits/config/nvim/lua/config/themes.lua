@@ -1,6 +1,6 @@
 local M = {}
 
-M.repo_default = "tokyonight-night"
+M.repo_default = "vim"
 
 M.themes = {
   { name = "tokyonight-night", label = "Tokyo Night" },
