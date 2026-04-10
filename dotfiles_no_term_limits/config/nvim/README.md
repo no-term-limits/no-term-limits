@@ -46,22 +46,22 @@ vpm d              # Check setup (diagnose issues)
 
 ## Plugins (11)
 
-All pinned to commits. Update with `vpm u`.
+Pinned in `plugins.json`. Update with `vpm u`.
 
-| Plugin | Purpose | Commit |
-|--------|---------|--------|
-| nvim-lspconfig | LSP | 8e2084b |
-| nvim-treesitter | Syntax | 4916d65 |
-| blink.cmp | Completion | v1.10.1 |
-| LuaSnip | Snippets | 642b0c5 |
-| conform.nvim | Formatting | 086a40d |
-| gitsigns.nvim | Git integration | 944ef13 |
-| nvim-lint | Linting | 4b03656 |
-| plenary.nvim | Telescope dep | b9fd522 |
-| telescope.nvim | Fuzzy find | cfb85dc |
-| text-case.nvim | Case convert | e898cfd |
-| which-key.nvim | Keybind help | 3aab214 |
-| zellij-nav.nvim | Zellij pane navigation | 91cc2a6 |
+| Plugin | Purpose |
+|--------|---------|
+| nvim-lspconfig | LSP server configs |
+| nvim-treesitter | Syntax parsing |
+| blink.cmp | Completion menu |
+| LuaSnip | Snippet engine |
+| conform.nvim | Format orchestration |
+| gitsigns.nvim | Git hunks/signs |
+| nvim-lint | Diagnostics runner |
+| plenary.nvim | Telescope utility library |
+| telescope.nvim | Fuzzy picker UI |
+| text-case.nvim | Case conversion |
+| which-key.nvim | Keymap hint popup |
+| zellij-nav.nvim | Zellij pane navigation |
 
 ## Add/Remove Plugins
 
