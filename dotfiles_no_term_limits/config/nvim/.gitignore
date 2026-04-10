@@ -1,6 +1,9 @@
 # Plugin directory managed by vpm
 pack/plugins/start/
 
+# Local machine overrides
+lua/config/local.lua
+
 # Vim swap files
 *.swp
 *.swo

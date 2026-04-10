@@ -1,6 +1,6 @@
 # Neovim Config
 
-Minimal config: 8 plugins, native vim.pack, manifest-based management.
+Minimal config: native vim.pack, manifest-based management.
 
 ## Fresh Install
 
@@ -39,12 +39,25 @@ vpm d              # Check setup (diagnose issues)
 - Formatting (conform: black, prettier, shfmt) - auto on save
 - Linting (mypy, shellcheck)
 - Fuzzy finding: `<leader><leader>/ff/fg/fb` (telescope)
+- Theme picker: `<leader>ut` (Telescope)
 - Zellij/Vim navigation: `<C-h/j/k/l>` across Neovim splits and Zellij panes
 - Git integration: `<leader>gr` (reset hunk), `<leader>gp` (preview), `<leader>gb` (blame), `]c/[c` (next/prev hunk)
 - Custom keymaps: `<leader>ri` (add import), `<leader>rc` (copy path), `<leader>rs/rr/rt` (tmux)
 - Tooling summary: `:FileTooling` shows LSP, formatting, linting, Treesitter, and binary availability for the current file
 
-## Plugins (11)
+## Theme Overrides
+
+The repo default theme is `tokyonight-night`. To use a different default locally without changing Git state, create `~/.config/nvim/lua/config/local.lua`:
+
+```lua
+return {
+  colorscheme = "kanagawa-wave",
+}
+```
+
+You can still browse themes at runtime with `<leader>ut`.
+
+## Plugins (16)
 
 Pinned in `plugins.json`. Update with `vpm u`.
 
@@ -53,13 +66,17 @@ Pinned in `plugins.json`. Update with `vpm u`.
 | nvim-lspconfig | LSP server configs |
 | nvim-treesitter | Syntax parsing |
 | blink.cmp | Completion menu |
+| catppuccin | Soft modern colorscheme |
 | LuaSnip | Snippet engine |
 | conform.nvim | Format orchestration |
 | gitsigns.nvim | Git hunks/signs |
+| kanagawa.nvim | Warm contrast colorscheme |
 | nvim-lint | Diagnostics runner |
 | plenary.nvim | Telescope utility library |
+| rose-pine | Muted elegant colorscheme |
 | telescope.nvim | Fuzzy picker UI |
 | text-case.nvim | Case conversion |
+| tokyonight.nvim | Default colorscheme |
 | which-key.nvim | Keymap hint popup |
 | zellij-nav.nvim | Zellij pane navigation |
 

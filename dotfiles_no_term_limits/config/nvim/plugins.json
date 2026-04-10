@@ -14,6 +14,10 @@
       "commit": "v1.10.1",
       "note": "Latest v1 stable. Main is ~26 commits ahead with bug fixes."
     },
+    "catppuccin": {
+      "repo": "catppuccin/nvim",
+      "commit": "426dbeb"
+    },
     "LuaSnip": {
       "repo": "L3MON4D3/LuaSnip",
       "commit": "642b0c5"
@@ -26,6 +30,10 @@
       "repo": "lewis6991/gitsigns.nvim",
       "commit": "944ef13"
     },
+    "kanagawa.nvim": {
+      "repo": "rebelot/kanagawa.nvim",
+      "commit": "aef7f5c"
+    },
     "nvim-lint": {
       "repo": "mfussenegger/nvim-lint",
       "commit": "4b03656"
@@ -34,6 +42,10 @@
       "repo": "nvim-lua/plenary.nvim",
       "commit": "b9fd522"
     },
+    "rose-pine": {
+      "repo": "rose-pine/neovim",
+      "commit": "9504524"
+    },
     "telescope.nvim": {
       "repo": "nvim-telescope/telescope.nvim",
       "commit": "cfb85dc"
@@ -41,6 +53,10 @@
     "text-case.nvim": {
       "repo": "johmsalas/text-case.nvim",
       "commit": "e898cfd"
+    },
+    "tokyonight.nvim": {
+      "repo": "folke/tokyonight.nvim",
+      "commit": "cdc07ac"
     },
     "which-key.nvim": {
       "repo": "folke/which-key.nvim",

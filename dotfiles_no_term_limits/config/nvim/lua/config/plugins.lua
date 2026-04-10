@@ -159,6 +159,7 @@ if telescope_ok then
   vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live Grep" })
   vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Buffers" })
   vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
+  vim.keymap.set("n", "<leader>ut", require("config.themes").picker, { desc = "Theme picker" })
 end
 
 -- text-case.nvim Configuration
@@ -209,6 +210,7 @@ if wk_ok then
     { "<leader>f", group = "find" },
     { "<leader>g", group = "git" },
     { "<leader>r", group = "run" },
+    { "<leader>u", group = "ui" },
   })
 end
 
