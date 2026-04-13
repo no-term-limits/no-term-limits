@@ -181,7 +181,7 @@ function ensure_global_editor_cli_tools_installed() {
 
   echo "Installing global editor CLI tools via mise ..."
   mise use --global go@1.26.2
-  mise use --global go:github.com/1broseidon/cymbal@latest
+  CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go:github.com/1broseidon/cymbal@latest
   mise use --global npm:pyright
   mise use --global pipx@latest
   mise use --global pipx:ruff
