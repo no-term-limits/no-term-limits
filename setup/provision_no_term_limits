@@ -186,6 +186,7 @@ function ensure_global_editor_cli_tools_installed() {
   mise use --global pipx@latest
   mise use --global pipx:ruff
   mise use --global pipx:uv
+  mise use --global npm:prettier
 
   if [[ "${operating_system}" == "linux" ]]; then
     # use cargo to ensure it compilies with correct GLIBC version
