@@ -179,7 +179,9 @@ function ensure_modern_rust_toolchain() {
 function ensure_global_editor_cli_tools_installed() {
   export PATH="$HOME/.miseo/.bin:$PATH"
 
-  echo "Installing global editor CLI tools via miseo ..."
+  echo "Installing global editor CLI tools via mise ..."
+  mise use --global go@1.26.2
+  mise use --global go:github.com/1broseidon/cymbal@latest
   mise use --global npm:pyright
   mise use --global pipx@latest
   mise use --global pipx:ruff
