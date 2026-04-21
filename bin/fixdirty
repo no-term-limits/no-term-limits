@@ -14,7 +14,7 @@ DIRTY_REPOS=$(gdirtyrepos)
 # Function to show Git status and then prompt for action
 prompt_action() {
     local repo="$1"
-    echo -e "\n--- $repo ---"
+    echo -e "\n$(print_color blue)--- $repo ---$(print_color end)"
     
     # Automatically display git status
     echo "Git status:"
@@ -62,4 +62,3 @@ prompt_action() {
 for repo in $DIRTY_REPOS; do
     prompt_action "$repo"
 done
-
