@@ -10,4 +10,9 @@ set -o errtrace -o errexit -o nounset -o pipefail
 # HELP: git: git all cloned repos under $NO_TERM_LIMITS_PROJECTS_DIR
 
 # for_grepping: print the dirnames of directories found with find that shellcheck likes
-find "$NO_TERM_LIMITS_PROJECTS_DIR" -maxdepth 4 -type d -name ".git" -exec sh -c 'dirname $1' shell {} \;
+find "$NO_TERM_LIMITS_PROJECTS_DIR" \
+  -maxdepth 4 \
+  -mindepth 1 \
+  \( -type d -name ".git" -exec sh -c 'dirname $1' shell {} \; \) \
+  -o \
+  \( -type d -name ".*" -prune \)
