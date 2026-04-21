@@ -292,8 +292,10 @@ if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]
   # https://github.com/denysdovhan/spaceship-prompt/issues/91
   bindkey "^?" backward-delete-char
 
-  # enable vim normal mode by hitting Esc
+  # Keep vi mode, but restore common line-editing keys that break in Zellij.
   bindkey -v
+  bindkey "^A" beginning-of-line
+  bindkey "^E" end-of-line
 
   if [ -f ~/.fzf.zsh ]; then
     # https://github.com/junegunn/fzf, fuzzy finder, overrides ctrl+r to run fzf-history-widget
