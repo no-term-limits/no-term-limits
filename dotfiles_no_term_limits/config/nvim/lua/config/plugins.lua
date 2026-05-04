@@ -150,7 +150,7 @@ if lint_ok then
     end
   end
 
-  vim.keymap.set("n", "<leader>tl", toggle_lint, { noremap = true, desc = "Toggle lint diagnostics" })
+  vim.keymap.set("n", "<leader>ul", toggle_lint, { noremap = true, desc = "Toggle Lint Diagnostics" })
 end
 
 -- telescope.nvim Configuration
