@@ -135,9 +135,22 @@ if lint_ok then
     end,
   })
 
+  local linting_enabled = true
+
   vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
-    callback = function() lint.try_lint() end,
+    callback = function() if linting_enabled then lint.try_lint() end end,
   })
+
+  local toggle_lint = function()
+    linting_enabled = not linting_enabled
+    if linting_enabled then
+      vim.diagnostic.show()
+    else
+      vim.diagnostic.hide()
+    end
+  end
+
+  vim.keymap.set("n", "<leader>tl", toggle_lint, { noremap = true, desc = "Toggle lint diagnostics" })
 end
 
 -- telescope.nvim Configuration
