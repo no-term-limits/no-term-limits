@@ -38,6 +38,7 @@ vpm d              # Check setup (diagnose issues)
 - Completion (blink.cmp + LuaSnip)
 - Formatting (conform: black, prettier, shfmt) - auto on save
 - Linting (mypy, shellcheck)
+- LSP code actions: `<leader>ca`
 - Fuzzy finding: `<leader><leader>/ff/fg/fb` (telescope)
 - Theme picker: `<leader>ut` (Telescope)
 - Zellij/Vim navigation: `<C-h/j/k/l>` across Neovim splits and Zellij panes

@@ -9,6 +9,7 @@ vim.keymap.set(
 )
 
 vim.keymap.set("n", "<leader>a", "<Cmd>buffer #<CR>", { noremap = true, silent = true, desc = "Alternate file" })
+vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { noremap = true, silent = true, desc = "Code action" })
 
 -- there is never a time when we want to save a visual selection
 vim.cmd([[cabbrev <expr> w getcmdtype()==':' && getcmdline() == "'<,'>w" ? '<c-u>w' : 'w']])
