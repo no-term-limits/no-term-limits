@@ -4,6 +4,17 @@
 -- LSP Configuration
 local lsp_ok, _ = pcall(require, "lspconfig")
 if lsp_ok then
+  local function diagnostic_message(diagnostic)
+    local message = diagnostic.message or ""
+    local code = diagnostic.code
+
+    if not code or code == "" then
+      return message
+    end
+
+    return ("[%s] %s"):format(code, message)
+  end
+
   -- Use new vim.lsp.config API for nvim 0.11+ to avoid deprecation warnings
   if vim.lsp.config then
     vim.lsp.config("*", {
@@ -22,8 +33,8 @@ if lsp_ok then
   end
 
   vim.diagnostic.config({
-    virtual_text = { source = "always", prefix = "●" },
-    float = { source = "always" },
+    virtual_text = { source = "always", prefix = "●", format = diagnostic_message },
+    float = { source = "always", format = diagnostic_message },
   })
 end
 
