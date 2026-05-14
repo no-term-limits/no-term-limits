@@ -176,6 +176,69 @@ function ensure_modern_rust_toolchain() {
   fi
 }
 
+function install_tree_sitter_cli_from_github_release() {
+  local architecture
+  case "$(uname -m)" in
+    x86_64|amd64) architecture=x64;;
+    aarch64|arm64) architecture=arm64;;
+    *)
+      echo "No tree-sitter release binary configured for architecture: $(uname -m)"
+      return 1
+      ;;
+  esac
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install tree-sitter from GitHub releases"
+    return 1
+  fi
+
+  if ! command -v unzip >/dev/null 2>&1; then
+    echo "unzip is required to install tree-sitter from GitHub releases"
+    return 1
+  fi
+
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+
+  local tree_sitter_zip="${tmp_dir}/tree-sitter-cli-linux-${architecture}.zip"
+  local tree_sitter_url="https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-cli-linux-${architecture}.zip"
+
+  echo "Installing tree-sitter CLI from GitHub release ..."
+  if ! curl -fsSL --retry 3 -o "$tree_sitter_zip" "$tree_sitter_url"; then
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  if ! unzip -q -o "$tree_sitter_zip" -d "$tmp_dir"; then
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  local tree_sitter_binary
+  tree_sitter_binary="$(find "$tmp_dir" -type f -name tree-sitter -perm -111 | head -n 1)"
+  if [[ -z "$tree_sitter_binary" ]]; then
+    echo "Could not find tree-sitter binary in GitHub release archive"
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  if ! "$tree_sitter_binary" --version; then
+    echo "Downloaded tree-sitter binary did not run on this host"
+    if command -v ldd >/dev/null 2>&1; then
+      ldd "$tree_sitter_binary" || true
+    fi
+    if command -v readelf >/dev/null 2>&1; then
+      readelf -V "$tree_sitter_binary" | grep -E 'GLIBC_[0-9]' || true
+    fi
+    rm -rf "$tmp_dir"
+    return 1
+  fi
+
+  mkdir -p "$HOME/.local/bin"
+  install -m 0755 "$tree_sitter_binary" "$HOME/.local/bin/tree-sitter"
+  rm -rf "$tmp_dir"
+}
+
 function ensure_global_editor_cli_tools_installed() {
   export PATH="$HOME/.miseo/.bin:$PATH"
 
@@ -189,8 +252,10 @@ function ensure_global_editor_cli_tools_installed() {
   mise use --global npm:prettier
 
   if [[ "${operating_system}" == "linux" ]]; then
-    # use cargo to ensure it compilies with correct GLIBC version
-    mise use --global cargo:tree-sitter-cli
+    if ! install_tree_sitter_cli_from_github_release; then
+      # Use cargo as a fallback to ensure it compiles with the host's GLIBC version.
+      mise use --global cargo:tree-sitter-cli
+    fi
   fi
 }
 
