@@ -215,12 +215,13 @@ function install_tree_sitter_cli_from_github_release() {
   fi
 
   local tree_sitter_binary
-  tree_sitter_binary="$(find "$tmp_dir" -type f -name tree-sitter -perm -111 | head -n 1)"
+  tree_sitter_binary="$(find "$tmp_dir" -type f -name tree-sitter | head -n 1)"
   if [[ -z "$tree_sitter_binary" ]]; then
     echo "Could not find tree-sitter binary in GitHub release archive"
     rm -rf "$tmp_dir"
     return 1
   fi
+  chmod +x "$tree_sitter_binary"
 
   if ! "$tree_sitter_binary" --version; then
     echo "Downloaded tree-sitter binary did not run on this host"
