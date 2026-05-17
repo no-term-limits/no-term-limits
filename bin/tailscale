@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -o errexit -o nounset -o pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+script_path="${script_dir}/$(basename -- "${BASH_SOURCE[0]}")"
+macos_app_cli="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+
+# The macOS app executable may otherwise open the GUI when called from scripts.
+if [[ -x "${macos_app_cli}" ]]; then
+  export TAILSCALE_BE_CLI=1
+  exec "${macos_app_cli}" "$@"
+fi
+
+# On Linux, Homebrew, or the macOS standalone install, delegate to the real
+# tailscale binary later on PATH while avoiding this wrapper.
+IFS=':' read -r -a path_entries <<< "${PATH:-}"
+for path_entry in "${path_entries[@]}"; do
+  [[ -n "${path_entry}" ]] || path_entry="."
+  [[ -d "${path_entry}" ]] || continue
+
+  candidate_dir="$(cd -- "${path_entry}" && pwd -P)"
+  candidate="${candidate_dir}/tailscale"
+
+  if [[ -x "${candidate}" && "${candidate}" != "${script_path}" ]]; then
+    exec "${candidate}" "$@"
+  fi
+done
+
+cat >&2 <<'EOF'
+Unable to find a Tailscale CLI.
+
+On macOS, install Tailscale.app or enable the standalone CLI integration.
+On Linux, install tailscale and ensure its binary is on PATH after this bin dir.
+EOF
+exit 127
