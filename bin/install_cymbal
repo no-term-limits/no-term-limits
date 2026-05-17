@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+export PATH="$HOME/.local/bin:$PATH"
+
+if ! command -v mise >/dev/null 2>&1; then
+  echo "Installing mise ..."
+  curl https://mise.run | sh
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
+CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go@1.26.2
+CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go:github.com/1broseidon/cymbal@latest

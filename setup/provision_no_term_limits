@@ -52,8 +52,11 @@ fi
 
 initial_directory="$PWD"
 no_term_limits_directory="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits"
+no_term_limits_setup_started_at="$(date +%s)"
+no_term_limits_timing_file="${NO_TERM_LIMITS_TIMING_FILE:-$HOME/no_term_limits.step-summary.tsv}"
 
 mkdir -p /var/tmp/no_term_limits_setup
+printf 'completed_at_utc\telapsed_seconds\tstep\n' >"$no_term_limits_timing_file"
 
 set -x
 
@@ -129,6 +132,39 @@ function determine_os() {
 
 function add_no_term_limits_bin_to_path() {
   export PATH="${no_term_limits_directory}/bin:$PATH"
+}
+
+function no_term_limits_timestamp() {
+  date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+function run_timed_step() {
+  local label="$1"
+  shift
+  local started_at
+  local elapsed_seconds
+
+  started_at="$(date +%s)"
+  echo "[$(no_term_limits_timestamp)] START ${label}"
+  "$@"
+  elapsed_seconds="$(($(date +%s) - started_at))"
+  printf '%s\t%s\t%s\n' "$(no_term_limits_timestamp)" "$elapsed_seconds" "$label" >>"$no_term_limits_timing_file"
+  echo "[$(no_term_limits_timestamp)] END ${label} (${elapsed_seconds}s)"
+}
+
+function print_timing_summary() {
+  local total_elapsed_seconds
+  total_elapsed_seconds="$(($(date +%s) - no_term_limits_setup_started_at))"
+
+  echo ""
+  echo "no-term-limits timing summary:"
+  if [[ -s "$no_term_limits_timing_file" ]]; then
+    awk -F '\t' 'NR > 1 { printf "- %ss %s\n", $2, $3 }' "$no_term_limits_timing_file" | sort -nr
+  else
+    echo "- No completed setup steps were recorded."
+  fi
+  echo "- ${total_elapsed_seconds}s total no-term-limits runtime"
+  echo "Timing data written to ${no_term_limits_timing_file}"
 }
 
 function ensure_mise_installed() {
@@ -245,7 +281,8 @@ function ensure_global_editor_cli_tools_installed() {
 
   echo "Installing global editor CLI tools via mise ..."
   mise use --global go@1.26.2
-  CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go:github.com/1broseidon/cymbal@latest
+  # Cymbal is useful, but it is expensive on fresh VMs. Run bin/install_cymbal when needed.
+  # CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go:github.com/1broseidon/cymbal@latest
   mise use --global npm:pyright
   mise use --global pipx@latest
   mise use --global pipx:ruff
@@ -311,12 +348,17 @@ if is_mac ; then
 fi
 
 if [[ "${NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT:-true}" != "false" ]]; then
-  "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
+  run_timed_step "run thoughtbot laptop fork" "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
 fi
 
-ensure_mise_installed
-ensure_modern_rust_toolchain
-ensure_global_editor_cli_tools_installed
+run_timed_step "ensure mise installed" ensure_mise_installed
+
+if [[ "${NO_TERM_LIMITS_INSTALL_GLOBAL_EDITOR_CLI_TOOLS:-true}" != "false" ]]; then
+  run_timed_step "ensure modern Rust toolchain" ensure_modern_rust_toolchain
+  run_timed_step "ensure global editor CLI tools" ensure_global_editor_cli_tools_installed
+else
+  echo "Skipping global editor CLI tools; set NO_TERM_LIMITS_INSTALL_GLOBAL_EDITOR_CLI_TOOLS=true to enable."
+fi
 
 if is_mac ; then
   if [[ -f /usr/local/bin/brew ]]; then
@@ -332,15 +374,15 @@ if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
 fi
 
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  run_timed_step "clone tmux plugin manager" git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
   export TMUX_PLUGIN_MANAGER_PATH="$HOME/.tmux/plugins/"
-  "$HOME/.tmux/plugins/tpm/bin/install_plugins"
+  run_timed_step "install tmux plugins" "$HOME/.tmux/plugins/tpm/bin/install_plugins"
 fi
 
 if [ ! -d "${NO_TERM_LIMITS_PROJECTS_DIR}/github/zsh-syntax-highlighting" ]; then
   mkdir -p "${NO_TERM_LIMITS_PROJECTS_DIR}/github"
   pushd "${NO_TERM_LIMITS_PROJECTS_DIR}/github"
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git
+  run_timed_step "clone zsh syntax highlighting" git clone https://github.com/zsh-users/zsh-syntax-highlighting.git
   popd
 fi
 
@@ -348,7 +390,7 @@ if [[ "$NO_TERM_LIMITS_RUN_RCUP" != "false" ]]; then
   if [[ -z "${RCRC:-}" ]]; then
     export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
   fi
-  run_rcup
+  run_timed_step "run rcup" run_rcup
 fi
 
 if [[ -d "$HOME/.bin" ]]; then
@@ -356,7 +398,7 @@ if [[ -d "$HOME/.bin" ]]; then
   remove_broken_symlinks
 fi
 
-install_and_configure_wemux
+run_timed_step "install and configure wemux" install_and_configure_wemux
 
 # https://stackoverflow.com/a/22753363
 # doesn't work in CI. not sure if that's because it's never installed on linux, or because it isn't installed yet.
@@ -382,4 +424,5 @@ cd "$initial_directory"
 
 set +x
 
+print_timing_summary
 echo 'no-term-limits provision completed successfully ❤️'
