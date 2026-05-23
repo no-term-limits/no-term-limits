@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+
+# HELP: ssh and forget old host if you know you have changed the server
+
+if [ $# -lt 1 ]; then
+  echo "Usage: sshf user@host [ssh args...]" >&2
+  exit 2
+fi
+
+target="$1"
+shift
+
+host="${target#*@}"
+host="${host%%:*}"
+
+tmpfile="$(mktemp)"
+trap 'rm -f "$tmpfile"' EXIT
+
+echo "Removing old host key for $host..."
+ssh-keygen -R "$host" >/dev/null 2>&1 || true
+
+echo "Fetching current host key for $host..."
+if ! ssh-keyscan -H "$host" > "$tmpfile" 2>/dev/null || [ ! -s "$tmpfile" ]; then
+  echo "Could not fetch host key for $host" >&2
+  exit 1
+fi
+
+cat "$tmpfile" >> "$HOME/.ssh/known_hosts"
+
+echo "Connecting to $target..."
+exec ssh "$target" "$@"
