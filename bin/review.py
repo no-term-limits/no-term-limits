@@ -163,22 +163,39 @@ class CodeReviewer:
             result = self._run_git(
                 ["symbolic-ref", "refs/remotes/origin/HEAD"], check=True
             )
-            return result.stdout.strip().split("/")[-1]
+            remote_ref = result.stdout.strip()
+            origin_prefix = "refs/remotes/origin/"
+            branch = (
+                remote_ref[len(origin_prefix):]
+                if remote_ref.startswith(origin_prefix)
+                else remote_ref.split("/")[-1]
+            )
+            try:
+                self._run_git(
+                    ["rev-parse", "--verify", f"origin/{branch}"], check=True
+                )
+                return branch
+            except subprocess.CalledProcessError as branch_error:
+                print(
+                    f"Warning: origin/HEAD points to missing branch origin/{branch}: {branch_error.stderr.strip()}",
+                    file=sys.stderr,
+                )
         except subprocess.CalledProcessError as e:
             print(f"Warning: failed to resolve origin/HEAD: {e.stderr.strip()}", file=sys.stderr)
-            for branch in ["main", "master"]:
-                try:
-                    self._run_git(
-                        ["rev-parse", "--verify", f"origin/{branch}"], check=True
-                    )
-                    return branch
-                except subprocess.CalledProcessError as branch_error:
-                    print(
-                        f"Warning: failed to verify origin/{branch}: {branch_error.stderr.strip()}",
-                        file=sys.stderr,
-                    )
-                    continue
-            return "main"
+
+        for branch in ["main", "master"]:
+            try:
+                self._run_git(
+                    ["rev-parse", "--verify", f"origin/{branch}"], check=True
+                )
+                return branch
+            except subprocess.CalledProcessError as branch_error:
+                print(
+                    f"Warning: failed to verify origin/{branch}: {branch_error.stderr.strip()}",
+                    file=sys.stderr,
+                )
+                continue
+        return "main"
 
     def resolve_file_path(self, file_path: str) -> str:
         if os.path.exists(file_path):
