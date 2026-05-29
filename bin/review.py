@@ -47,13 +47,13 @@ class FileToReview:
 
 
 class CodeReviewer:
-    def __init__(self, delete_cache: bool = False):
+    def __init__(self, delete_cache: bool = False, timer_disabled: bool = False):
         self.terminal_height, self.terminal_width = self.get_terminal_size()
         self.current_index = 0
         self.files_to_review: List[FileToReview] = []
         self.ignored_files: Set[str] = set()
         self.reviewed_files: Dict[str, str] = {}
-        self.timer_disabled = False
+        self.timer_disabled = timer_disabled
 
         self.git_root = self.get_git_root()
         self.branch_name = self.get_current_branch()
@@ -98,7 +98,8 @@ class CodeReviewer:
         try:
             with open(path, "r") as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Warning: failed to load cache file {path}: {e}", file=sys.stderr)
             return default
 
     def save_ignored_files(self):
@@ -145,14 +146,16 @@ class CodeReviewer:
                 check=True,
             )
             return Path(result.stdout.strip())
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: failed to determine git root: {e.stderr.strip()}", file=sys.stderr)
             return Path.cwd()
 
     def get_current_branch(self) -> str:
         try:
             result = self._run_git(["branch", "--show-current"], check=True)
             return result.stdout.strip()
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: failed to determine current branch: {e.stderr.strip()}", file=sys.stderr)
             return "unknown"
 
     def get_default_branch(self) -> str:
@@ -161,14 +164,19 @@ class CodeReviewer:
                 ["symbolic-ref", "refs/remotes/origin/HEAD"], check=True
             )
             return result.stdout.strip().split("/")[-1]
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: failed to resolve origin/HEAD: {e.stderr.strip()}", file=sys.stderr)
             for branch in ["main", "master"]:
                 try:
                     self._run_git(
                         ["rev-parse", "--verify", f"origin/{branch}"], check=True
                     )
                     return branch
-                except subprocess.CalledProcessError:
+                except subprocess.CalledProcessError as branch_error:
+                    print(
+                        f"Warning: failed to verify origin/{branch}: {branch_error.stderr.strip()}",
+                        file=sys.stderr,
+                    )
                     continue
             return "main"
 
@@ -193,14 +201,16 @@ class CodeReviewer:
                 while chunk := f.read(8192):
                     sha256.update(chunk)
             return sha256.hexdigest()
-        except (IOError, OSError):
+        except (IOError, OSError) as e:
+            print(f"Warning: failed to hash file {file_path}: {e}", file=sys.stderr)
             return ""
 
     def parse_working_tree_files(self) -> List[FileToReview]:
         files: List[FileToReview] = []
         try:
             result = self._run_git(["status", "--porcelain"], check=True)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: failed to list working tree files: {e.stderr.strip()}", file=sys.stderr)
             return files
 
         for line in result.stdout.splitlines():
@@ -234,7 +244,11 @@ class CodeReviewer:
                 ],
                 check=True,
             )
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(
+                f"Warning: failed to list branch files vs origin/{self.default_branch}: {e.stderr.strip()}",
+                file=sys.stderr,
+            )
             return files
 
         for line in result.stdout.splitlines():
@@ -278,7 +292,11 @@ class CodeReviewer:
                 ],
                 check=True,
             )
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
+            print(
+                f"Warning: failed to list deleted files vs origin/{self.default_branch}: {e.stderr.strip()}",
+                file=sys.stderr,
+            )
             return deleted_files
 
         for line in result.stdout.splitlines():
@@ -310,8 +328,8 @@ class CodeReviewer:
                 if status_code[1] == "?" or status_code[0] == "A":
                     file_path = line[3:]
                     new_files.append(file_path)
-        except subprocess.CalledProcessError:
-            pass
+        except subprocess.CalledProcessError as e:
+            print(f"Warning: failed to list new working tree files: {e.stderr.strip()}", file=sys.stderr)
 
         # Get new files from branch
         try:
@@ -335,8 +353,11 @@ class CodeReviewer:
                     file_path = parts[-1]
                     if file_path not in new_files:
                         new_files.append(file_path)
-        except subprocess.CalledProcessError:
-            pass
+        except subprocess.CalledProcessError as e:
+            print(
+                f"Warning: failed to list new branch files vs origin/{self.default_branch}: {e.stderr.strip()}",
+                file=sys.stderr,
+            )
 
         return new_files
 
@@ -838,7 +859,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Delete the cache files for this branch before starting the review",
     )
+    parser.add_argument(
+        "--no-timer",
+        action="store_true",
+        help="Start the review with the auto-advance timer disabled",
+    )
     args = parser.parse_args()
 
-    reviewer = CodeReviewer(delete_cache=args.delete_cache)
+    reviewer = CodeReviewer(delete_cache=args.delete_cache, timer_disabled=args.no_timer)
     reviewer.run_review()
