@@ -65,8 +65,8 @@ layout {
         pane cwd="sample-process-models"
       }
       pane split_direction="vertical" {
-        pane cwd="civitos-process-models"
-        pane cwd="civitos-process-models"
+        pane cwd="sartography-process-models"
+        pane cwd="sartography-process-models"
       }
     }
   }
