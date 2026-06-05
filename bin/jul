@@ -17,6 +17,7 @@ import time
 import webbrowser
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlparse
 
 import click
 import requests
@@ -215,6 +216,14 @@ def list_repos():
     console.print(table)
 
 
+def format_source_for_display(source: str) -> str:
+    """Compact Jules GitHub source names for table display."""
+    prefix = "sources/github/"
+    if source.startswith(prefix):
+        return source.removeprefix(prefix)
+    return source
+
+
 def delete_session(session_id: str, quiet: bool = False):
     """Delete a session."""
     make_request(f"sessions/{session_id}", method="DELETE")
@@ -236,6 +245,7 @@ def list_sessions(limit: int = 30):
     table = Table(title="Jules Sessions")
     table.add_column("Session ID", style="cyan")
     table.add_column("Title", style="green")
+    table.add_column("Source", style="cyan")
     table.add_column("Branch", style="magenta")
     table.add_column("State", style="yellow")
     table.add_column("Created", style="blue")
@@ -244,10 +254,11 @@ def list_sessions(limit: int = 30):
         session_id = session.get("name", "").replace("sessions/", "")
         title = session.get("title", "N/A")
         source_context = session.get("sourceContext", {})
+        source = format_source_for_display(source_context.get("source", "N/A"))
         branch = source_context.get("githubRepoContext", {}).get("startingBranch", "N/A")
         state = session.get("state", "UNKNOWN")
         created = session.get("createTime", "N/A")
-        table.add_row(session_id, title, branch, state, created)
+        table.add_row(session_id, title, source, branch, state, created)
     
     console.print(table)
 
@@ -365,11 +376,61 @@ def apply_git_patch(patch_content: str, base_commit: Optional[str] = None) -> bo
         Path(patch_file).unlink(missing_ok=True)
 
 
-def get_default_source() -> Optional[str]:
-    """Get the default source if only one exists."""
-    sources = get_sources()
+def parse_github_org_repo(remote_url: str) -> Optional[tuple[str, str]]:
+    """Extract GitHub org/repo from common git remote URL formats."""
+    remote_url = remote_url.strip()
+    if not remote_url:
+        return None
+
+    if remote_url.startswith("git@github.com:"):
+        path = remote_url.removeprefix("git@github.com:")
+    else:
+        parsed = urlparse(remote_url)
+        if parsed.hostname != "github.com":
+            return None
+        path = parsed.path.lstrip("/")
+
+    if path.endswith(".git"):
+        path = path[:-4]
+
+    parts = [part for part in path.split("/") if part]
+    if len(parts) != 2:
+        return None
+
+    return parts[0], parts[1]
+
+
+def get_current_github_org_repo() -> Optional[tuple[str, str]]:
+    """Get the GitHub org/repo for the current repository's origin remote."""
+    try:
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            check=True,
+            capture_output=True,
+            text=True
+        )
+    except subprocess.CalledProcessError:
+        return None
+
+    return parse_github_org_repo(result.stdout)
+
+
+def get_default_source(sources: list) -> Optional[str]:
+    """Get the default source from available sources and current git repo."""
     if len(sources) == 1:
         return sources[0].get("name")
+
+    current_repo = get_current_github_org_repo()
+    if not current_repo:
+        return None
+
+    org, repo = current_repo
+    expected_source_name = f"sources/github/{org}/{repo}".lower()
+    for source in sources:
+        source_name = source.get("name")
+        if source_name and source_name.lower() == expected_source_name:
+            return source_name
+
     return None
 
 
@@ -411,11 +472,11 @@ def create_session(
     
     # Auto-detect source if not provided
     if not source:
-        source = get_default_source()
+        sources = get_sources()
+        source = get_default_source(sources)
         if source:
             console.print(f"[green]Auto-detected source: {source}[/green]")
         else:
-            sources = get_sources()
             if not sources:
                 raise click.ClickException("No sources available. Add a source first.")
             else:
@@ -621,7 +682,7 @@ def session_rm(session_ref):
 
 @session.command("create")
 @click.option("--prompt", required=True, help="Task description for Jules")
-@click.option("--source", help="Source repository (auto-detected if only one)")
+@click.option("--source", help="Source repository (auto-detected if only one, or current GitHub repo matches)")
 @click.option("--branch", default=None, help="Starting branch (default: current git branch)")
 @click.option("--title", help="Optional title for the session")
 @click.option("--require-plan-approval/--no-require-plan-approval", default=False)
