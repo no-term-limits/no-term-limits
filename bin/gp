@@ -9,7 +9,11 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: git: popular: git pull ensuring correct branch
 
-git_remote="$(git_remote "${1:-}")"
+if ! grep -qE "^\-\-" <<<"${1:-}" && [[ -n "${1:-}" ]]; then
+  remote="${1:-}"
+  shift
+fi
+git_remote="$(git_remote "${remote:-}")"
 branch_name=$(git_branch)
 git branch --set-upstream-to="${git_remote}/$branch_name" "$branch_name"
-git pull
+git pull "${@}"
