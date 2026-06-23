@@ -7,14 +7,20 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: browse to repo in bitbucket-server
+# HELP: git: browse to repo in github or bitbucket. Passing in --pr will open the compare page in github.
 
 directory_name=$(pwd)
 
-file_full_path="${1:-$directory_name}"
+file_full_path="${1:-}"
 line_number="${2:-}"
 
-if [[ -f "$file_full_path" ]]; then
+open_compare_link="false"
+if [[ -z "$file_full_path" ]]; then
+  file_full_path="$directory_name"
+elif [[ "$file_full_path" == "--pr" ]]; then
+  open_compare_link="true"
+  file_full_path="$directory_name"
+elif [[ -f "$file_full_path" ]]; then
   directory_name=$(dirname "$file_full_path")
 elif [[ -d "$file_full_path" ]]; then
   directory_name="$file_full_path"
@@ -41,11 +47,15 @@ if [[ "$dir_count" -gt 2 ]]; then
 fi
 
 if grep -q 'github.com' <<<"$git_url"; then
-  url_path="/tree/${branch}/${relative_file}"
-  if [[ -n "$line_number" ]]; then
-    url_path="${url_path}#L${line_number}"
+  if [[ "$open_compare_link" == "true" ]]; then
+    url_path="${git_url}/compare/main...${branch}"
+  else
+    url_path="/tree/${branch}/${relative_file}"
+    if [[ -n "$line_number" ]]; then
+      url_path="${url_path}#L${line_number}"
+    fi
+    url_path="${git_url}${url_path}"
   fi
-  url_path="${git_url}${url_path}"
 elif grep -q 'bitbucket.org' <<<"$git_url"; then
   commit_hash=$(git rev-parse --verify HEAD)
   url_path="${git_url}src/${commit_hash}/${relative_file}?at=${branch}"
