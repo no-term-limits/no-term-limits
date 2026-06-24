@@ -136,16 +136,42 @@ function install_vim_from_source() {
 }
 
 function get_additional_apt_keys() {
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  sudo apt-key fingerprint 0EBFCD88
-  sudo add-apt-repository -y \
-    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) \
-    stable"
-  sudo add-apt-repository -y \
-    "deb http://security.ubuntu.com/ubuntu \
-    $(lsb_release -cs)-security \
-    main"
+  local release arch docker_keyring docker_source docker_fingerprint old_source temp_file
+  release="$(lsb_release -cs)"
+  arch="$(dpkg --print-architecture)"
+  docker_keyring="/etc/apt/keyrings/docker.asc"
+  docker_source="/etc/apt/sources.list.d/docker.list"
+  docker_fingerprint="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+
+  sudo install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee "$docker_keyring" >/dev/null
+  sudo chmod a+r "$docker_keyring"
+  echo "deb [arch=${arch} signed-by=${docker_keyring}] https://download.docker.com/linux/ubuntu ${release} stable" | sudo tee "$docker_source" >/dev/null
+
+  for old_source in /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-*.list /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
+    if [[ -e "$old_source" ]]; then
+      sudo mv "$old_source" "${old_source}.disabled-by-no-term-limits"
+    fi
+  done
+
+  if [[ -f /etc/apt/trusted.gpg ]] && sudo gpg --no-default-keyring --keyring /etc/apt/trusted.gpg --list-keys "$docker_fingerprint" >/dev/null 2>&1; then
+    sudo gpg --batch --yes --no-default-keyring --keyring /etc/apt/trusted.gpg --delete-key "$docker_fingerprint" >/dev/null 2>&1 || true
+  fi
+
+  if [[ ! -f /etc/apt/sources.list.d/ubuntu.sources ]]; then
+    sudo add-apt-repository -y "deb http://security.ubuntu.com/ubuntu ${release}-security main"
+  elif [[ -f /etc/apt/sources.list ]] && sudo grep -Eq "^[[:space:]]*deb[[:space:]]+.*security\.ubuntu\.com/ubuntu[[:space:]]+${release}-security[[:space:]]+main([[:space:]]|$)" /etc/apt/sources.list; then
+    temp_file="$(mktemp)"
+    sudo awk -v release="$release" '
+      $0 ~ "^[[:space:]]*deb[[:space:]]+.*security\\.ubuntu\\.com/ubuntu[[:space:]]+" release "-security[[:space:]]+main([[:space:]]|$)" {
+        print "# disabled by no-term-limits: " $0
+        next
+      }
+      { print }
+    ' /etc/apt/sources.list >"$temp_file"
+    sudo install -m 0644 "$temp_file" /etc/apt/sources.list
+    rm -f "$temp_file"
+  fi
 
   if ! ubuntu_greater_than_18_04; then
     # thoughtbot rcm
