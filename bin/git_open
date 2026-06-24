@@ -25,14 +25,28 @@ function github_pr_url_for_branch() {
   return 1
 }
 
+function git_base_branch() {
+  local origin_head
+
+  if origin_head=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null); then
+    echo "${origin_head#origin/}"
+  elif has_main_branch; then
+    echo "main"
+  else
+    echo "master"
+  fi
+}
+
 directory_name=$(pwd)
 
 file_full_path="${1:-}"
 line_number="${2:-}"
 
 open_compare_link="false"
+open_repo_root="false"
 open_pull_request_if_available="false"
 if [[ -z "$file_full_path" ]]; then
+  open_repo_root="true"
   open_pull_request_if_available="true"
   file_full_path="$directory_name"
 elif [[ "$file_full_path" == "--pr" ]]; then
@@ -47,11 +61,15 @@ cd "$directory_name"
 
 url_path=""
 branch=$(git_branch)
+base_branch=$(git_base_branch)
+if [[ "$branch" == "$base_branch" ]]; then
+  open_pull_request_if_available="false"
+fi
 git_url=$(git_url_of_current_directory)
 
 git_root="$(git rev-parse --show-toplevel)"
 relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+||g')
-if [[ "$open_pull_request_if_available" == "true" ]]; then
+if [[ "$open_repo_root" == "true" ]]; then
   relative_file=""
 fi
 
