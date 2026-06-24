@@ -214,6 +214,11 @@ function ensure_modern_rust_toolchain() {
 
 function install_tree_sitter_cli_from_github_release() {
   local architecture
+  if command -v tree-sitter >/dev/null 2>&1 && tree-sitter --version >/dev/null 2>&1; then
+    echo "tree-sitter CLI already installed: $(tree-sitter --version)"
+    return 0
+  fi
+
   case "$(uname -m)" in
     x86_64|amd64) architecture=x64;;
     aarch64|arm64) architecture=arm64;;

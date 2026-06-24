@@ -7,7 +7,23 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: browse to repo in github or bitbucket. Passing in --pr will open the compare page in github.
+# HELP: git: browse to repo in github or bitbucket. Opens the current branch's GitHub PR when one exists. Passing in --pr will open the compare page in github.
+
+function github_pr_url_for_branch() {
+  local branch="$1"
+  local pr_url
+
+  if ! command -v gh >/dev/null; then
+    return 1
+  fi
+
+  if pr_url=$(gh pr view "$branch" --json url --jq .url 2>/dev/null) && [[ -n "$pr_url" ]]; then
+    echo "$pr_url"
+    return 0
+  fi
+
+  return 1
+}
 
 directory_name=$(pwd)
 
@@ -15,7 +31,9 @@ file_full_path="${1:-}"
 line_number="${2:-}"
 
 open_compare_link="false"
+open_pull_request_if_available="false"
 if [[ -z "$file_full_path" ]]; then
+  open_pull_request_if_available="true"
   file_full_path="$directory_name"
 elif [[ "$file_full_path" == "--pr" ]]; then
   open_compare_link="true"
@@ -33,6 +51,9 @@ git_url=$(git_url_of_current_directory)
 
 git_root="$(git rev-parse --show-toplevel)"
 relative_file=$(hot_sed -E "s|${git_root}||" <<<"$file_full_path" | sed -E 's|^/+||g')
+if [[ "$open_pull_request_if_available" == "true" ]]; then
+  relative_file=""
+fi
 
 project_path=$(perl -p -e "s|${NO_TERM_LIMITS_PROJECTS_DIR}||" <<<"$git_root")
 dir_count=$(perl -p -e 's|/| |g' <<<"$project_path" | wc -w)
@@ -49,6 +70,8 @@ fi
 if grep -q 'github.com' <<<"$git_url"; then
   if [[ "$open_compare_link" == "true" ]]; then
     url_path="${git_url}/compare/main...${branch}"
+  elif [[ "$open_pull_request_if_available" == "true" ]] && pr_url=$(github_pr_url_for_branch "$branch"); then
+    url_path="$pr_url"
   else
     url_path="/tree/${branch}/${relative_file}"
     if [[ -n "$line_number" ]]; then

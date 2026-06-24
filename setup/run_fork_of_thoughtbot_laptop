@@ -148,9 +148,10 @@ function get_additional_apt_keys() {
   sudo chmod a+r "$docker_keyring"
   echo "deb [arch=${arch} signed-by=${docker_keyring}] https://download.docker.com/linux/ubuntu ${release} stable" | sudo tee "$docker_source" >/dev/null
 
-  for old_source in /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-*.list /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
+  sudo install -m 0755 -d /etc/apt/sources.list.d/disabled-by-no-term-limits
+  for old_source in /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-* /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
     if [[ -e "$old_source" ]]; then
-      sudo mv "$old_source" "${old_source}.disabled-by-no-term-limits"
+      sudo mv "$old_source" "/etc/apt/sources.list.d/disabled-by-no-term-limits/$(basename "$old_source")"
     fi
   done
 
