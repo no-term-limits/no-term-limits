@@ -85,6 +85,12 @@ if luasnip_ok then
   })
 end
 
+vim.g.ntl_format_on_save = true
+vim.keymap.set("n", "<leader>uf", function()
+  vim.g.ntl_format_on_save = not vim.g.ntl_format_on_save
+  vim.notify("Format on save " .. (vim.g.ntl_format_on_save and "enabled" or "disabled"))
+end, { desc = "Toggle Auto Format" })
+
 -- Conform.nvim Configuration (formatting)
 local conform_ok, conform = pcall(require, "conform")
 if conform_ok then
@@ -110,7 +116,9 @@ if conform_ok then
   vim.api.nvim_create_autocmd("BufWritePre", {
     pattern = "*",
     callback = function(args)
-      conform.format({ bufnr = args.buf })
+      if vim.g.ntl_format_on_save then
+        conform.format({ bufnr = args.buf })
+      end
     end,
   })
 end
