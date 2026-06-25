@@ -70,6 +70,7 @@ if blink_ok then
       },
       ["<S-Tab>"] = { "snippet_backward", "fallback" },
     },
+    cmdline = { enabled = false },
   })
 end
 

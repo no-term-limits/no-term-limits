@@ -42,3 +42,4 @@ vim.opt.smartindent = true
 vim.opt.termguicolors = true
 vim.opt.signcolumn = "yes"
 vim.opt.updatetime = 250
+vim.opt.wildmode = "longest,list,full"

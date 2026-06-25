@@ -9,8 +9,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-output=$(run_headless_nvim "$temp_home" +'lua local cmp=require("blink.cmp"); local cfg=require("blink.cmp.config"); local sources=require("blink.cmp.sources.lib"); print("HAS_LSP_CAPS=" .. tostring(type(cmp.get_lsp_capabilities) == "function")); print("DEFAULT=" .. table.concat(cfg.sources.default, ",")); print("ENABLED=" .. table.concat(sources.get_enabled_provider_ids("default"), ","))' +"qall!")
+output=$(run_headless_nvim "$temp_home" +'lua local cmp=require("blink.cmp"); local cfg=require("blink.cmp.config"); local sources=require("blink.cmp.sources.lib"); print("HAS_LSP_CAPS=" .. tostring(type(cmp.get_lsp_capabilities) == "function")); print("DEFAULT=" .. table.concat(cfg.sources.default, ",")); print("ENABLED=" .. table.concat(sources.get_enabled_provider_ids("default"), ",")); print("CMDLINE_ENABLED=" .. tostring(cfg.cmdline.enabled))' +"qall!")
 
 assert_contains "$output" "HAS_LSP_CAPS=true"
 assert_contains "$output" "DEFAULT=snippets,lsp,path,buffer"
 assert_contains "$output" "ENABLED=snippets,lsp,path,buffer"
+assert_contains "$output" "CMDLINE_ENABLED=false"
