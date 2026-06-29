@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-set -e
+function error_handler() {
+  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  exit "$2"
+}
+trap 'error_handler ${LINENO} $?' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
 
 # Find nvim config directory - prefer ~/.config/nvim for plugin installation
 NVIM_CONFIG="$HOME/.config/nvim"
