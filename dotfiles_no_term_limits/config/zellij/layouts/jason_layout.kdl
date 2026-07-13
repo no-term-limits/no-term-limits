@@ -58,7 +58,7 @@ layout {
     }
   }
 
-  tab name="sample-civitos" {
+  tab name="process-models" {
     pane split_direction="horizontal" {
       pane split_direction="vertical" {
         pane cwd="sample-process-models"
@@ -84,23 +84,10 @@ layout {
     }
   }
 
-  tab name="civitos-api" cwd="../civitos/civitos/api" {
+  tab name="internal" cwd="internal-mono" {
     pane split_direction="vertical" {
       pane
       pane
-    }
-  }
-
-  tab name="civitos-app-terraform" {
-    pane split_direction="horizontal" {
-      pane split_direction="vertical" {
-        pane cwd="../civitos/civitos/app"
-        pane cwd="../civitos/civitos/app"
-      }
-      pane split_direction="vertical" {
-        pane cwd="../civitos/civitos/terraform"
-        pane cwd="../civitos/civitos/terraform"
-      }
     }
   }
 }
