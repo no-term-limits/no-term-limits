@@ -11,6 +11,10 @@ script_dir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 export PATH="${script_dir}/../bin:$PATH"
 export NO_TERM_LIMITS_TESTS_DIR="$script_dir"
 
+if [[ -x "$HOME/.local/bin/mise" ]]; then
+  eval "$("$HOME/.local/bin/mise" env -s bash)"
+fi
+
 test_files=$(find "${script_dir}/unit" -name "*.sh")
 if [[ -n "$test_files" ]]; then
   while read -r test_file; do

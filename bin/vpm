@@ -11,7 +11,9 @@ set -o errtrace -o errexit -o nounset -o pipefail
 NVIM_CONFIG="$HOME/.config/nvim"
 
 # Find nvim config directory in ntl
-if [[ -n "${NO_TERM_LIMITS_DIR:-}" ]]; then
+if [[ -n "${NO_TERM_LIMITS_DIRECTORY:-}" ]]; then
+  DOTFILES_NVIM="$NO_TERM_LIMITS_DIRECTORY/dotfiles_no_term_limits/config/nvim"
+elif [[ -n "${NO_TERM_LIMITS_DIR:-}" ]]; then
   DOTFILES_NVIM="$NO_TERM_LIMITS_DIR/dotfiles_no_term_limits/config/nvim"
 elif [[ -d "$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim" ]]; then
   DOTFILES_NVIM="$HOME/no-term-limits/dotfiles_no_term_limits/config/nvim"

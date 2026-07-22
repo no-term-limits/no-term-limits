@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck source=/dev/null
 source "$(dirname "$0")/test_lib.sh"
 
 temp_home=$(create_isolated_nvim_home)
@@ -11,8 +12,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cd "$repo_dir"
+cd "$repo_dir" || exit 1
 git init -q
+git branch -M main
 git config user.email test@example.com
 git config user.name test
 printf 'a\n' > tracked.txt
@@ -21,7 +23,7 @@ git commit -qm init
 printf 'a\nb\n' > tracked.txt
 
 repo_dir_real=$(
-  cd "$repo_dir" >/dev/null 2>&1
+  cd "$repo_dir" >/dev/null 2>&1 || exit 1
   pwd -P
 )
 
@@ -29,4 +31,4 @@ output=$(run_headless_nvim "$temp_home" +"e $repo_dir/tracked.txt" +'lua local o
 
 assert_contains "$output" "ATTACHED=true"
 assert_contains "$output" "head = \"main\""
-assert_contains "$output" "root = \""$repo_dir_real"\""
+assert_contains "$output" "root = \"$repo_dir_real\""
