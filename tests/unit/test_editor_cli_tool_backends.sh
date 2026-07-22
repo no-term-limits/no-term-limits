@@ -25,4 +25,14 @@ for tool in ruff uv; do
   fi
 done
 
-echo "Ruff and uv use standalone mise backends."
+if ! rg -q 'eval "\$\(mise env -s bash\)"' "$provisioner"; then
+  echo >&2 "ERROR: provisioning does not activate newly installed mise tools."
+  exit 1
+fi
+
+if ! rg -q 'command -v tree-sitter' "$provisioner"; then
+  echo >&2 "ERROR: provisioning does not verify the tree-sitter CLI."
+  exit 1
+fi
+
+echo "Editor CLI tools use standalone backends and activate the mise environment."

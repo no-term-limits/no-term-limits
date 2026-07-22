@@ -306,6 +306,16 @@ function ensure_global_editor_cli_tools_installed() {
       mise use --global cargo:tree-sitter-cli
     fi
   fi
+
+  # `mise use` updates configuration but not the current shell environment.
+  # Activate it so later provisioning steps can find newly installed tools.
+  eval "$(mise env -s bash)"
+  hash -r
+
+  if ! command -v tree-sitter >/dev/null 2>&1; then
+    echo >&2 "ERROR: tree-sitter CLI is unavailable after editor tool installation"
+    return 1
+  fi
 }
 
 function run_rcup() {
