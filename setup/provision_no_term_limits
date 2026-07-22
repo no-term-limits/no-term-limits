@@ -293,9 +293,12 @@ function ensure_global_editor_cli_tools_installed() {
   # CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go:github.com/1broseidon/cymbal@latest
   mise use --global npm:pyright
   mise use --global pipx@latest
-  mise use --global pipx:ruff
-  mise use --global pipx:uv
   mise use --global npm:prettier
+
+  # Ruff and uv publish standalone binaries. Avoid routing them through pipx,
+  # which depends on the host Python/pip and fails on some older distributions.
+  mise use --global ruff@latest
+  mise use --global uv@latest
 
   if [[ "${operating_system}" == "linux" ]]; then
     if ! install_tree_sitter_cli_from_github_release; then

@@ -420,6 +420,7 @@ brew "fzf"
 brew "the_silver_searcher"
 brew "tmux"
 brew "vim"
+brew "neovim"
 brew "watchman"
 brew "zsh"
 

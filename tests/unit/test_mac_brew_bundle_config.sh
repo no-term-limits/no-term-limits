@@ -23,4 +23,9 @@ if rg -n '^tap "(homebrew/services|thoughtbot/formulae)"' "$provisioner"; then
   exit 1
 fi
 
-echo "macOS Brew Bundle avoids runner upgrades and obsolete taps."
+if ! rg -q '^brew "neovim"$' "$provisioner"; then
+  echo >&2 "ERROR: macOS provisioning must install Neovim before plugin setup."
+  exit 1
+fi
+
+echo "macOS Brew Bundle installs Neovim and avoids runner upgrades and obsolete taps."
