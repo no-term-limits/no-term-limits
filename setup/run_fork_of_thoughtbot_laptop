@@ -263,29 +263,48 @@ function install_stern() {
 
 function install_kubectl() {
   local desired_kubectl_version=''
-  if [[ -n "$NO_TERM_LIMITS_KUBECTL_VERSION" ]]; then
-    desired_kubectl_version="v${NO_TERM_LIMITS_KUBECTL_VERSION}"
+  if [[ -n "${NO_TERM_LIMITS_KUBECTL_VERSION:-}" ]]; then
+    desired_kubectl_version="v${NO_TERM_LIMITS_KUBECTL_VERSION#v}"
   else
-    desired_kubectl_version=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+    desired_kubectl_version=$(curl -fsSL --retry 3 https://dl.k8s.io/release/stable.txt)
   fi
+
   local current_version=''
   if command -v kubectl >/dev/null; then
-    current_version=$(kubectl version --client | perl -p -e 's/.*GitVersion:"(v[^"]+)".*/\1/')
+    current_version=$(kubectl version --client --output=json 2>/dev/null | jq -r '.clientVersion.gitVersion // empty' || true)
+    if [[ -z "$current_version" ]]; then
+      current_version=$(kubectl version --client 2>/dev/null | sed -nE 's/^Client Version:[[:space:]]+(v[^[:space:]]+).*/\1/p' || true)
+    fi
   fi
+
   if [[ "$current_version" != "$desired_kubectl_version" ]]; then
     local architecture
-    architecture=$(uname -m)
-    if [[ "$architecture" == 'x86_64' ]]; then
-      architecture=amd64
-    fi
-    local os_type='linux'
-    if is_mac; then
-      os_type='darwin'
-    fi
-    curl -L "https://dl.k8s.io/release/${desired_kubectl_version}/bin/${os_type}/${architecture}/kubectl" -o /tmp/kubectl
-    chmod +x /tmp/kubectl
-    sudo mv /tmp/kubectl /usr/local/bin
-    sudo chown root: /usr/local/bin/kubectl
+    case "$(uname -m)" in
+      x86_64|amd64) architecture=amd64;;
+      aarch64|arm64) architecture=arm64;;
+      *)
+        echo >&2 "ERROR: unsupported kubectl architecture: $(uname -m)"
+        return 1
+        ;;
+    esac
+
+    local os_type
+    case "$(uname -s)" in
+      Linux) os_type=linux;;
+      Darwin) os_type=darwin;;
+      *)
+        echo >&2 "ERROR: unsupported kubectl operating system: $(uname -s)"
+        return 1
+        ;;
+    esac
+
+    local kubectl_download
+    kubectl_download=$(mktemp)
+    curl -fsSL --retry 3 \
+      "https://dl.k8s.io/release/${desired_kubectl_version}/bin/${os_type}/${architecture}/kubectl" \
+      -o "$kubectl_download"
+    sudo install -m 0755 "$kubectl_download" /usr/local/bin/kubectl
+    rm -f "$kubectl_download"
   fi
 }
 
@@ -543,8 +562,7 @@ else
   add_user_to_docker_group
 
   install_stern
-  # TODO: update kubectl installation for installation without xenial repo
-  # install_kubectl
+  install_kubectl
   install_github_cli
 fi
 
