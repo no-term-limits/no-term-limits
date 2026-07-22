@@ -67,14 +67,14 @@ function ubuntu_greater_than_18_04() {
   [[ "$ubuntu_version" -gt "1804" ]]
 }
 
-function ubuntu_greater_than_or_equal_24_04() {
+function ubuntu_greater_than_or_equal_22_04() {
   local ubuntu_version
   ubuntu_version="$(ubuntu_version_number)"
-  [[ "$ubuntu_version" -ge "2404" ]]
+  [[ "$ubuntu_version" -ge "2204" ]]
 }
 
 function install_neovim_for_modern_ubuntu() {
-  if ! ubuntu_greater_than_or_equal_24_04; then
+  if ! ubuntu_greater_than_or_equal_22_04; then
     return
   fi
 
