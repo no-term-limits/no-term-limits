@@ -57,15 +57,19 @@ function ubuntu_codename() {
   fi
 }
 
+function ubuntu_version_number() {
+  ubuntu_version_id | sed 's/\.//g'
+}
+
 function ubuntu_greater_than_18_04() {
   local ubuntu_version
-  ubuntu_version="$(ubuntu_version_id | sed 's/\.//')"
+  ubuntu_version="$(ubuntu_version_number)"
   [[ "$ubuntu_version" -gt "1804" ]]
 }
 
 function ubuntu_greater_than_or_equal_24_04() {
   local ubuntu_version
-  ubuntu_version="$(ubuntu_version_id | sed 's/\.//')"
+  ubuntu_version="$(ubuntu_version_number)"
   [[ "$ubuntu_version" -ge "2404" ]]
 }
 
