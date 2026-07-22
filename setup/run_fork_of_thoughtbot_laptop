@@ -111,6 +111,25 @@ function install_neovim_for_modern_ubuntu() {
   rm -rf "$tmp_output"
 }
 
+function ensure_fd_command() {
+  export PATH="$HOME/.local/bin:$PATH"
+  if command -v fd >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! command -v fdfind >/dev/null 2>&1; then
+    echo >&2 "ERROR: neither fd nor fdfind is available after package installation"
+    return 1
+  fi
+
+  mkdir -p "$HOME/.local/bin"
+  if [[ -e "$HOME/.local/bin/fd" || -L "$HOME/.local/bin/fd" ]]; then
+    echo >&2 "ERROR: $HOME/.local/bin/fd already exists but is not available on PATH"
+    return 1
+  fi
+  ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
+}
+
 function update_shell() {
   if [[ "$SHELL" != *"$NO_TERM_LIMITS_PREFERRED_SHELL" ]]; then
     local shell_path
@@ -395,6 +414,8 @@ brew "openssl"
 brew "rcm"
 
 brew "reattach-to-user-namespace"
+brew "fd"
+brew "fzf"
 brew "the_silver_searcher"
 brew "tmux"
 brew "vim"
@@ -484,6 +505,8 @@ else
     curl \
     espeak \
     expect \
+    fd-find \
+    fzf \
     gettext-base \
     htop \
     imagemagick \
@@ -565,6 +588,8 @@ else
   install_kubectl
   install_github_cli
 fi
+
+ensure_fd_command
 
 case "$SHELL" in
 */zsh)
