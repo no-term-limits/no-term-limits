@@ -9,6 +9,12 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # designed to be run as the very first (and only) setup script
 
+script_dir="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+export NO_TERM_LIMITS_DIRECTORY="$(dirname "$script_dir")"
+export NO_TERM_LIMITS_SKIP_GIT_PULL=true
 export NO_TERM_LIMITS_RCUP_FORCE=true
 
 ./setup/provision_no_term_limits

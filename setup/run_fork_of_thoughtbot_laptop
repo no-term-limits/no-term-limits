@@ -33,13 +33,39 @@ fi
 vim_version='8.2.3768'
 HOMEBREW_PREFIX="/usr/local"
 
+function ubuntu_version_id() {
+  if [[ -r /etc/os-release ]]; then
+    (
+      # shellcheck disable=SC1091
+      source /etc/os-release
+      printf '%s\n' "$VERSION_ID"
+    )
+  else
+    lsb_release -sr
+  fi
+}
+
+function ubuntu_codename() {
+  if [[ -r /etc/os-release ]]; then
+    (
+      # shellcheck disable=SC1091
+      source /etc/os-release
+      printf '%s\n' "${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+    )
+  else
+    lsb_release -cs
+  fi
+}
+
 function ubuntu_greater_than_18_04() {
-  ubuntu_version="$(lsb_release -sr | sed 's/\.//')"
+  local ubuntu_version
+  ubuntu_version="$(ubuntu_version_id | sed 's/\.//')"
   [[ "$ubuntu_version" -gt "1804" ]]
 }
 
 function ubuntu_greater_than_or_equal_24_04() {
-  ubuntu_version="$(lsb_release -sr | sed 's/\.//')"
+  local ubuntu_version
+  ubuntu_version="$(ubuntu_version_id | sed 's/\.//')"
   [[ "$ubuntu_version" -ge "2404" ]]
 }
 
@@ -137,21 +163,31 @@ function install_vim_from_source() {
 
 function get_additional_apt_keys() {
   local release arch docker_keyring docker_source docker_fingerprint old_source temp_file
-  release="$(lsb_release -cs)"
+  release="$(ubuntu_codename)"
   arch="$(dpkg --print-architecture)"
   docker_keyring="/etc/apt/keyrings/docker.asc"
-  docker_source="/etc/apt/sources.list.d/docker.list"
+  docker_source="/etc/apt/sources.list.d/docker.sources"
   docker_fingerprint="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
 
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee "$docker_keyring" >/dev/null
   sudo chmod a+r "$docker_keyring"
-  echo "deb [arch=${arch} signed-by=${docker_keyring}] https://download.docker.com/linux/ubuntu ${release} stable" | sudo tee "$docker_source" >/dev/null
+  sudo tee "$docker_source" >/dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: ${release}
+Components: stable
+Architectures: ${arch}
+Signed-By: ${docker_keyring}
+EOF
 
   sudo install -m 0755 -d /etc/apt/sources.list.d/disabled-by-no-term-limits
-  for old_source in /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-* /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
+  for old_source in \
+    /etc/apt/sources.list.d/docker.list \
+    /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-* \
+    /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
     if [[ -e "$old_source" ]]; then
-      sudo mv "$old_source" "/etc/apt/sources.list.d/disabled-by-no-term-limits/$(basename "$old_source")"
+      sudo mv -f "$old_source" "/etc/apt/sources.list.d/disabled-by-no-term-limits/$(basename "$old_source")"
     fi
   done
 
@@ -201,11 +237,21 @@ function install_stern() {
     fi
   fi
   local tmp_output="/tmp/stern_$(date +%s)"
+  local architecture
+  case "$(uname -m)" in
+    x86_64|amd64) architecture=amd64;;
+    aarch64|arm64) architecture=arm64;;
+    *)
+      echo >&2 "ERROR: unsupported architecture for stern: $(uname -m)"
+      return 1
+      ;;
+  esac
+  local stern_archive="stern_${version}_linux_${architecture}.tar.gz"
   mkdir -p "$tmp_output"
   pushd "$tmp_output"
 
-  curl -L --fail "https://github.com/stern/stern/releases/download/v${version}/stern_${version}_linux_amd64.tar.gz" -o "$tmp_output/stern_${version}_linux_amd64.tar.gz"
-  tar xpvf *.tar.gz
+  curl -L --fail "https://github.com/stern/stern/releases/download/v${version}/${stern_archive}" -o "$tmp_output/${stern_archive}"
+  tar xpvf "$stern_archive"
   sudo cp stern /usr/local/bin/stern
   popd
   rm -rf "$tmp_output"
@@ -240,11 +286,22 @@ function install_kubectl() {
 }
 
 function install_github_cli() {
+  local version="2.12.1"
+  local architecture
+  case "$(uname -m)" in
+    x86_64|amd64) architecture=amd64;;
+    aarch64|arm64) architecture=arm64;;
+    *)
+      echo >&2 "ERROR: unsupported architecture for GitHub CLI: $(uname -m)"
+      return 1
+      ;;
+  esac
+  local gh_package="gh_${version}_linux_${architecture}.deb"
   local tmp_output="/tmp/gh_$(date +%s)"
   mkdir -p "$tmp_output"
   pushd "$tmp_output"
-  curl -L --fail "https://github.com/cli/cli/releases/download/v2.12.1/gh_2.12.1_linux_amd64.deb" -o "${tmp_output}/gh_2.12.1_linux_amd64.deb"
-  sudo dpkg -i gh_2.12.1_linux_amd64.deb
+  curl -L --fail "https://github.com/cli/cli/releases/download/v${version}/${gh_package}" -o "${tmp_output}/${gh_package}"
+  sudo dpkg -i "$gh_package"
   popd
   rm -rf "$tmp_output"
 }
@@ -399,6 +456,7 @@ else
     at \
     automake \
     build-essential \
+    ca-certificates \
     colordiff \
     curl \
     espeak \
@@ -472,8 +530,10 @@ else
   sudo apt-get update
   sudo apt-get install -y --allow-change-held-packages \
     containerd.io \
+    docker-buildx-plugin \
     docker-ce \
     docker-ce-cli \
+    docker-compose-plugin \
     rcm $additional_packages
 
   add_user_to_docker_group

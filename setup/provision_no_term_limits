@@ -51,7 +51,7 @@ if [[ -z "$NO_TERM_LIMITS_PROJECTS_DIR" ]]; then
 fi
 
 initial_directory="$PWD"
-no_term_limits_directory="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits"
+no_term_limits_directory="${NO_TERM_LIMITS_DIRECTORY:-${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits}"
 no_term_limits_setup_started_at="$(date +%s)"
 no_term_limits_timing_file="${NO_TERM_LIMITS_TIMING_FILE:-$HOME/no_term_limits.step-summary.tsv}"
 
@@ -62,7 +62,9 @@ set -x
 
 if [[ -d "$no_term_limits_directory" ]]; then
   cd "$no_term_limits_directory"
-  git pull
+  if [[ "${NO_TERM_LIMITS_SKIP_GIT_PULL:-false}" != "true" ]]; then
+    git pull
+  fi
 else
   git clone https://github.com/no-term-limits/no-term-limits.git "$no_term_limits_directory"
   cd "$no_term_limits_directory"
