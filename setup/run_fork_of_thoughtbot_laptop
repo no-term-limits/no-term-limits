@@ -421,6 +421,7 @@ brew "the_silver_searcher"
 brew "tmux"
 brew "vim"
 brew "neovim"
+brew "tree-sitter-cli"
 brew "watchman"
 brew "zsh"
 

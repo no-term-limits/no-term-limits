@@ -43,10 +43,10 @@ ensure_treesitter_cli() {
   echo "tree-sitter CLI not found on PATH. Installing..."
   if [[ "$os_name" == "Darwin" ]]; then
     if ! command -v brew >/dev/null 2>&1; then
-      echo "Error: Homebrew is required to install tree-sitter on macOS"
+      echo "Error: Homebrew is required to install the tree-sitter CLI on macOS"
       return 1
     fi
-    brew install tree-sitter
+    brew install tree-sitter-cli
   elif [[ "$os_name" == "Linux" ]]; then
     echo "Error: tree-sitter is required on Linux. Run the higher-level provision/setup script first."
     return 1
