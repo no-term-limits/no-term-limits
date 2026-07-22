@@ -375,7 +375,7 @@ if is_mac ; then
   fi
 fi
 
-# one time it felt like this file got out of date.
+# Refresh vim-plug when it is already installed.
 if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 fi
