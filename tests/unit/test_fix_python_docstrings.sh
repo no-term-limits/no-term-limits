@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
-  exit "$2"
+  echo >&2 "Exited with BAD EXIT CODE '${3}' in file '${1}' at line ${2}."
+  exit "$3"
 }
-trap 'error_handler ${LINENO} $?' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "${LINENO}" "$?"' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
 original_test_file="${NO_TERM_LIMITS_TESTS_DIR}/files/fix_python_docstrings.py"

@@ -7,10 +7,17 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
+script_dir="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+export NO_TERM_LIMITS_DIRECTORY="${NO_TERM_LIMITS_DIRECTORY:-$(dirname "$script_dir")}"
+export NO_TERM_LIMITS_PROJECTS_DIR="${NO_TERM_LIMITS_PROJECTS_DIR:-$HOME/projects}"
+
 expected_dotfiles_file="${1:-}"
 
 if [[ -z "$expected_dotfiles_file" ]]; then
-  >&2 echo "ERROR: usage: $(basename $0) [expected_dotfiles_file]"
+  >&2 echo "ERROR: usage: $(basename "$0") [expected_dotfiles_file]"
   exit 1
 fi
 
@@ -21,6 +28,8 @@ fi
 
 found_problem_dotfile=false
 
+# envsubst needs the variable names literally.
+# shellcheck disable=SC2016
 while read -r line ; do
   if ! grep -qE '(^ *#|^$)' <<<"$line" ; then
     dotfile=$(awk -F ':' '{print $1}' <<<"$line")
@@ -37,7 +46,7 @@ while read -r line ; do
       fi
     fi
   fi
-done <<<"$(envsubst '${HOME}' <$expected_dotfiles_file)"
+done <<<"$(envsubst '${HOME} ${NO_TERM_LIMITS_DIRECTORY} ${NO_TERM_LIMITS_PROJECTS_DIR}' <"$expected_dotfiles_file")"
 
 if [[ "$found_problem_dotfile" == "true" ]]; then
   exit 1

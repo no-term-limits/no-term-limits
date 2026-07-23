@@ -51,7 +51,8 @@ if [[ -z "$NO_TERM_LIMITS_PROJECTS_DIR" ]]; then
 fi
 
 initial_directory="$PWD"
-no_term_limits_directory="${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits"
+no_term_limits_directory="${NO_TERM_LIMITS_DIRECTORY:-${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits}"
+export NO_TERM_LIMITS_DIRECTORY="$no_term_limits_directory"
 no_term_limits_setup_started_at="$(date +%s)"
 no_term_limits_timing_file="${NO_TERM_LIMITS_TIMING_FILE:-$HOME/no_term_limits.step-summary.tsv}"
 
@@ -62,7 +63,9 @@ set -x
 
 if [[ -d "$no_term_limits_directory" ]]; then
   cd "$no_term_limits_directory"
-  git pull
+  if [[ "${NO_TERM_LIMITS_SKIP_GIT_PULL:-false}" != "true" ]]; then
+    git pull
+  fi
 else
   git clone https://github.com/no-term-limits/no-term-limits.git "$no_term_limits_directory"
   cd "$no_term_limits_directory"
@@ -290,15 +293,28 @@ function ensure_global_editor_cli_tools_installed() {
   # CGO_CFLAGS="-DSQLITE_ENABLE_FTS5" mise use --global go:github.com/1broseidon/cymbal@latest
   mise use --global npm:pyright
   mise use --global pipx@latest
-  mise use --global pipx:ruff
-  mise use --global pipx:uv
   mise use --global npm:prettier
+
+  # Ruff and uv publish standalone binaries. Avoid routing them through pipx,
+  # which depends on the host Python/pip and fails on some older distributions.
+  mise use --global ruff@latest
+  mise use --global uv@latest
 
   if [[ "${operating_system}" == "linux" ]]; then
     if ! install_tree_sitter_cli_from_github_release; then
       # Use cargo as a fallback to ensure it compiles with the host's GLIBC version.
       mise use --global cargo:tree-sitter-cli
     fi
+  fi
+
+  # `mise use` updates configuration but not the current shell environment.
+  # Activate it so later provisioning steps can find newly installed tools.
+  eval "$(mise env -s bash)"
+  hash -r
+
+  if ! command -v tree-sitter >/dev/null 2>&1; then
+    echo >&2 "ERROR: tree-sitter CLI is unavailable after editor tool installation"
+    return 1
   fi
 }
 
@@ -373,7 +389,7 @@ if is_mac ; then
   fi
 fi
 
-# one time it felt like this file got out of date.
+# Refresh vim-plug when it is already installed.
 if [[ -f "$HOME/.vim/autoload/plug.vim" ]]; then
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 fi
@@ -396,6 +412,10 @@ if [[ "$NO_TERM_LIMITS_RUN_RCUP" != "false" ]]; then
     export RCRC="${no_term_limits_directory}/dotfiles_no_term_limits/rcrc"
   fi
   run_timed_step "run rcup" run_rcup
+fi
+
+if [[ "${NO_TERM_LIMITS_INSTALL_NVIM_PLUGINS:-true}" != "false" ]]; then
+  run_timed_step "install Neovim plugins" "${no_term_limits_directory}/bin/vpm" i
 fi
 
 if [[ -d "$HOME/.bin" ]]; then

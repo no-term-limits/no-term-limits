@@ -33,18 +33,48 @@ fi
 vim_version='8.2.3768'
 HOMEBREW_PREFIX="/usr/local"
 
+function ubuntu_version_id() {
+  if [[ -r /etc/os-release ]]; then
+    (
+      # shellcheck disable=SC1091
+      source /etc/os-release
+      printf '%s\n' "$VERSION_ID"
+    )
+  else
+    lsb_release -sr
+  fi
+}
+
+function ubuntu_codename() {
+  if [[ -r /etc/os-release ]]; then
+    (
+      # shellcheck disable=SC1091
+      source /etc/os-release
+      printf '%s\n' "${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+    )
+  else
+    lsb_release -cs
+  fi
+}
+
+function ubuntu_version_number() {
+  ubuntu_version_id | sed 's/\.//g'
+}
+
 function ubuntu_greater_than_18_04() {
-  ubuntu_version="$(lsb_release -sr | sed 's/\.//')"
+  local ubuntu_version
+  ubuntu_version="$(ubuntu_version_number)"
   [[ "$ubuntu_version" -gt "1804" ]]
 }
 
-function ubuntu_greater_than_or_equal_24_04() {
-  ubuntu_version="$(lsb_release -sr | sed 's/\.//')"
-  [[ "$ubuntu_version" -ge "2404" ]]
+function ubuntu_greater_than_or_equal_22_04() {
+  local ubuntu_version
+  ubuntu_version="$(ubuntu_version_number)"
+  [[ "$ubuntu_version" -ge "2204" ]]
 }
 
 function install_neovim_for_modern_ubuntu() {
-  if ! ubuntu_greater_than_or_equal_24_04; then
+  if ! ubuntu_greater_than_or_equal_22_04; then
     return
   fi
 
@@ -79,6 +109,25 @@ function install_neovim_for_modern_ubuntu() {
   sudo ln -sf "/opt/nvim-linux-${nvim_arch}/bin/nvim" /usr/local/bin/nvim
   popd
   rm -rf "$tmp_output"
+}
+
+function ensure_fd_command() {
+  export PATH="$HOME/.local/bin:$PATH"
+  if command -v fd >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! command -v fdfind >/dev/null 2>&1; then
+    echo >&2 "ERROR: neither fd nor fdfind is available after package installation"
+    return 1
+  fi
+
+  mkdir -p "$HOME/.local/bin"
+  if [[ -e "$HOME/.local/bin/fd" || -L "$HOME/.local/bin/fd" ]]; then
+    echo >&2 "ERROR: $HOME/.local/bin/fd already exists but is not available on PATH"
+    return 1
+  fi
+  ln -s "$(command -v fdfind)" "$HOME/.local/bin/fd"
 }
 
 function update_shell() {
@@ -137,21 +186,31 @@ function install_vim_from_source() {
 
 function get_additional_apt_keys() {
   local release arch docker_keyring docker_source docker_fingerprint old_source temp_file
-  release="$(lsb_release -cs)"
+  release="$(ubuntu_codename)"
   arch="$(dpkg --print-architecture)"
   docker_keyring="/etc/apt/keyrings/docker.asc"
-  docker_source="/etc/apt/sources.list.d/docker.list"
+  docker_source="/etc/apt/sources.list.d/docker.sources"
   docker_fingerprint="9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
 
   sudo install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee "$docker_keyring" >/dev/null
   sudo chmod a+r "$docker_keyring"
-  echo "deb [arch=${arch} signed-by=${docker_keyring}] https://download.docker.com/linux/ubuntu ${release} stable" | sudo tee "$docker_source" >/dev/null
+  sudo tee "$docker_source" >/dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: ${release}
+Components: stable
+Architectures: ${arch}
+Signed-By: ${docker_keyring}
+EOF
 
   sudo install -m 0755 -d /etc/apt/sources.list.d/disabled-by-no-term-limits
-  for old_source in /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-* /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
+  for old_source in \
+    /etc/apt/sources.list.d/docker.list \
+    /etc/apt/sources.list.d/archive_uri-https_download_docker_com_linux_ubuntu-* \
+    /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list; do
     if [[ -e "$old_source" ]]; then
-      sudo mv "$old_source" "/etc/apt/sources.list.d/disabled-by-no-term-limits/$(basename "$old_source")"
+      sudo mv -f "$old_source" "/etc/apt/sources.list.d/disabled-by-no-term-limits/$(basename "$old_source")"
     fi
   done
 
@@ -201,11 +260,21 @@ function install_stern() {
     fi
   fi
   local tmp_output="/tmp/stern_$(date +%s)"
+  local architecture
+  case "$(uname -m)" in
+    x86_64|amd64) architecture=amd64;;
+    aarch64|arm64) architecture=arm64;;
+    *)
+      echo >&2 "ERROR: unsupported architecture for stern: $(uname -m)"
+      return 1
+      ;;
+  esac
+  local stern_archive="stern_${version}_linux_${architecture}.tar.gz"
   mkdir -p "$tmp_output"
   pushd "$tmp_output"
 
-  curl -L --fail "https://github.com/stern/stern/releases/download/v${version}/stern_${version}_linux_amd64.tar.gz" -o "$tmp_output/stern_${version}_linux_amd64.tar.gz"
-  tar xpvf *.tar.gz
+  curl -L --fail "https://github.com/stern/stern/releases/download/v${version}/${stern_archive}" -o "$tmp_output/${stern_archive}"
+  tar xpvf "$stern_archive"
   sudo cp stern /usr/local/bin/stern
   popd
   rm -rf "$tmp_output"
@@ -213,38 +282,68 @@ function install_stern() {
 
 function install_kubectl() {
   local desired_kubectl_version=''
-  if [[ -n "$NO_TERM_LIMITS_KUBECTL_VERSION" ]]; then
-    desired_kubectl_version="v${NO_TERM_LIMITS_KUBECTL_VERSION}"
+  if [[ -n "${NO_TERM_LIMITS_KUBECTL_VERSION:-}" ]]; then
+    desired_kubectl_version="v${NO_TERM_LIMITS_KUBECTL_VERSION#v}"
   else
-    desired_kubectl_version=$(curl -L -s https://dl.k8s.io/release/stable.txt)
+    desired_kubectl_version=$(curl -fsSL --retry 3 https://dl.k8s.io/release/stable.txt)
   fi
+
   local current_version=''
   if command -v kubectl >/dev/null; then
-    current_version=$(kubectl version --client | perl -p -e 's/.*GitVersion:"(v[^"]+)".*/\1/')
+    current_version=$(kubectl version --client --output=json 2>/dev/null | jq -r '.clientVersion.gitVersion // empty' || true)
+    if [[ -z "$current_version" ]]; then
+      current_version=$(kubectl version --client 2>/dev/null | sed -nE 's/^Client Version:[[:space:]]+(v[^[:space:]]+).*/\1/p' || true)
+    fi
   fi
+
   if [[ "$current_version" != "$desired_kubectl_version" ]]; then
     local architecture
-    architecture=$(uname -m)
-    if [[ "$architecture" == 'x86_64' ]]; then
-      architecture=amd64
-    fi
-    local os_type='linux'
-    if is_mac; then
-      os_type='darwin'
-    fi
-    curl -L "https://dl.k8s.io/release/${desired_kubectl_version}/bin/${os_type}/${architecture}/kubectl" -o /tmp/kubectl
-    chmod +x /tmp/kubectl
-    sudo mv /tmp/kubectl /usr/local/bin
-    sudo chown root: /usr/local/bin/kubectl
+    case "$(uname -m)" in
+      x86_64|amd64) architecture=amd64;;
+      aarch64|arm64) architecture=arm64;;
+      *)
+        echo >&2 "ERROR: unsupported kubectl architecture: $(uname -m)"
+        return 1
+        ;;
+    esac
+
+    local os_type
+    case "$(uname -s)" in
+      Linux) os_type=linux;;
+      Darwin) os_type=darwin;;
+      *)
+        echo >&2 "ERROR: unsupported kubectl operating system: $(uname -s)"
+        return 1
+        ;;
+    esac
+
+    local kubectl_download
+    kubectl_download=$(mktemp)
+    curl -fsSL --retry 3 \
+      "https://dl.k8s.io/release/${desired_kubectl_version}/bin/${os_type}/${architecture}/kubectl" \
+      -o "$kubectl_download"
+    sudo install -m 0755 "$kubectl_download" /usr/local/bin/kubectl
+    rm -f "$kubectl_download"
   fi
 }
 
 function install_github_cli() {
+  local version="2.12.1"
+  local architecture
+  case "$(uname -m)" in
+    x86_64|amd64) architecture=amd64;;
+    aarch64|arm64) architecture=arm64;;
+    *)
+      echo >&2 "ERROR: unsupported architecture for GitHub CLI: $(uname -m)"
+      return 1
+      ;;
+  esac
+  local gh_package="gh_${version}_linux_${architecture}.deb"
   local tmp_output="/tmp/gh_$(date +%s)"
   mkdir -p "$tmp_output"
   pushd "$tmp_output"
-  curl -L --fail "https://github.com/cli/cli/releases/download/v2.12.1/gh_2.12.1_linux_amd64.deb" -o "${tmp_output}/gh_2.12.1_linux_amd64.deb"
-  sudo dpkg -i gh_2.12.1_linux_amd64.deb
+  curl -L --fail "https://github.com/cli/cli/releases/download/v${version}/${gh_package}" -o "${tmp_output}/${gh_package}"
+  sudo dpkg -i "$gh_package"
   popd
   rm -rf "$tmp_output"
 }
@@ -300,9 +399,10 @@ if is_mac; then
   # https://github.com/Homebrew/brew/issues/1151
   brew update --force
 
-  brew bundle --file=- <<EOF
-tap "thoughtbot/formulae"
-tap "homebrew/services"
+  # GitHub's macOS runners include outdated formulae. Upgrading them while
+  # Brew Bundle installs missing formulae in parallel can make both processes
+  # contend for the same dependency lock (for example, pkg-config/pkgconf).
+  brew bundle --no-upgrade --file=- <<EOF
 # ctags probably not needed any longer with neovim and lsps, 20240229
 # tap "universal-ctags/universal-ctags"
 
@@ -315,9 +415,13 @@ brew "openssl"
 brew "rcm"
 
 brew "reattach-to-user-namespace"
+brew "fd"
+brew "fzf"
 brew "the_silver_searcher"
 brew "tmux"
 brew "vim"
+brew "neovim"
+brew "tree-sitter-cli"
 brew "watchman"
 brew "zsh"
 
@@ -399,10 +503,13 @@ else
     at \
     automake \
     build-essential \
+    ca-certificates \
     colordiff \
     curl \
     espeak \
     expect \
+    fd-find \
+    fzf \
     gettext-base \
     htop \
     imagemagick \
@@ -472,17 +579,20 @@ else
   sudo apt-get update
   sudo apt-get install -y --allow-change-held-packages \
     containerd.io \
+    docker-buildx-plugin \
     docker-ce \
     docker-ce-cli \
+    docker-compose-plugin \
     rcm $additional_packages
 
   add_user_to_docker_group
 
   install_stern
-  # TODO: update kubectl installation for installation without xenial repo
-  # install_kubectl
+  install_kubectl
   install_github_cli
 fi
+
+ensure_fd_command
 
 case "$SHELL" in
 */zsh)

@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
-  exit "$2"
+  echo >&2 "Exited with BAD EXIT CODE '${3}' in file '${1}' at line ${2}."
+  exit "$3"
 }
-trap 'error_handler ${LINENO} $?' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "${LINENO}" "$?"' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
+repo_root="$(
+  cd -- "$(dirname "$0")/../.." >/dev/null 2>&1
+  pwd -P
+)"
 tmp_dir=$(mktemp -d -t ci-XXXXXXXXXX)
 stderr_file="${tmp_dir}/stderr"
 stdout_file="${tmp_dir}/stdout"
@@ -38,13 +42,13 @@ unset -f git_super_status 2>/dev/null || true
 unset -f git_prompt_info 2>/dev/null || true
 
 cd "$1"
-source /home/spiffuser/projects/github/no-term-limits/dotfiles_no_term_limits/zshrc
+source "$2/dotfiles_no_term_limits/zshrc"
 git_super_status_with_fallback
 EOF
 
 chmod +x "${tmp_dir}/run_test.zsh"
 
-zsh "${tmp_dir}/run_test.zsh" "$tmp_dir" >"$stdout_file" 2>"$stderr_file"
+zsh "${tmp_dir}/run_test.zsh" "$tmp_dir" "$repo_root" >"$stdout_file" 2>"$stderr_file"
 
 if [[ -s "$stderr_file" ]]; then
   >&2 echo "ERROR: Expected no stderr from git prompt fallback"

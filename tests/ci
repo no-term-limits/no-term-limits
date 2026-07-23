@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
-  exit "$2"
+  echo >&2 "Exited with BAD EXIT CODE '${3}' in file '${1}' at line ${2}."
+  exit "$3"
 }
-trap 'error_handler ${LINENO} $?' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "${LINENO}" "$?"' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
 # designed to be run as the very first (and only) setup script
 
+script_dir="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+NO_TERM_LIMITS_DIRECTORY="$(dirname "$script_dir")"
+export NO_TERM_LIMITS_DIRECTORY
+export NO_TERM_LIMITS_SKIP_GIT_PULL=true
 export NO_TERM_LIMITS_RCUP_FORCE=true
 
 ./setup/provision_no_term_limits
