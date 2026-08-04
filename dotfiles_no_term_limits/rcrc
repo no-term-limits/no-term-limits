@@ -1,5 +1,8 @@
+# shellcheck shell=bash disable=SC2034
+
 EXCLUDES="README*.md LICENSE config/nvim/pack"
 
-DOTFILES_DIRS="$HOME/user-dotfiles ${NO_TERM_LIMITS_PROJECTS_DIR}/github/no-term-limits/dotfiles_no_term_limits"
+no_term_limits_directory="${NO_TERM_LIMITS_DIRECTORY:-${NO_TERM_LIMITS_PROJECTS_DIR:-$HOME/projects}/github/no-term-limits}"
+DOTFILES_DIRS="$HOME/user-dotfiles ${no_term_limits_directory}/dotfiles_no_term_limits"
 
 COPY_ALWAYS="git_template/HEAD"

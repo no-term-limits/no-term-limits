@@ -29,11 +29,13 @@ set -Eeuo pipefail
 
 # HELP:
 
-echo -e "#!/usr/bin/env bash\n"
-echo -e 'function error_handler() {'
-echo -e "  >&2 echo \"Exited with BAD EXIT CODE '\${2}' in \${0} script at line: \${1}.\""
-echo -e '  exit "$2"'
-echo -e '}'
-echo -e "trap 'error_handler \${LINENO} \$?' ERR"
+cat <<EOF
+#!/usr/bin/env bash
 
-echo -e "set -o errtrace -o errexit -o nounset -o pipefail\n"
+function error_handler() {
+  echo >&2 "Exited with BAD EXIT CODE '\${3}' in file '\${1}' at line \${2}."
+  exit "\$3"
+}
+trap 'error_handler "\${BASH_SOURCE[0]}" "\${LINENO}" "\$?"' ERR
+set -o errtrace -o errexit -o nounset -o pipefail
+EOF
