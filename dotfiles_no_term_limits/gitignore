@@ -20,3 +20,4 @@ tmp/**/*
 .aider*
 .claude
 .cecli*
+.playwright-cli
