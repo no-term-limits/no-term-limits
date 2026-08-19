@@ -4,6 +4,12 @@ set -e
 
 # HELP: find file
 
-dir="${2:-.}"
 
-find "$dir" -name "*$1*" -not -path '*/.git/*'
+if command -v fdfind  >/dev/null; then
+  fdfind "$@"
+elif command -v fd >/dev/null; then
+  fd "$@"
+else
+  dir="${2:-.}"
+  find "$dir" -name "*$1*" -not -path '*/.git/*'
+fi
