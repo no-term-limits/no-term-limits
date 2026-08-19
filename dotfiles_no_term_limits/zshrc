@@ -103,7 +103,10 @@ function c() {
   else
     dir=$(find_directory ${NO_TERM_LIMITS_PROJECTS_DIR} "$@" || echo 'DNE')
     if [[ "$dir" == 'DNE' ]]; then
-      return 1
+      dir=$(find_directory "${HOME}/workspaces" "$@" || echo 'DNE')
+      if [[ "$dir" == 'DNE' ]]; then
+        return 1
+      fi
     fi
   fi
 
