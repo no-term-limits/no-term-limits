@@ -506,6 +506,7 @@ else
     ca-certificates \
     colordiff \
     curl \
+    cloc \
     espeak \
     expect \
     fd-find \
