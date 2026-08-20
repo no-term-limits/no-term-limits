@@ -44,6 +44,12 @@ layout {
     }
   }
 
+  tab name="loki" {
+    pane name="loki" command="zsh" {
+      args "-lc" "local_user=${USER:-$(id -un)}; SPIFF_SSH_USE_TT=true SPIFF_SSH_COMMAND=\"/home/spiffuser/.local/bin/herdr --session ${local_user}\" ${HOME}/projects/github/sartography/onboarding/bin/sshe loki"
+    }
+  }
+
   tab name="backend" cwd="spiff-arena/spiffworkflow-backend" {
     pane split_direction="vertical" {
       pane
@@ -88,12 +94,6 @@ layout {
     pane split_direction="vertical" {
       pane
       pane
-    }
-  }
-
-  tab name="loki" {
-    pane name="loki" command="zsh" {
-      args "-lc" "local_user=${USER:-$(id -un)}; SPIFF_SSH_USE_TT=true SPIFF_SSH_COMMAND=\"/home/spiffuser/.local/bin/herdr --session ${local_user}\" ${HOME}/projects/github/sartography/onboarding/bin/sshe loki"
     }
   }
 }
