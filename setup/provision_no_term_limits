@@ -368,8 +368,8 @@ if is_mac ; then
   done
 fi
 
-if [[ "${NO_TERM_LIMITS_RUN_THOUGHTBOT_LAPTOP_SCRIPT:-true}" != "false" ]]; then
-  run_timed_step "run thoughtbot laptop fork" "${no_term_limits_directory}/setup/run_fork_of_thoughtbot_laptop"
+if [[ "${NO_TERM_LIMITS_INSTALL_SYSTEM_DEPENDENCIES:-true}" != "false" ]]; then
+  run_timed_step "install system dependencies" "${no_term_limits_directory}/setup/install_system_dependencies"
 fi
 
 run_timed_step "ensure mise installed" ensure_mise_installed

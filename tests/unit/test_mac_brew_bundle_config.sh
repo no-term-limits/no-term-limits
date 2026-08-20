@@ -11,7 +11,7 @@ repo_root="$(
   cd -- "$(dirname "$0")/../.." >/dev/null 2>&1
   pwd -P
 )"
-provisioner="${repo_root}/setup/run_fork_of_thoughtbot_laptop"
+provisioner="${repo_root}/setup/install_system_dependencies"
 
 if ! rg -q 'brew bundle --no-upgrade --file=-' "$provisioner"; then
   echo >&2 "ERROR: macOS provisioning must not upgrade runner-owned formulae."

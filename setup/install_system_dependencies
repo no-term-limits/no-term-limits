@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# we started with: https://raw.githubusercontent.com/thoughtbot/laptop/master/mac
-# this file is basically the above, but with some search and replaces that we performed on it.
+# Install the operating-system packages and command-line tools used by no-term-limits.
 
 function error_handler() {
   echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."

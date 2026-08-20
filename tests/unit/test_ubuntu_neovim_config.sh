@@ -11,7 +11,7 @@ repo_root="$(
   cd -- "$(dirname "$0")/../.." >/dev/null 2>&1
   pwd -P
 )"
-provisioner="${repo_root}/setup/run_fork_of_thoughtbot_laptop"
+provisioner="${repo_root}/setup/install_system_dependencies"
 
 if ! rg -q 'function ubuntu_greater_than_or_equal_22_04\(\)' "$provisioner"; then
   echo >&2 "ERROR: Ubuntu 22.04 is not included in the Neovim install guard."
