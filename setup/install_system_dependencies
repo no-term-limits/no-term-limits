@@ -183,17 +183,6 @@ function install_vim_from_source() {
   fi
 }
 
-function install_vimcat() {
-  local vimpager_dir="$HOME/.vim/bundle/vimpager"
-
-  if [[ ! -d "$vimpager_dir/.git" ]]; then
-    mkdir -p "$(dirname "$vimpager_dir")"
-    git clone https://github.com/rkitover/vimpager.git "$vimpager_dir"
-  else
-    git -C "$vimpager_dir" pull --ff-only
-  fi
-}
-
 function get_additional_apt_keys() {
   local release arch docker_keyring docker_source docker_fingerprint old_source temp_file
   release="$(ubuntu_codename)"
@@ -512,6 +501,7 @@ else
   sudo apt-get install -y \
     at \
     automake \
+    bat \
     build-essential \
     ca-certificates \
     colordiff \
@@ -604,7 +594,6 @@ else
 fi
 
 ensure_fd_command
-install_vimcat
 
 case "$SHELL" in
 */zsh)

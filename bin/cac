@@ -20,6 +20,8 @@ fi
 if grep -qE "\/(home|User)\/.*\/(projects|.?bin)\/" <<<"$location" ; then
   if command -v bat >/dev/null ; then
     bat "$location"
+  elif command -v batcat >/dev/null ; then
+    batcat "$location"
   elif command -v vimcat >/dev/null ; then
     vimcat "$location"
   else
