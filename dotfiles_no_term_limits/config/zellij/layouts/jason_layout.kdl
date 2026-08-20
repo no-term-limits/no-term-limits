@@ -90,4 +90,10 @@ layout {
       pane
     }
   }
+
+  tab name="loki" {
+    pane name="loki" command="zsh" {
+      args "-lc" "SPIFF_SSH_USE_TT=true SPIFF_SSH_COMMAND='/home/spiffuser/.local/bin/herdr --session jason' ${HOME}/projects/github/sartography/onboarding/bin/sshe loki"
+    }
+  }
 }
