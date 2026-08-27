@@ -33,15 +33,17 @@ if command -v gc_pre_commit_check >/dev/null; then
   gc_pre_commit_check
 fi
 
-currently_connected_paired_users=""
-if command -v get_pair_users_for_git_commit_message >/dev/null; then
-  currently_connected_paired_users=$(get_pair_users_for_git_commit_message)
-else
-  currently_connected_paired_users=$(currently_connected_paired_users | (hot_sed -E "s/\<$(whoami)\>//" | perl -p -e 's/ *$//' || echo ''))
-fi
+if [[ "${NO_TERM_LIMITS_GC_ADD_PAIRED_USERS:-}" != "false" ]]; then
+  currently_connected_paired_users=""
+  if command -v get_pair_users_for_git_commit_message >/dev/null; then
+    currently_connected_paired_users=$(get_pair_users_for_git_commit_message)
+  else
+    currently_connected_paired_users=$(currently_connected_paired_users | (hot_sed -E "s/\<$(whoami)\>//" | perl -p -e 's/ *$//' || echo ''))
+  fi
 
-if [[ -n "$currently_connected_paired_users" ]]; then
-  commit_message="$commit_message w/ $currently_connected_paired_users"
+  if [[ -n "$currently_connected_paired_users" ]]; then
+    commit_message="$commit_message w/ $currently_connected_paired_users"
+  fi
 fi
 
 sleep_period=1
