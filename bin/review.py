@@ -207,10 +207,16 @@ class CodeReviewer:
 
         return file_path
 
+    def is_local_directory(self, file_path: str) -> bool:
+        return os.path.isdir(self.resolve_file_path(file_path))
+
+    def is_local_file(self, file_path: str) -> bool:
+        return os.path.isfile(self.resolve_file_path(file_path))
+
     def calculate_file_sha256(self, file_path: str) -> str:
         try:
             full_path = self.resolve_file_path(file_path)
-            if not os.path.exists(full_path):
+            if not self.is_local_file(file_path):
                 return ""
 
             sha256 = hashlib.sha256()
@@ -225,7 +231,7 @@ class CodeReviewer:
     def parse_working_tree_files(self) -> List[FileToReview]:
         files: List[FileToReview] = []
         try:
-            result = self._run_git(["status", "--porcelain"], check=True)
+            result = self._run_git(["status", "--porcelain", "-uall"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Warning: failed to list working tree files: {e.stderr.strip()}", file=sys.stderr)
             return files
@@ -237,6 +243,8 @@ class CodeReviewer:
             status_code = line[:2]
             file_path = line[3:]
             if not status_code.strip():
+                continue
+            if self.is_local_directory(file_path):
                 continue
 
             is_new = status_code[1] == "?" or status_code[0] == "A"
@@ -337,14 +345,15 @@ class CodeReviewer:
 
         # Get new files from working tree
         try:
-            result = self._run_git(["status", "--porcelain"], check=True)
+            result = self._run_git(["status", "--porcelain", "-uall"], check=True)
             for line in result.stdout.splitlines():
                 if len(line) < 4:
                     continue
                 status_code = line[:2]
                 if status_code[1] == "?" or status_code[0] == "A":
                     file_path = line[3:]
-                    new_files.append(file_path)
+                    if not self.is_local_directory(file_path):
+                        new_files.append(file_path)
         except subprocess.CalledProcessError as e:
             print(f"Warning: failed to list new working tree files: {e.stderr.strip()}", file=sys.stderr)
 
@@ -436,7 +445,7 @@ class CodeReviewer:
             lines = self.get_summary_lines()
         elif self.is_new_file(file_info):
             full_path = self.resolve_file_path(file_info.path)
-            if not os.path.exists(full_path):
+            if not self.is_local_file(file_info.path):
                 lines = []
             else:
                 with open(full_path, "r", encoding="utf-8", errors="ignore") as f:
