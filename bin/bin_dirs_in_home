@@ -9,4 +9,4 @@ set -o errtrace -o errexit -o nounset -o pipefail
 
 # HELP: returns all bin directories found in PATH that are located in the home directory
 
-perl -p -e 's/:/\n/g' <<<"$PATH" | grep "$HOME.*bin"
+perl -p -e 's/:/\n/g' <<<"$PATH" | grep "$HOME.*bin" | awk '!seen[$0]++'
