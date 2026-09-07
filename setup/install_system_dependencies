@@ -149,7 +149,7 @@ function update_shell() {
       fi
     else
       # if you sign in via some sort of single sign on and do not have local accounts, changing the shell won't work
-      if grep -Eq "^${username_of_current_user}" /etc/password; then
+      if grep -Eq "^${username_of_current_user}:" /etc/passwd; then
         should_change_shell="true"
       fi
     fi

@@ -277,7 +277,7 @@ if which zstyle > /dev/null; then
   zstyle ':completion:*' menu select
 fi
 
-if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]]; then
+if [[ "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]]; then
   # unset this to avoid confusion of what is a command and what is directory
   # this was a terrible idea
   unsetopt autocd
@@ -300,11 +300,25 @@ if [[ "$SHELL" = *"zsh" && "$NO_TERM_LIMITS_SHELL_FROM_SHELL_VERSION" == "zsh" ]
   bindkey "^A" beginning-of-line
   bindkey "^E" end-of-line
 
-  if [ -f ~/.fzf.zsh ]; then
-    # https://github.com/junegunn/fzf, fuzzy finder, overrides ctrl+r to run fzf-history-widget
-    # so we get fast search through history with fzf. to see the key binding:
-    # bindkey | grep history | grep R
+  if [[ -f ~/.fzf.zsh ]]; then
+    # The upstream fzf installer creates this file.
     source ~/.fzf.zsh
+  elif [[ -r /usr/share/doc/fzf/examples/key-bindings.zsh ]]; then
+    # Debian and Ubuntu package the Zsh integration here instead of creating
+    # ~/.fzf.zsh.
+    source /usr/share/doc/fzf/examples/key-bindings.zsh
+  fi
+
+  # fzf's integration binds all three maps itself, but keep explicit bindings
+  # and a built-in fallback so Ctrl-R also works without fzf integration.
+  if (( $+widgets[fzf-history-widget] )); then
+    bindkey -M emacs '^R' fzf-history-widget
+    bindkey -M vicmd '^R' fzf-history-widget
+    bindkey -M viins '^R' fzf-history-widget
+  else
+    bindkey -M emacs '^R' history-incremental-search-backward
+    bindkey -M vicmd '^R' history-incremental-search-backward
+    bindkey -M viins '^R' history-incremental-search-backward
   fi
 
   # add completions for flux
