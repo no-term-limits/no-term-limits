@@ -1,16 +1,29 @@
 #!/usr/bin/env bash
 
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
+  echo >&2 "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
   exit "$2"
 }
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o pipefail
 
-# HELP: fixes the local mysql root permissions. Only tested with ubuntu.
+# HELP: allows passwordless local MySQL root access for development on Ubuntu.
 
-# if it's installed via the mysql-server package, it might have this issue. the docker container is always set up with the right permissions, i hope.
-if grep -q mysql-server <<<"$(dpkg -l)"; then
-  sudo mysql -u root -e "USE mysql; UPDATE user SET plugin='mysql_native_password' WHERE User='root'; UPDATE mysql.user SET authentication_string='', plugin='mysql_native_password' WHERE User='root' AND Host='%'; FLUSH PRIVILEGES;"
-  sudo service mysql restart
+if ! dpkg-query -W -f='${Status}' mysql-server 2>/dev/null | grep -Fq 'install ok installed'; then
+  exit
 fi
+
+if ! sudo mysql --protocol=socket -u root -e 'SELECT 1' >/dev/null 2>&1; then
+  cat >&2 <<'EOF'
+ERROR: MySQL root cannot authenticate through the local socket.
+If an older version of this script changed root to mysql_native_password on
+MySQL 8.4, temporarily enable that plugin, repair root, and rerun this script.
+EOF
+  exit 1
+fi
+
+# mysql_native_password is disabled by default in MySQL 8.4 and removed in
+# MySQL 9. Use the modern default plugin and an empty password to preserve the
+# local development convention expected by scripts such as recreate_db.
+sudo mysql --protocol=socket -u root -e \
+  "ALTER USER 'root'@'localhost' IDENTIFIED WITH caching_sha2_password BY ''; FLUSH PRIVILEGES;"

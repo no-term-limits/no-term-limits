@@ -41,11 +41,21 @@ if [[ "$pair_user" != "$(whoami)" ]]; then
   # Create the user first without SSH command
   create_user_for_pairing "$pair_user"
 
-  # Create bin directory in pair user's home
+  # The sudoers rule below allows this script to run as root, so both its
+  # directory and the script itself must be owned by root and not writable by
+  # the pair user.
+  if is_mac; then
+    root_group=wheel
+  else
+    root_group=root
+  fi
   sudo mkdir -p "$pair_user_dir/bin"
+  sudo chown "root:${root_group}" "$pair_user_dir/bin"
+  sudo chmod 0755 "$pair_user_dir/bin"
 
   # Create dynamic join_pair_session script with hardcoded values
-  cat >/tmp/join_pair_session_script <<EOF
+  join_pair_session_content="$(mktemp)"
+  cat >"$join_pair_session_content" <<EOF
 #!/usr/bin/env bash
 
 function error_handler() {
@@ -69,25 +79,31 @@ fi
 exec sudo su - "\$original_user" -c "\${xdg_var}\${zellij_path} --config \${home}/.config/zellij/custom.kdl  attach pair"
 EOF
 
-  # Move script to pair user's bin directory and set permissions
-  sudo mv /tmp/join_pair_session_script "$pair_user_dir/bin/join_pair_session"
-  sudo chmod +x "$pair_user_dir/bin/join_pair_session"
-  sudo chown "$pair_user:staff" "$pair_user_dir/bin/join_pair_session" 2>/dev/null || sudo chown "$pair_user" "$pair_user_dir/bin/join_pair_session"
+  sudo install -o root -g "$root_group" -m 0755 \
+    "$join_pair_session_content" "$pair_user_dir/bin/join_pair_session"
+  rm -f "$join_pair_session_content"
 
   # Create sudoers.d file to allow pair user to run their join script
   sudoers_file="/etc/sudoers.d/${pair_user}_allow_pair"
-  cat >/tmp/sudoers_content <<EOF
+  sudoers_content="$(mktemp)"
+  cat >"$sudoers_content" <<EOF
 # Allow ${pair_user} to run their join_pair_session script as root
 ${pair_user} ALL = (root) NOPASSWD: ${pair_user_dir}/bin/join_pair_session
 EOF
 
-  sudo mv /tmp/sudoers_content "$sudoers_file"
-  sudo chmod 440 "$sudoers_file"
-  if is_mac; then
-    sudo chown root:wheel "$sudoers_file"
+  # Stage the file under a name sudo ignores, validate it, and only then move
+  # it into place. Moving the user-owned /tmp file directly into sudoers.d
+  # caused every sudo invocation before the later chown to report bad ownership.
+  sudoers_staging_file="${sudoers_file}.tmp"
+  sudo install -o root -g "$root_group" -m 0440 "$sudoers_content" "$sudoers_staging_file"
+  if sudo visudo -cf "$sudoers_staging_file"; then
+    sudo mv "$sudoers_staging_file" "$sudoers_file"
   else
-    sudo chown root:root "$sudoers_file"
+    sudo rm -f "$sudoers_staging_file"
+    echo >&2 "ERROR: refusing to install invalid sudoers configuration"
+    return 1
   fi
+  rm -f "$sudoers_content"
 
   # Update authorized_keys to use sudo with full path if forced
   if [[ "${NO_TERM_LIMITS_FORCE_ZELLIJ:-}" != "false" ]]; then
