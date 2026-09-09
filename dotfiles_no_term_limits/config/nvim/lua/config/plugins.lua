@@ -38,14 +38,23 @@ if lsp_ok then
   })
 end
 
--- Treesitter Configuration
-local ts_ok, treesitter = pcall(require, "nvim-treesitter.configs")
+-- Treesitter Configuration (nvim-treesitter main branch)
+-- The rewrite has no ensure_installed option; install missing parsers on
+-- startup instead. Highlighting and indentation attach automatically via
+-- Neovim core when a parser and its queries are present.
+local ts_ok, treesitter = pcall(require, "nvim-treesitter")
 if ts_ok then
-  treesitter.setup({
-    ensure_installed = { "python", "javascript", "typescript", "tsx", "json", "yaml", "bash", "lua", "vim", "terraform", "hcl" },
-    highlight = { enable = true },
-    indent = { enable = true },
-  })
+  local wanted = { "python", "javascript", "typescript", "tsx", "json", "yaml", "bash", "lua", "vim", "terraform", "hcl", "xml" }
+  local installed = {}
+  for _, lang in ipairs(treesitter.get_installed()) do
+    installed[lang] = true
+  end
+  local missing = vim.tbl_filter(function(lang)
+    return not installed[lang]
+  end, wanted)
+  if #missing > 0 then
+    treesitter.install(missing)
+  end
 end
 
 -- Blink.cmp Configuration
