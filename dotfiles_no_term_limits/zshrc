@@ -64,7 +64,9 @@ export NO_TERM_LIMITS_CURRENT_SHELL
 if ! is_mac; then
   # setting the display breaks login for ubuntu 22.04
   # we may need another way to properly copy to the clipboard
-  if is_ubuntu 22.04 '<' ; then
+  # only fall back when DISPLAY is unset (e.g. detached tmux/wemux);
+  # never clobber the live GNOME/Wayland value (XWayland moves between :0/:1)
+  if is_ubuntu 22.04 '<' || is_ubuntu '26.04' ; then
     export DISPLAY=:0
   else
     export DISPLAY=:1
