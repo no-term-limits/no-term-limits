@@ -14,4 +14,5 @@ if [[ "$1" == "auto_complete_commands" ]]; then
   exit
 fi
 
-git -c checkout.defaultRemote=origin checkout "$1"
+branch_name=$(git-branch-names "$1" | head -n1)
+git -c checkout.defaultRemote=origin checkout "$branch_name"
