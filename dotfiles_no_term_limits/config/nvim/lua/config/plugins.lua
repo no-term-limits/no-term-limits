@@ -20,11 +20,12 @@ if lsp_ok then
     vim.lsp.config("*", {
       root_markers = { ".git", "pyproject.toml", "package.json" },
     })
-    vim.lsp.enable({ "pyright", "ts_ls", "jsonls", "yamlls", "bashls", "terraformls" })
+    vim.lsp.enable({ "pyright", "ruff", "ts_ls", "jsonls", "yamlls", "bashls", "terraformls" })
   else
     -- Fallback to old API for older nvim versions
     local lspconfig = require("lspconfig")
     lspconfig.pyright.setup({})
+    lspconfig.ruff.setup({})
     lspconfig.ts_ls.setup({})
     lspconfig.jsonls.setup({})
     lspconfig.yamlls.setup({})

@@ -37,8 +37,8 @@ vpm d              # Check setup (diagnose issues)
 - LSP (Python, TypeScript, JSON, YAML, Bash)
 - Completion (blink.cmp + LuaSnip)
 - Formatting (conform: black, prettier, shfmt) - auto on save
-- Linting (mypy, shellcheck)
-- LSP code actions: `<leader>ca`
+- Linting (ruff via `ruff server` LSP, mypy, shellcheck)
+- LSP code actions: `<leader>ca` (includes ruff fixes and "Disable for this line" noqa)
 - Fuzzy finding: `<leader><leader>/ff/fg/fb` (telescope)
 - Theme picker: `<leader>ut` (Telescope)
 - Zellij/Vim navigation: `<C-h/j/k/l>` across Neovim splits and Zellij panes
