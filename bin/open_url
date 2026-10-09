@@ -12,11 +12,11 @@ set -o errtrace -o errexit -o nounset -o pipefail
 if [[ -n "${2:-}" ]]; then
   mac_chrome="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   if command -v google-chrome >/dev/null; then
-    profile_arg=""
-    if ! grep 'profile-directory' <<<"$@"; then
-      profile_arg='--profile-directory=Default'
+    profile_args=()
+    if ! grep -q 'profile-directory' <<<"$@"; then
+      profile_args=('--profile-directory=Default')
     fi
-    google-chrome "$profile_arg" "$@"
+    google-chrome "${profile_args[@]}" "$@"
   elif command -v chromium-browser >/dev/null; then
     chromium-browser "$@"
   elif [[ -f "$mac_chrome" ]]; then
