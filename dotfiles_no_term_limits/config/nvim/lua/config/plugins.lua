@@ -15,12 +15,31 @@ if lsp_ok then
     return ("[%s] %s"):format(code, message)
   end
 
+  local helm_config = {
+    settings = {
+      ["helm-ls"] = {
+        helmLint = { enabled = true },
+        yamlls = {
+          enabled = true,
+          path = "yaml-language-server",
+          diagnosticsLimit = 50,
+          showDiagnosticsDirectly = true,
+          config = {
+            validate = true,
+            schemas = { kubernetes = "templates/**" },
+          },
+        },
+      },
+    },
+  }
+
   -- Use new vim.lsp.config API for nvim 0.11+ to avoid deprecation warnings
   if vim.lsp.config then
     vim.lsp.config("*", {
       root_markers = { ".git", "pyproject.toml", "package.json" },
     })
-    vim.lsp.enable({ "pyright", "ruff", "ts_ls", "jsonls", "yamlls", "bashls", "terraformls" })
+    vim.lsp.config("helm_ls", helm_config)
+    vim.lsp.enable({ "pyright", "ruff", "ts_ls", "jsonls", "yamlls", "helm_ls", "bashls", "terraformls" })
   else
     -- Fallback to old API for older nvim versions
     local lspconfig = require("lspconfig")
@@ -29,6 +48,7 @@ if lsp_ok then
     lspconfig.ts_ls.setup({})
     lspconfig.jsonls.setup({})
     lspconfig.yamlls.setup({})
+    lspconfig.helm_ls.setup(helm_config)
     lspconfig.bashls.setup({})
     lspconfig.terraformls.setup({})
   end
@@ -114,6 +134,9 @@ if conform_ok then
       typescriptreact = { "prettier" },
       json = { "prettier" },
       yaml = { "prettier" },
+      ["yaml.helm-values"] = { "prettier" },
+      -- Helm templates are not valid YAML; do not send them to Prettier.
+      helm = {},
       terraform = { "terraform_fmt" },
       hcl = { "terraform_fmt" },
       sh = { "shfmt" },

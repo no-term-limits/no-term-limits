@@ -294,6 +294,8 @@ function ensure_global_editor_cli_tools_installed() {
   mise use --global npm:pyright
   mise use --global pipx@latest
   mise use --global npm:prettier
+  # Helm template diagnostics/completion (Helm itself is installed by onboarding).
+  mise use --global helm-ls@latest
 
   # Ruff and uv publish standalone binaries. Avoid routing them through pipx,
   # which depends on the host Python/pip and fails on some older distributions.

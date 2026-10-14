@@ -58,13 +58,38 @@ return {
 
 You can still browse themes at runtime with `<leader>ut`.
 
-## Plugins (16)
+## Helm Charts
+
+Run `vpm i` to install `vim-helm` for template detection and syntax highlighting.
+`setup/provision_no_term_limits` installs [helm-ls](https://github.com/mrjosh/helm-ls)
+via mise. For an existing setup, run `mise use --global helm-ls@latest`.
+Onboarding's `bin/install_sartography` installs `helm` and `yaml-language-server`.
+If not using onboarding, install Helm separately and run
+`npm install -g yaml-language-server` for embedded YAML validation.
+Ensure `helm_ls`, `helm`, and `yaml-language-server` are on `$PATH`, then restart Neovim.
+
+- Chart `templates/` files (`.yaml`, `.yml`, `.tpl`, `.txt`) use the `helm` filetype
+  when the chart root contains `Chart.yaml`; `.gotmpl` files are also supported.
+- Helm LSP provides completion and diagnostics, including live YAML validation
+  and Kubernetes schema checks for templates; `:FileTooling` shows attachment.
+  Highlighting alone does not provide diagnostics. If none appear, run
+  `:lua print(vim.fn.executable('helm_ls'), vim.fn.executable('yaml-language-server'), vim.fn.executable('helm'))`
+  (all should print `1`), then check `:set filetype?` reports `helm` and
+  `:checkhealth vim.lsp` shows `helm_ls` attached. Schema checks require the
+  Kubernetes schema to be available; custom resources need their own schema.
+- `Chart.yaml` and values files retain YAML formatting. The plugin's optional
+  `yaml.helm-values` filetype is also supported by Helm LSP and Prettier.
+  Templates intentionally skip Prettier to avoid parsing Go template
+  expressions as YAML.
+
+## Plugins (17)
 
 Pinned in `plugins.json`. Update with `vpm u`.
 
 | Plugin | Purpose |
 |--------|---------|
 | nvim-lspconfig | LSP server configs |
+| vim-helm | Helm template detection and syntax highlighting |
 | nvim-treesitter | Syntax parsing |
 | blink.cmp | Completion menu |
 | catppuccin | Soft modern colorscheme |
