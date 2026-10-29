@@ -7,9 +7,9 @@ function error_handler() {
 trap 'error_handler ${LINENO} $?' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: popular: shortcut for "git push" while ensuring it pushes to origin with the correct branch
+# HELP: git: popular: shortcut for "git push" using remote.pushDefault, then the upstream remote or origin
 
-git_remote="$(git_remote)"
+git_remote="$(git_remote "$(git config --get remote.pushDefault || true)")"
 branchname=$(git_branch)
 echo "git push $git_remote $branchname"
 git push $git_remote $branchname $@
