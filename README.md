@@ -80,7 +80,7 @@ Common shortcuts:
     Commands in /Users/burnettk/projects/github/no-term-limits/bin:
 
     dssh ................... docker: popular: "ssh" into a running docker container
-    gc ..................... git: popular: runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
+    gc ..................... git: popular: fetches the push destination and stops before staging or committing if remote commits are missing locally, then runs git add, git commit, and gpush. see also gcu and gcd. If paired users are connected through wemux it will add them to the commit message as collaborators as well. Add get_pair_users_for_git_commit_message command that prints out space separated list of users to customize the paired user list.
     git_copy_last_commit ... git: popular: finds last commit and copies to clipboard
     git_open_last_commit ... git: popular: finds last commit hash in log and takes you to that page in a browser
     gitc ................... git: popular: reset local repo or a given directory, removing all local changes
