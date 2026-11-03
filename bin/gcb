@@ -1,18 +1,89 @@
 #!/usr/bin/env bash
 
+# Invoked indirectly by the ERR trap.
+# shellcheck disable=SC2317
 function error_handler() {
-  >&2 echo "Exited with BAD EXIT CODE '${2}' in ${0} script at line: ${1}."
-  exit "$2"
+  echo >&2 "Exited with BAD EXIT CODE '${3}' in file '${1}' at line ${2}."
+  exit "$3"
 }
-trap 'error_handler ${LINENO} $?' ERR
+trap 'error_handler "${BASH_SOURCE[0]}" "${LINENO}" "$?"' ERR
 set -o errtrace -o errexit -o nounset -o pipefail
 
-# HELP: git: git checkout an existing feature branch
+# HELP: git: check out a local branch or create a tracking branch from any remote
 
-if [[ "$1" == "auto_complete_commands" ]]; then
-  git-branch-names "$1" | awk -F '/' '{print $NF}'
-  exit
-fi
+function complete_branches() {
+  git-branch-names auto_complete_commands | awk -F '/' '{print $NF}' | sort -u
+}
 
-branch_name=$(git-branch-names "$1" | head -n1)
-git -c checkout.defaultRemote=origin checkout "$branch_name"
+function checkout_unique_match() {
+  local kind="$1" requested="$2" hint='remote/branch'
+  shift 2
+  [[ $# -gt 0 ]] || return 0
+
+  if [[ $# -eq 1 ]]; then
+    if [[ "$kind" == local ]]; then
+      exec git checkout "$1"
+    else
+      # Git infers the local branch name from the remote's fetch refspec.
+      exec git checkout --track "refs/remotes/$1"
+    fi
+  fi
+
+  if [[ "$kind" == local ]]; then
+    hint='the full branch name'
+  fi
+  echo >&2 "ERROR: Multiple $kind branches match '$requested'; specify $hint:"
+  printf '  %s\n' "$@" >&2
+  exit 1
+}
+
+function checkout_branch() {
+  local requested="$1" branch symbolic_target local_branches remote_branches
+  local local_matches=() remote_matches=()
+
+  # Never turn an existing local branch into a remote-tracking checkout.
+  if git show-ref --verify --quiet "refs/heads/$requested"; then
+    exec git checkout "$requested"
+  fi
+
+  local_branches=$(git for-each-ref --format='%(refname:strip=2)' refs/heads/)
+  while IFS= read -r branch; do
+    if [[ -n "$branch" && "$branch" == */"$requested" ]]; then
+      local_matches+=("$branch")
+    fi
+  done <<< "$local_branches"
+
+  remote_branches=$(git for-each-ref --format='%(refname:strip=2) %(symref)' refs/remotes/)
+  while read -r branch symbolic_target; do
+    # Ignore symbolic remote HEAD refs, which are not branches to track.
+    [[ -n "$branch" && -z "$symbolic_target" ]] || continue
+    if [[ "$branch" == "$requested" ]]; then
+      # An explicit remote/branch disambiguates even when other remotes match.
+      exec git checkout --track "refs/remotes/$branch"
+    elif [[ "$branch" == */"$requested" ]]; then
+      remote_matches+=("$branch")
+    fi
+  done <<< "$remote_branches"
+
+  checkout_unique_match local "$requested" "${local_matches[@]}"
+  checkout_unique_match remote "$requested" "${remote_matches[@]}"
+  echo >&2 "ERROR: Could not find a branch matching name: $requested"
+  exit 1
+}
+
+function main() {
+  if [[ $# -ne 1 || -z "${1:-}" ]]; then
+    echo >&2 "usage: $(basename "$0") <branch|remote/branch>"
+    exit 1
+  fi
+
+  if [[ "$1" == auto_complete_commands ]]; then
+    complete_branches
+    return
+  fi
+
+  git rev-parse --git-dir >/dev/null
+  checkout_branch "$1"
+}
+
+main "$@"
