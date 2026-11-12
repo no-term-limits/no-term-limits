@@ -11,6 +11,16 @@ if [[ -z "${2:-}" ]] && grep -qE ':[0-9]+(:|$)' <<<"${1:-}"; then
   set -- "$(awk -F ':' '{print $1}' <<<"${1:-}")"
 fi
 
+# If single arg and file doesn't exist, try dropping trailing punctuation picked up
+# when copying a path out of a sentence, e.g. "v docs/foo.md." or "v docs/foo.md),"
+trailing_punctuation_re=$'[].,;:)"`\']+$'
+if [[ -n "${1:-}" ]] && [[ -z "${2:-}" ]] && [[ ! -e "${1:-}" ]] && [[ "$1" =~ $trailing_punctuation_re ]]; then
+  trimmed_path="${1%"${BASH_REMATCH[0]}"}"
+  if [[ -n "$trimmed_path" ]] && [[ -e "$trimmed_path" ]]; then
+    set -- "$trimmed_path"
+  fi
+fi
+
 # If single arg and file doesn't exist, try stripping current dirname prefix
 # so let's say you run v api/hot.py and you are in the api dir already. it'll just open hey.py, stripping api/
 # cute for monorepos.
