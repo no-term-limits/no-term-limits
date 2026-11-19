@@ -19,9 +19,7 @@ if [[ "${1:-}" == "--trash-old-sessions" ]]; then
 fi
 
 args=""
-if [[ "${1:-}" == "--new" ]]; then
-  shift
-else
+if [[ $# -eq 0 ]]; then
   args=" -l ${HOME}/.config/zellij/layouts/custom_layout.kdl attach --create pair"
 fi
 
